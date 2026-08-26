@@ -3,125 +3,42 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#000">
+<meta name="theme-color" content="#080808">
 <title>Elma v3</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#080808;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif}button,input{font:inherit}.app{max-width:520px;margin:auto;min-height:100vh;padding:calc(18px + env(safe-area-inset-top)) 16px 100px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.logo{font-size:40px;font-weight:700;letter-spacing:-3px;color:#c7c9cd}.profile{width:40px;height:40px;border-radius:50%;border:1px solid #333;background:#181818;color:#ddd}.hero{background:#141414;border:1px solid #292929;border-radius:26px;padding:18px}.hero h2{font-size:27px;margin:4px 0 14px}.transport{display:flex;gap:10px;margin:0 0 14px}.mode{height:52px;border-radius:16px;border:1px solid #343434;background:#1b1b1b;color:#fff;padding:0 15px;display:flex;align-items:center;gap:10px;font-weight:800}.mode.active{background:#f0f0f2;color:#090909;border-color:#f0f0f2}.mode.disabled{opacity:.45}.mode svg{width:27px;height:27px;display:block}.mode small{font-size:10px;font-weight:700;opacity:.55;margin-left:1px}.routefield{width:100%;display:flex;align-items:center;gap:12px;background:#202020;border:1px solid #303030;border-radius:16px;padding:13px;margin:9px 0;color:#fff;text-align:left}.dot{width:10px;height:10px;border-radius:50%;background:#ddd;box-shadow:0 0 0 4px #333;flex:0 0 auto}.dot.live{background:#35d58a}.routefield small{display:block;color:#888;font-size:11px}.routefield input{width:100%;border:0;outline:0;background:transparent;color:#fff;font-size:16px}.locstatus{font-size:11px;color:#8c8f95;margin-top:2px}.dest-wrap{position:relative}.suggestions{display:none;position:absolute;z-index:20;left:0;right:0;top:calc(100% - 3px);background:#171717;border:1px solid #303030;border-radius:16px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.45)}.suggestions.show{display:block}.suggestion{width:100%;border:0;border-bottom:1px solid #262626;background:#171717;color:#fff;text-align:left;padding:13px 14px;display:flex;gap:10px;align-items:flex-start}.suggestion:last-child{border-bottom:0}.suggestion:active{background:#222}.pin{width:28px;height:28px;border-radius:50%;background:#252525;display:flex;align-items:center;justify-content:center;flex:0 0 auto}.s-main{font-size:14px;font-weight:750}.s-sub{font-size:11px;color:#85888e;margin-top:2px;line-height:1.25}.cta{width:100%;border:0;border-radius:16px;padding:15px;margin-top:8px;background:#d7d8da;color:#090909;font-weight:800}.mapwrap{height:350px;border-radius:26px;overflow:hidden;position:relative;border:1px solid #292929;margin-top:16px;background:#111}.mapwrap iframe{position:absolute;left:0;top:-48px;width:100%;height:calc(100% + 96px);border:0}
+*{box-sizing:border-box}body{margin:0;background:#080808;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif}button,input{font:inherit}.app{max-width:520px;margin:auto;min-height:100vh;padding:calc(18px + env(safe-area-inset-top)) 16px 80px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.logo{font-size:40px;font-weight:700;letter-spacing:-3px;color:#c7c9cd}.profile{width:40px;height:40px;border-radius:50%;border:1px solid #333;background:#181818;color:#ddd}.hero{background:#141414;border:1px solid #292929;border-radius:26px;padding:18px}.hero h2{font-size:27px;margin:4px 0 16px;letter-spacing:-.7px}.transport{display:flex;gap:9px;margin:0 0 13px}.mode{height:50px;border-radius:15px;border:1px solid #343434;background:#1b1b1b;color:#fff;padding:0 14px;display:flex;align-items:center;gap:9px;font-weight:800}.mode.active{background:#f0f0f2;color:#090909;border-color:#f0f0f2}.mode.disabled{opacity:.45}.mode svg{width:25px;height:25px;display:block}.mode small{font-size:9px;font-weight:700;opacity:.55}.routefield{width:100%;display:flex;align-items:center;gap:11px;background:#202020;border:1px solid #303030;border-radius:15px;padding:12px;margin:8px 0;color:#fff;text-align:left}.dot{width:9px;height:9px;border-radius:50%;background:#ddd;box-shadow:0 0 0 4px #333;flex:0 0 auto}.dot.live{background:#35d58a}.routefield small{display:block;color:#888;font-size:10px;margin-bottom:2px}.routefield input{width:100%;border:0;outline:0;background:transparent;color:#fff;font-size:16px}.dest-wrap{position:relative}.suggestions{display:none;position:absolute;z-index:30;left:0;right:0;top:calc(100% - 2px);background:#171717;border:1px solid #303030;border-radius:15px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.55)}.suggestions.show{display:block}.suggestion{width:100%;border:0;border-bottom:1px solid #282828;background:#171717;color:#fff;text-align:left;padding:12px 13px;display:flex;gap:10px;align-items:center}.suggestion:last-child{border-bottom:0}.suggestion:active{background:#222}.pin{width:28px;height:28px;border-radius:50%;background:#252525;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:15px}.s-main{font-size:14px;font-weight:750}.s-sub{font-size:10px;color:#85888e;margin-top:2px;line-height:1.25}.cta{width:100%;border:0;border-radius:15px;padding:15px;margin-top:7px;background:#d7d8da;color:#090909;font-weight:800}.mapwrap{height:350px;border-radius:26px;overflow:hidden;position:relative;border:1px solid #292929;margin-top:15px;background:#111}.mapwrap iframe{position:absolute;left:0;top:-48px;width:100%;height:calc(100% + 96px);border:0}
 </style>
 </head>
 <body>
 <main class="app">
-  <div class="top"><div class="logo">elma</div><button class="profile">●</button></div>
-  <div class="hero">
-    <h2>Nereye gidiyorsun?</h2>
-    <div class="transport">
-      <button class="mode active" aria-pressed="true">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M8 3.5h16c2.2 0 4 1.8 4 4V23c0 1.7-1.3 3-3 3v2.5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V26H11v2.5a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V26c-1.7 0-3-1.3-3-3V7.5c0-2.2 1.8-4 4-4Zm1 4a1 1 0 0 0-1 1V15h16V8.5a1 1 0 0 0-1-1H9Zm1 11a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>
-        <span>Otobüs</span>
-      </button>
-      <button class="mode disabled" disabled>
-        <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M8.1 9.5 10 5.8A3 3 0 0 1 12.7 4h6.6A3 3 0 0 1 22 5.8l1.9 3.7 2.6 1.3A3 3 0 0 1 28 13.5V23a2 2 0 0 1-2 2h-1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2H11v2a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-2H6a2 2 0 0 1-2-2v-9.5a3 3 0 0 1 1.5-2.7l2.6-1.3ZM11 10h10l-1.3-2.6a1 1 0 0 0-.9-.6h-5.6a1 1 0 0 0-.9.6L11 10Zm-2 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm14 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>
-        <span>Taksi <small>Yakında</small></span>
-      </button>
-    </div>
-
-    <button class="routefield" onclick="requestLocation()">
-      <div id="locDot" class="dot"></div>
-      <div><small>Nereden</small><div id="locValue">Konumum</div><div id="locStatus" class="locstatus">Konumu kullan</div></div>
-    </button>
-
-    <div class="dest-wrap">
-      <div class="routefield">
-        <div class="dot"></div>
-        <div style="flex:1"><small>Nereye</small><input id="destinationInput" placeholder="Bir yer ara" autocomplete="off"></div>
-      </div>
-      <div id="suggestions" class="suggestions"></div>
-    </div>
-    <button id="routeBtn" class="cta" onclick="showRoute()">Rota bul →</button>
-  </div>
-
-  <div class="mapwrap"><iframe id="mapFrame" src="https://www.google.com/maps?q=Amasya%20Merkez&z=14&output=embed"></iframe></div>
+<div class="top"><div class="logo">elma</div><button class="profile">●</button></div>
+<div class="hero">
+<h2>Nereye gidiyorsun?</h2>
+<div class="transport">
+<button class="mode active" aria-pressed="true"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M8 3.5h16c2.2 0 4 1.8 4 4V23c0 1.7-1.3 3-3 3v2.5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V26H11v2.5a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V26c-1.7 0-3-1.3-3-3V7.5c0-2.2 1.8-4 4-4Zm1 4a1 1 0 0 0-1 1V15h16V8.5a1 1 0 0 0-1-1H9Zm1 11a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg><span>Otobüs</span></button>
+<button class="mode disabled" disabled><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M8.1 9.5 10 5.8A3 3 0 0 1 12.7 4h6.6A3 3 0 0 1 22 5.8l1.9 3.7 2.6 1.3A3 3 0 0 1 28 13.5V23a2 2 0 0 1-2 2h-1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2H11v2a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-2H6a2 2 0 0 1-2-2v-9.5a3 3 0 0 1 1.5-2.7l2.6-1.3ZM11 10h10l-1.3-2.6a1 1 0 0 0-.9-.6h-5.6a1 1 0 0 0-.9.6L11 10Zm-2 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm14 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg><span>Taksi <small>Yakında</small></span></button>
+</div>
+<button class="routefield" onclick="requestLocation()"><div id="locDot" class="dot"></div><div><small>Nereden</small><div id="locValue">Konumum</div></div></button>
+<div class="dest-wrap"><div class="routefield"><div class="dot"></div><div style="flex:1"><small>Nereye</small><input id="destinationInput" placeholder="Bir yer ara" autocomplete="off"></div></div><div id="suggestions" class="suggestions"></div></div>
+<button class="cta" onclick="showRoute()">Rota bul →</button>
+</div>
+<div class="mapwrap"><iframe id="mapFrame" src="https://www.google.com/maps?q=Amasya%20Merkez&z=14&output=embed"></iframe></div>
 </main>
 <script>
-let watchId=null;
-let currentLat=null;
-let currentLng=null;
-let selectedDestination=null;
-let suggestTimer=null;
-let suggestAbort=null;
+let watchId=null,currentLat=null,currentLng=null,selectedDestination=null,suggestTimer=null,suggestAbort=null;
 const $=id=>document.getElementById(id);
-
-function requestLocation(){
-  if(!navigator.geolocation){$('locStatus').textContent='Konum desteklenmiyor';return;}
-  $('locStatus').textContent='Konum alınıyor…';
-  navigator.geolocation.getCurrentPosition(
-    p=>{updateLocation(p);if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=navigator.geolocation.watchPosition(updateLocation,()=>{}, {enableHighAccuracy:false,maximumAge:30000,timeout:20000});},
-    ()=>navigator.geolocation.getCurrentPosition(updateLocation,()=>{$('locStatus').textContent='Konum alınamadı';},{enableHighAccuracy:false,maximumAge:120000,timeout:20000}),
-    {enableHighAccuracy:true,maximumAge:30000,timeout:12000}
-  );
-}
-function updateLocation(p){
-  currentLat=p.coords.latitude;currentLng=p.coords.longitude;
-  $('locDot').classList.add('live');$('locValue').textContent='Canlı konumum';$('locStatus').textContent='Hazır';
-  if(!selectedDestination)$('mapFrame').src='https://www.google.com/maps?q='+currentLat+','+currentLng+'&z=17&output=embed';
-}
-
+function requestLocation(){if(!navigator.geolocation){return} $('locValue').textContent='Konum alınıyor…';navigator.geolocation.getCurrentPosition(p=>{updateLocation(p);if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=navigator.geolocation.watchPosition(updateLocation,()=>{},{enableHighAccuracy:false,maximumAge:30000,timeout:20000})},()=>{$('locValue').textContent='Konum alınamadı'}, {enableHighAccuracy:true,maximumAge:30000,timeout:12000})}
+function updateLocation(p){currentLat=p.coords.latitude;currentLng=p.coords.longitude;$('locDot').classList.add('live');$('locValue').textContent='Canlı konumum';if(!selectedDestination)$('mapFrame').src='https://www.google.com/maps?q='+currentLat+','+currentLng+'&z=17&output=embed'}
 const input=$('destinationInput');
-input.addEventListener('input',()=>{
-  selectedDestination=null;
-  clearTimeout(suggestTimer);
-  const q=input.value.trim();
-  if(q.length<2){hideSuggestions();return;}
-  suggestTimer=setTimeout(()=>loadSuggestions(q),260);
-});
-input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();showRoute();}});
-document.addEventListener('click',e=>{if(!e.target.closest('.dest-wrap'))hideSuggestions();});
-
-async function loadSuggestions(q){
-  if(suggestAbort)suggestAbort.abort();
-  suggestAbort=new AbortController();
-  try{
-    const url='https://photon.komoot.io/api/?q='+encodeURIComponent(q+', Amasya')+'&lat=40.65&lon=35.83&limit=6&lang=tr&bbox=35.3,40.2,36.4,41.2';
-    const r=await fetch(url,{signal:suggestAbort.signal});
-    const data=await r.json();
-    const items=(data.features||[]).filter(f=>f.geometry&&f.geometry.coordinates).slice(0,5);
-    renderSuggestions(items);
-  }catch(e){if(e.name!=='AbortError')hideSuggestions();}
-}
-
-function renderSuggestions(items){
-  const box=$('suggestions');
-  if(!items.length){hideSuggestions();return;}
-  box.innerHTML='';
-  items.forEach(f=>{
-    const p=f.properties||{};const c=f.geometry.coordinates;
-    const name=p.name||p.street||p.city||'Konum';
-    const sub=[p.street,p.district,p.city,p.state].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(' • ');
-    const b=document.createElement('button');b.className='suggestion';
-    b.innerHTML='<span class="pin">⌖</span><span><div class="s-main">'+escapeHtml(name)+'</div><div class="s-sub">'+escapeHtml(sub||'Amasya')+'</div></span>';
-    b.onclick=()=>selectSuggestion(name,sub,c[1],c[0]);
-    box.appendChild(b);
-  });
-  box.classList.add('show');
-}
-function selectSuggestion(name,sub,lat,lng){
-  input.value=name;selectedDestination={name,sub,lat,lng};hideSuggestions();
-  $('mapFrame').src='https://www.google.com/maps?q='+lat+','+lng+'&z=16&output=embed';
-}
-function hideSuggestions(){$('suggestions').classList.remove('show');}
-
-function showRoute(){
-  const raw=input.value.trim();
-  if(!raw){input.focus();return;}
-  hideSuggestions();
-  const dest=selectedDestination ? (selectedDestination.lat+','+selectedDestination.lng) : encodeURIComponent(raw+', Amasya, Türkiye');
-  if(currentLat!==null&&currentLng!==null){
-    $('mapFrame').src='https://www.google.com/maps?saddr='+currentLat+','+currentLng+'&daddr='+dest+'&dirflg=d&output=embed';
-  }else{
-    $('mapFrame').src='https://www.google.com/maps?q='+dest+'&z=16&output=embed';
-  }
-}
-function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+input.addEventListener('input',()=>{selectedDestination=null;clearTimeout(suggestTimer);const q=input.value.trim();if(q.length<2){hideSuggestions();return}suggestTimer=setTimeout(()=>loadSuggestions(q),220)});
+input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();showRoute()}});
+document.addEventListener('click',e=>{if(!e.target.closest('.dest-wrap'))hideSuggestions()});
+async function loadSuggestions(q){if(suggestAbort)suggestAbort.abort();suggestAbort=new AbortController();try{const url='https://photon.komoot.io/api/?q='+encodeURIComponent(q+', Amasya')+'&lat=40.65&lon=35.83&limit=6&lang=tr&bbox=35.3,40.2,36.4,41.2';const r=await fetch(url,{signal:suggestAbort.signal});const data=await r.json();renderSuggestions((data.features||[]).slice(0,5))}catch(e){if(e.name!=='AbortError')hideSuggestions()}}
+function renderSuggestions(items){const box=$('suggestions');if(!items.length){hideSuggestions();return}box.innerHTML='';items.forEach(f=>{const p=f.properties||{},c=f.geometry.coordinates,name=p.name||p.street||p.city||'Konum',sub=[p.street,p.district,p.city,p.state].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(' • '),b=document.createElement('button');b.className='suggestion';b.innerHTML='<span class="pin">⌖</span><span><div class="s-main">'+escapeHtml(name)+'</div><div class="s-sub">'+escapeHtml(sub||'Amasya')+'</div></span>';b.onclick=()=>selectSuggestion(name,sub,c[1],c[0]);box.appendChild(b)});box.classList.add('show')}
+function selectSuggestion(name,sub,lat,lng){input.value=name;selectedDestination={name,sub,lat,lng};hideSuggestions();$('mapFrame').src='https://www.google.com/maps?q='+lat+','+lng+'&z=16&output=embed'}
+function hideSuggestions(){$('suggestions').classList.remove('show')}
+function showRoute(){const raw=input.value.trim();if(!raw){input.focus();return}hideSuggestions();const dest=selectedDestination?(selectedDestination.lat+','+selectedDestination.lng):encodeURIComponent(raw+', Amasya, Türkiye');if(currentLat!==null&&currentLng!==null)$('mapFrame').src='https://www.google.com/maps?saddr='+currentLat+','+currentLng+'&daddr='+dest+'&dirflg=d&output=embed';else $('mapFrame').src='https://www.google.com/maps?q='+dest+'&z=16&output=embed'}
+function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 window.requestLocation=requestLocation;window.showRoute=showRoute;
 </script>
 </body>
