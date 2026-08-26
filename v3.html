@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000">
+<title>Elma v3</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080808;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif}button,input{font:inherit}.app{max-width:520px;margin:auto;min-height:100vh;padding:calc(18px + env(safe-area-inset-top)) 16px 100px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.logo{font-size:40px;font-weight:700;letter-spacing:-3px;color:#c7c9cd}.profile{width:40px;height:40px;border-radius:50%;border:1px solid #333;background:#181818;color:#ddd}.hero{background:#141414;border:1px solid #292929;border-radius:26px;padding:18px}.hero h2{font-size:27px;margin:4px 0 14px}.transport{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 16px}.transport-card{position:relative;min-height:92px;border:1px solid #343434;border-radius:20px;background:#1b1b1b;color:#fff;padding:14px;text-align:left;overflow:hidden}.transport-card.active{background:#f1f1f3;color:#090909;border-color:#f1f1f3}.transport-card.disabled{opacity:.5}.transport-title{font-size:16px;font-weight:800}.transport-sub{font-size:11px;display:block;margin-top:4px;opacity:.65}.transport-icon{position:absolute;right:12px;top:12px;font-size:34px}.soon{position:absolute;right:10px;bottom:10px;font-size:9px;font-weight:800;background:#292929;color:#aaa;padding:5px 7px;border-radius:999px}.routefield{width:100%;display:flex;align-items:center;gap:12px;background:#202020;border:1px solid #303030;border-radius:16px;padding:13px;margin:9px 0;color:#fff;text-align:left}.dot{width:10px;height:10px;border-radius:50%;background:#ddd;box-shadow:0 0 0 4px #333;flex:0 0 auto}.dot.live{background:#35d58a}.routefield small{display:block;color:#888;font-size:11px}.routefield input{width:100%;border:0;outline:0;background:transparent;color:#fff;font-size:16px}.locstatus{font-size:11px;color:#8c8f95;margin-top:2px}.cta{width:100%;border:0;border-radius:16px;padding:15px;margin-top:8px;background:#d7d8da;color:#090909;font-weight:800}.hint{font-size:11px;color:#767a81;margin:8px 3px 0}.mapwrap{height:330px;border-radius:26px;overflow:hidden;position:relative;border:1px solid #292929;margin-top:16px;background:#111}.mapwrap iframe{position:absolute;left:0;top:-48px;width:100%;height:calc(100% + 96px);border:0}.statusbox{margin-top:12px;padding:12px 14px;border-radius:16px;background:#151515;border:1px solid #292929;font-size:13px;color:#b8bbc1}.statusbox strong{color:#fff}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="top"><div class="logo">elma</div><button class="profile">●</button></div>
+  <div class="hero">
+    <h2>Nereye gidiyorsun?</h2>
+    <div class="transport">
+      <button class="transport-card active"><span class="transport-title">Otobüs</span><span class="transport-sub">Şimdi kullan</span><span class="transport-icon">🚌</span></button>
+      <button class="transport-card disabled" disabled><span class="transport-title">Taksi</span><span class="transport-sub">Çok yakında</span><span class="transport-icon">🚕</span><span class="soon">Yakında</span></button>
+    </div>
+
+    <button class="routefield" onclick="requestLocation()">
+      <div id="locDot" class="dot"></div>
+      <div><small>Nereden</small><div id="locValue">Konumum</div><div id="locStatus" class="locstatus">Canlı konumu almak için dokun</div></div>
+    </button>
+
+    <div class="routefield">
+      <div class="dot"></div>
+      <div style="flex:1"><small>Nereye</small><input id="destinationInput" placeholder="Anıt Meydanı, hastane, okul..." autocomplete="off"></div>
+    </div>
+    <button id="routeBtn" class="cta" onclick="searchDestination()">Hedefi haritada bul →</button>
+    <div class="hint">Aramalar Amasya ile sınırlandırılır. Örn: “Anıt Meydanı”.</div>
+  </div>
+
+  <div id="statusBox" class="statusbox">Önce canlı konumunu al, sonra Amasya içindeki hedefi ara.</div>
+  <div class="mapwrap"><iframe id="mapFrame" src="https://www.google.com/maps?q=Amasya%20Merkez&z=14&output=embed"></iframe></div>
+</main>
+<script>
+let watchId=null;
+let currentLat=null;
+let currentLng=null;
+let selectedDestination='';
+
+const $=id=>document.getElementById(id);
+
+function locationError(err){
+  const s=$('locStatus');
+  if(err && err.code===1){s.textContent='Konum izni kapalı. Safari ayarlarından izin ver.';}
+  else if(err && err.code===2){s.textContent='Konum sinyali bulunamadı. Tekrar dokun.';}
+  else if(err && err.code===3){s.textContent='Konum zaman aşımına uğradı. Tekrar dokun.';}
+  else{s.textContent='Konum alınamadı. Tekrar dokun.';}
+  $('statusBox').textContent=s.textContent;
+}
+
+function requestLocation(){
+  if(!navigator.geolocation){locationError();return;}
+  $('locStatus').textContent='Konum alınıyor…';
+  navigator.geolocation.getCurrentPosition(
+    p=>{
+      updateLocation(p);
+      if(watchId!==null) navigator.geolocation.clearWatch(watchId);
+      watchId=navigator.geolocation.watchPosition(updateLocation,()=>{}, {enableHighAccuracy:false,maximumAge:30000,timeout:20000});
+    },
+    err=>{
+      navigator.geolocation.getCurrentPosition(updateLocation,locationError,{enableHighAccuracy:false,maximumAge:120000,timeout:20000});
+    },
+    {enableHighAccuracy:true,maximumAge:30000,timeout:12000}
+  );
+}
+
+function updateLocation(p){
+  currentLat=p.coords.latitude;
+  currentLng=p.coords.longitude;
+  $('locDot').classList.add('live');
+  $('locValue').textContent='Canlı konumum';
+  $('locStatus').textContent='Aktif • yaklaşık '+Math.round(p.coords.accuracy)+' m doğruluk';
+  $('statusBox').innerHTML='<strong>Canlı konum hazır.</strong> Şimdi hedefini yazabilirsin.';
+  if(!selectedDestination){
+    $('mapFrame').src='https://www.google.com/maps?q='+currentLat+','+currentLng+'&z=17&output=embed';
+  }
+}
+
+function searchDestination(){
+  const raw=$('destinationInput').value.trim();
+  if(!raw){$('statusBox').textContent='Önce gitmek istediğin yeri yaz.';$('destinationInput').focus();return;}
+  selectedDestination=raw;
+  const query=encodeURIComponent(raw+', Amasya, Türkiye');
+  $('mapFrame').src='https://www.google.com/maps?q='+query+'&z=16&output=embed';
+  $('statusBox').innerHTML='<strong>Hedef:</strong> '+escapeHtml(raw)+' • Amasya';
+}
+
+$('destinationInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchDestination();}});
+
+function escapeHtml(s){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+
+window.requestLocation=requestLocation;
+window.searchDestination=searchDestination;
+</script>
+</body>
+</html>
