@@ -35,7 +35,7 @@
 <main class="app"><div class="top"><div class="logo">elma</div><button class="profile">●</button></div><div class="hero"><h2>Nereye gidiyorsun?</h2><button class="routefield" style="width:100%;text-align:left;color:white" onclick="requestLocation()"><div id="locDot" class="dot"></div><div><small>Nereden</small><div id="locValue">Konumum</div><div id="locStatus" class="locstatus">Canlı konumu kullanmak için dokun</div></div></button><div class="routefield"><div class="dot"></div><div style="flex:1"><small>Nereye</small><input placeholder="Durak veya yer ara"></div></div><button class="cta">Rota bul →</button></div><div class="mapwrap"><iframe id="mapFrame" src="https://www.google.com/maps?q=Amasya%20Merkez&z=14&output=embed"></iframe><div class="cover topc"></div><div class="cover botc"></div></div></main>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 const firebaseConfig={apiKey:"AIzaSyBWic36WVTPG5oWUtSCJ-6MWrKWbO_w9aQ",authDomain:"elma-bd38c.firebaseapp.com",projectId:"elma-bd38c",storageBucket:"elma-bd38c.firebasestorage.app",messagingSenderId:"675060354080",appId:"1:675060354080:web:cef2e0c3145440e2d40045"};
 const app=initializeApp(firebaseConfig);
@@ -90,12 +90,14 @@ async function googleLogin(){
  const provider=new GoogleAuthProvider();
  provider.setCustomParameters({prompt:'select_account'});
  try{
-   await signInWithPopup(auth,provider);
-   $('login').classList.add('hide');
+   await signOut(auth);
+   const result=await signInWithPopup(auth,provider);
+   if(result?.user){$('login').classList.add('hide');}
  }catch(error){
    console.error(error);
    const c=error?.code||'';
    if(c.includes('popup-blocked')||c.includes('operation-not-supported-in-this-environment')){
+     await signOut(auth);
      await signInWithRedirect(auth,provider);
      return;
    }
