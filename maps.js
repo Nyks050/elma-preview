@@ -1,1 +1,1 @@
-(()=>{let s=document.createElement('script');s.src='maps-core.js?v=20260830-balancednav';s.defer=true;document.head.appendChild(s)})();
+(()=>{let s=document.createElement('script');s.src='maps-core.js?v=20260830-embeddednav';s.defer=true;document.head.appendChild(s)})();
