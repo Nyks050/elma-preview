@@ -1,1 +1,1 @@
-(()=>{let s=document.createElement('script');s.src='maps-core.js?v=20260830-ink-labels';s.defer=true;document.head.appendChild(s)})();
+(()=>{let s=document.createElement('script');s.src='maps-core.js?v=20260830-leaflet-fullscreen-labels';s.defer=true;document.head.appendChild(s)})();
