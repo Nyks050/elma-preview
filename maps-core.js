@@ -166,7 +166,7 @@
 
 (()=>{
   const widgets=document.createElement('script');
-  widgets.src='home-widgets.js?v=20260830-white-only';
+  widgets.src='home-widgets.js?v=20260830-auth-location';
   widgets.defer=true;
   document.head.appendChild(widgets);
   const line=document.createElement('script');
