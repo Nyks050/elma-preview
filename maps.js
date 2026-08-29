@@ -1,1 +1,1 @@
-(()=>{let s=document.createElement('script');s.src='maps-core.js?v=20260830-ubernav';s.defer=true;document.head.appendChild(s)})();
+(()=>{let s=document.createElement('script');s.src='maps-core.js?v=20260830-routes';s.defer=true;document.head.appendChild(s)})();
