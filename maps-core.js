@@ -214,9 +214,4 @@
   pharmacy.defer=true;
   pharmacy.dataset.elmaPharmacyService='1';
   document.head.appendChild(pharmacy);
-  const iconSkin=document.createElement('script');
-  iconSkin.src='icon-skin-3d.js?v=20260830-svg-nav';
-  iconSkin.defer=true;
-  iconSkin.dataset.elma3dIconSkin='1';
-  document.head.appendChild(iconSkin);
 })();
