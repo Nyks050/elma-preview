@@ -35,7 +35,7 @@
   }
 
   function flyTo(point,zoom=16){
-    map.flyTo([point.lat,point.lon],zoom,{duration:.55});
+    map.setView([point.lat,point.lon],zoom,{animate:false});
   }
 
   function mode(next){
@@ -61,7 +61,7 @@
     document.querySelector('.top')?.setAttribute('style','display:none!important');
     const style=document.createElement('style');
     style.id='elmaFullscreenMapStyle';
-    style.textContent=`html,body,.app{margin:0!important;width:100%!important;min-height:100%!important;max-width:none!important}.app{padding:0!important}.mapwrap{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;min-height:100vh!important;margin:0!important;border:0!important;border-radius:0!important;background:#f7f7f8!important;overflow:hidden!important}.mapwrap #map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;background:#f7f7f8!important}.leaflet-container{background:#f7f7f8!important;font-family:"Inter","Helvetica Neue",Arial,sans-serif}.leaflet-control-zoom{display:none}.leaflet-bottom{bottom:calc(82px + env(safe-area-inset-bottom))}.leaflet-control-attribution{border-radius:8px 0 0 0!important;background:#ffffffe8!important;color:#444!important;font-size:9px!important;padding:2px 5px!important}.leaflet-control-attribution a{color:#09090a!important}.leaflet-tile-pane img{filter:grayscale(1) contrast(1.35) brightness(1.08)}.elma-sheet{position:absolute;z-index:811;left:8px;right:8px;bottom:calc(92px + env(safe-area-inset-bottom));border:1px solid #d4d4d8;border-radius:25px;background:#fffffff7;padding:9px 12px 13px;box-shadow:0 18px 55px #7775}.elma-sheet.dismissed{transform:translateY(calc(100% + 150px));opacity:0;pointer-events:none}.elma-grab{width:72px;height:22px;margin:-5px auto 3px;position:relative;touch-action:none}.elma-grab:after{content:"";position:absolute;left:17px;right:17px;top:9px;height:4px;border-radius:9px;background:#8a8d92}.elma-restore{position:absolute;z-index:812;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);display:none;width:78px;height:28px;border:1px solid #d4d4d8;border-radius:15px;background:#fff}.elma-restore.show{display:block}.elma-title{font-weight:800;font-size:18px;margin:0 2px 9px}.elma-fields{border:1px solid #d8d8dc;border-radius:17px;background:#fff}.elma-row{height:50px;display:flex;align-items:center;gap:10px;padding:0 12px;position:relative}.elma-row+.elma-row{border-top:1px solid #dedee1}.elma-row input{min-width:0;width:100%;border:0;outline:0;background:transparent;color:#09090a;font-size:14px}.elma-my{border:0;background:#e4e4e7;color:#09090a;border-radius:10px;padding:8px}.elma-results{position:absolute;z-index:820;left:0;right:0;top:52px;display:none;max-height:185px;overflow:auto;background:#fff}.elma-results.show{display:block}.elma-result{width:100%;border:0;border-bottom:1px solid #dedee1;background:#fff;color:#09090a;text-align:left;padding:10px}.elma-result b,.elma-result small{display:block}.elma-picked{height:28px;color:#62656a;font-size:11px;padding-top:7px}.elma-go{width:100%;height:46px;border:0;border-radius:15px;background:#09090a;color:#fff;font-weight:850}`;
+    style.textContent=`html,body,.app{margin:0!important;width:100%!important;min-height:100%!important;max-width:none!important}.app{padding:0!important}.mapwrap{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;min-height:100vh!important;margin:0!important;border:0!important;border-radius:0!important;background:#f7f7f8!important;overflow:hidden!important}.mapwrap #map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;background:#f7f7f8!important}.leaflet-container{background:#f7f7f8!important;font-family:"Inter","Helvetica Neue",Arial,sans-serif}.leaflet-control-zoom{display:none}.leaflet-bottom{bottom:calc(82px + env(safe-area-inset-bottom))}.leaflet-control-attribution{border-radius:8px 0 0 0!important;background:#ffffffe8!important;color:#444!important;font-size:9px!important;padding:2px 5px!important}.leaflet-control-attribution a{color:#09090a!important}.elma-sheet{position:absolute;z-index:811;left:8px;right:8px;bottom:calc(92px + env(safe-area-inset-bottom));border:1px solid #d4d4d8;border-radius:25px;background:#fffffff7;padding:9px 12px 13px;box-shadow:0 18px 55px #7775}.elma-sheet.dismissed{transform:translateY(calc(100% + 150px));opacity:0;pointer-events:none}.elma-grab{width:72px;height:22px;margin:-5px auto 3px;position:relative;touch-action:none}.elma-grab:after{content:"";position:absolute;left:17px;right:17px;top:9px;height:4px;border-radius:9px;background:#8a8d92}.elma-restore{position:absolute;z-index:812;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);display:none;width:78px;height:28px;border:1px solid #d4d4d8;border-radius:15px;background:#fff}.elma-restore.show{display:block}.elma-title{font-weight:800;font-size:18px;margin:0 2px 9px}.elma-fields{border:1px solid #d8d8dc;border-radius:17px;background:#fff}.elma-row{height:50px;display:flex;align-items:center;gap:10px;padding:0 12px;position:relative}.elma-row+.elma-row{border-top:1px solid #dedee1}.elma-row input{min-width:0;width:100%;border:0;outline:0;background:transparent;color:#09090a;font-size:14px}.elma-my{border:0;background:#e4e4e7;color:#09090a;border-radius:10px;padding:8px}.elma-results{position:absolute;z-index:820;left:0;right:0;top:52px;display:none;max-height:185px;overflow:auto;background:#fff}.elma-results.show{display:block}.elma-result{width:100%;border:0;border-bottom:1px solid #dedee1;background:#fff;color:#09090a;text-align:left;padding:10px}.elma-result b,.elma-result small{display:block}.elma-picked{height:28px;color:#62656a;font-size:11px;padding-top:7px}.elma-go{width:100%;height:46px;border:0;border-radius:15px;background:#09090a;color:#fff;font-weight:850}`;
     document.head.appendChild(style);
     const wrapper=$('.mapwrap'),ui=document.createElement('div');
     ui.innerHTML=`<button class="elma-restore" aria-label="Rota panelini aç"></button><section class="elma-sheet"><div class="elma-grab"></div><div class="elma-title">Yolculuğunu planla</div><div class="elma-fields"><div class="elma-row elma-row-origin"><input id="elmaFrom" placeholder="Başlangıç konumu"><button class="elma-my" id="elmaMy">Konumum</button><div class="elma-results" id="elmaFromResults"></div></div><div class="elma-row elma-row-destination"><input id="elmaTo" placeholder="Nereye gidiyorsun?"><div class="elma-results" id="elmaToResults"></div></div></div><div class="elma-picked" id="elmaPicked">Haritada başlangıç konumuna dokun</div><button class="elma-go" id="elmaGo">Rotayı göster</button></section>`;
@@ -129,9 +129,13 @@
     setup();
     if(!window.L)throw new Error('Leaflet yüklenemedi');
 
-    map=L.map('map',{zoomControl:false,attributionControl:true,preferCanvas:true}).setView(DEFAULT_CENTER,14);
+    map=L.map('map',{zoomControl:false,attributionControl:true,preferCanvas:true,zoomAnimation:false,fadeAnimation:false,markerZoomAnimation:false,inertia:true,inertiaDeceleration:4000}).setView(DEFAULT_CENTER,14);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
       maxZoom:19,
+      updateWhenIdle:true,
+      updateWhenZooming:false,
+      keepBuffer:1,
+      detectRetina:false,
       attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> katkıda bulunanlar'
     }).addTo(map);
 
@@ -155,7 +159,7 @@
       const points=data.routes[0].geometry.coordinates.map(coordinate=>[coordinate[1],coordinate[0]]);
       routeLine?.remove();
       routeLine=L.polyline(points,{color:'#050506',weight:6,opacity:.92,lineCap:'round',lineJoin:'round'}).addTo(map);
-      map.fitBounds(routeLine.getBounds(),{padding:[34,34]});
+      map.fitBounds(routeLine.getBounds(),{padding:[34,34],animate:false});
     };
 
     requestAnimationFrame(()=>map.invalidateSize());
@@ -166,11 +170,11 @@
 
 (()=>{
   const widgets=document.createElement('script');
-  widgets.src='home-widgets.js?v=20260830-auth-location';
+  widgets.src='home-widgets.js?v=20260830-map-performance';
   widgets.defer=true;
   document.head.appendChild(widgets);
   const line=document.createElement('script');
-  line.src='line-1-ui.js?v=20260830-bus2';
+  line.src='line-1-ui.js?v=20260830-map-performance';
   line.defer=true;
   line.dataset.elmaLine1Ui='1';
   document.head.appendChild(line);
