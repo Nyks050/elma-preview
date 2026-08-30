@@ -142,6 +142,7 @@
     map.on('click',event=>pickPoint(event.latlng.lat,event.latlng.lng));
 
     window.requestLocation=()=>navigator.geolocation?.getCurrentPosition(async position=>{
+      window.elmaUserPosition=position;
       origin={lon:position.coords.longitude,lat:position.coords.latitude};
       origin.name=await reverse(origin.lon,origin.lat);
       marker('origin',origin);
@@ -189,7 +190,7 @@
   line6.dataset.elmaLine6Ui='1';
   document.head.appendChild(line6);
   const pharmacy=document.createElement('script');
-  pharmacy.src='pharmacy-service.js?v=20260830-pharmacy';
+  pharmacy.src='pharmacy-service.js?v=20260830-pharmacy-auto-location';
   pharmacy.defer=true;
   pharmacy.dataset.elmaPharmacyService='1';
   document.head.appendChild(pharmacy);
