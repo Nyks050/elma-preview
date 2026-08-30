@@ -189,6 +189,11 @@
   line6.defer=true;
   line6.dataset.elmaLine6Ui='1';
   document.head.appendChild(line6);
+  const line6Route=document.createElement('script');
+  line6Route.src='line-6-route.js?v=20260830-line6-route';
+  line6Route.defer=true;
+  line6Route.dataset.elmaLine6Route='1';
+  document.head.appendChild(line6Route);
   const pharmacy=document.createElement('script');
   pharmacy.src='pharmacy-service.js?v=20260830-pharmacy-permission';
   pharmacy.defer=true;
