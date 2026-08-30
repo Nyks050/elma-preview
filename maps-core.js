@@ -170,7 +170,7 @@
 
 (()=>{
   const widgets=document.createElement('script');
-  widgets.src='home-widgets.js?v=20260830-map-performance';
+  widgets.src='home-widgets.js?v=20260830-weather-dayparts';
   widgets.defer=true;
   document.head.appendChild(widgets);
   const line=document.createElement('script');
