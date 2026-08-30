@@ -76,7 +76,8 @@
 
   async function loadForPosition(position){
     const button=document.getElementById('egPharmacyLocate');
-    if(button){button.disabled=true;button.textContent='Nöbetçi eczaneler aranıyor…'}
+    window.elmaUserPosition=position;
+    if(button){button.hidden=true;button.disabled=true;button.textContent='Nöbetçi eczaneler aranıyor…'}
     setStatus('Konumuna en yakın nöbetçi eczaneler alınıyor.');
     try{
       const {latitude,longitude}=position.coords;
@@ -87,17 +88,23 @@
       setStatus(payload.data.length?payload.data.length+' nöbetçi eczane bulundu.':'Bu konumun yakınında nöbetçi eczane bulunamadı.');
     }catch(error){
       setStatus('Eczane bilgileri alınamadı. İnternet bağlantını kontrol edip tekrar dene.');
+      if(button)button.hidden=false;
     }finally{
-      if(button){button.disabled=false;button.textContent='Konumuma göre yeniden ara'}
+      if(button){button.disabled=false;button.textContent='Konumu tekrar dene'}
     }
   }
 
   function requestLocation(){
-    if(!navigator.geolocation)return setStatus('Bu cihaz konum özelliğini desteklemiyor.');
+    if(window.elmaUserPosition)return loadForPosition(window.elmaUserPosition);
     const button=document.getElementById('egPharmacyLocate');
-    if(button){button.disabled=true;button.textContent='Konum alınıyor…'}
+    if(!navigator.geolocation){
+      if(button)button.hidden=false;
+      return setStatus('Bu cihaz konum özelliğini desteklemiyor.');
+    }
+    if(button){button.hidden=true;button.disabled=true;button.textContent='Konum alınıyor…'}
+    setStatus('Konumuna göre nöbetçi eczaneler hazırlanıyor.');
     navigator.geolocation.getCurrentPosition(loadForPosition,error=>{
-      if(button){button.disabled=false;button.textContent='Konumuma göre göster'}
+      if(button){button.hidden=false;button.disabled=false;button.textContent='Konumu tekrar dene'}
       setStatus(error.code===1?'Yakındaki eczaneler için konum izni gerekli.':'Konum alınamadı. Tekrar deneyebilirsin.');
     },{enableHighAccuracy:false,timeout:15000,maximumAge:300000});
   }
@@ -115,10 +122,10 @@
     const panel=document.createElement('div');
     panel.className='eg-panel';
     panel.dataset.panel='pharmacies';
-    panel.innerHTML='<button class="eg-service-back" type="button">‹ Hizmetler</button><div class="eg-card"><div class="eg-head"><div><div class="eg-title">Nöbetçi Eczaneler</div><div class="eg-muted">Konumuna göre güncel liste</div></div><div class="eg-weather-icon">'+pharmacyIcon+'</div></div><p class="eg-pharmacy-intro">Bugün açık olan en yakın nöbetçi eczaneleri, telefonlarını ve yol tariflerini gösterir.</p><button id="egPharmacyLocate" class="eg-pharmacy-locate" type="button">Konumuma göre göster</button><div id="egPharmacyStatus" class="eg-pharmacy-status">Konum yalnızca bu özelliği kullandığında istenir.</div><div id="egPharmacyResults" class="eg-pharmacy-results"></div><p class="eg-pharmacy-note">Nöbetçi eczane verileri sağlayıcı tarafından gün içinde otomatik güncellenir. Gitmeden önce telefonla doğrulaman önerilir.</p></div>';
+    panel.innerHTML='<button class="eg-service-back" type="button">‹ Hizmetler</button><div class="eg-card"><div class="eg-head"><div><div class="eg-title">Nöbetçi Eczaneler</div><div class="eg-muted">Konumuna göre güncel liste</div></div><div class="eg-weather-icon">'+pharmacyIcon+'</div></div><p class="eg-pharmacy-intro">Bugün açık olan en yakın nöbetçi eczaneleri, telefonlarını ve yol tariflerini gösterir.</p><button id="egPharmacyLocate" class="eg-pharmacy-locate" type="button" hidden>Konumu tekrar dene</button><div id="egPharmacyStatus" class="eg-pharmacy-status">Konumuna göre nöbetçi eczaneler hazırlanacak.</div><div id="egPharmacyResults" class="eg-pharmacy-results"></div><p class="eg-pharmacy-note">Nöbetçi eczane verileri sağlayıcı tarafından gün içinde otomatik güncellenir. Gitmeden önce telefonla doğrulaman önerilir.</p></div>';
     grid.appendChild(card);
     widgets.insertBefore(panel,widgets.querySelector('.eg-panel[data-panel="account"]'));
-    card.onclick=()=>showPanel(panel);
+    card.onclick=()=>{showPanel(panel);requestLocation()};
     panel.querySelector('.eg-service-back').onclick=goServices;
     panel.querySelector('#egPharmacyLocate').onclick=requestLocation;
     return true;
