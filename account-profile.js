@@ -64,16 +64,19 @@ function renderUser(user) {
   return true;
 }
 
+function renderWhenReady(user) {
+  if (renderUser(user)) return;
+  const observer = new MutationObserver(() => {
+    if (renderUser(user)) observer.disconnect();
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
 function start() {
   if (!getApps().length) return setTimeout(start, 50);
   const auth = getAuth(getApp());
-  onAuthStateChanged(auth, user => {
-    if (renderUser(user)) return;
-    const observer = new MutationObserver(() => {
-      if (renderUser(user)) observer.disconnect();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  });
+  onAuthStateChanged(auth, renderWhenReady);
+  window.addEventListener('elma-user-profile-updated', event => renderWhenReady(event.detail));
 }
 
 start();
