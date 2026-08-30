@@ -183,4 +183,9 @@
   line2.defer=true;
   line2.dataset.elmaLine2Ui='1';
   document.head.appendChild(line2);
+  const line6=document.createElement('script');
+  line6.src='line-6-ui.js?v=20260830-line6';
+  line6.defer=true;
+  line6.dataset.elmaLine6Ui='1';
+  document.head.appendChild(line6);
 })();
