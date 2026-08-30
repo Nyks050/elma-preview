@@ -195,10 +195,15 @@
   line.dataset.elmaLine1Ui='1';
   document.head.appendChild(line);
   const line1Route=document.createElement('script');
-  line1Route.src='line-1-route.js?v=20260830-line1-map';
+  line1Route.src='line-1-route.js?v=20260830-line1-stops';
   line1Route.defer=true;
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
+  const line1Stops=document.createElement('script');
+  line1Stops.src='line-1-stops.js?v=20260830-line1-stops';
+  line1Stops.defer=true;
+  line1Stops.dataset.elmaLine1Stops='1';
+  document.head.appendChild(line1Stops);
   const line2=document.createElement('script');
   line2.src='line-2-ui.js?v=20260830-past-contrast';
   line2.defer=true;
