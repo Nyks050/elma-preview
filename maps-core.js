@@ -195,7 +195,7 @@
   line.dataset.elmaLine1Ui='1';
   document.head.appendChild(line);
   const line1Route=document.createElement('script');
-  line1Route.src='line-1-route.js?v=20260830-line1-stops';
+  line1Route.src='line-1-route.js?v=20260830-collapsed-route-cards';
   line1Route.defer=true;
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
@@ -210,7 +210,7 @@
   line6.dataset.elmaLine6Ui='1';
   document.head.appendChild(line6);
   const line6Route=document.createElement('script');
-  line6Route.src='line-6-route.js?v=20260830-line6-outbound-only';
+  line6Route.src='line-6-route.js?v=20260830-collapsed-route-cards';
   line6Route.defer=true;
   line6Route.dataset.elmaLine6Route='1';
   document.head.appendChild(line6Route);
