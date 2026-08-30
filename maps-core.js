@@ -229,4 +229,9 @@
   lostFoundPremium.defer=true;
   lostFoundPremium.dataset.elmaLostFoundPremium='1';
   document.head.appendChild(lostFoundPremium);
+  const helpCenter=document.createElement('script');
+  helpCenter.src='help-center.js?v=20260830-help-center';
+  helpCenter.defer=true;
+  helpCenter.dataset.elmaHelpCenter='1';
+  document.head.appendChild(helpCenter);
 })();
