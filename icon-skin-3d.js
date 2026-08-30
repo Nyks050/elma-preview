@@ -5,9 +5,6 @@
   const style=document.createElement('style');
   style.id='elma3dIconSkin';
   style.textContent=`
-    .eg-tab[data-tab="home"] .ico,
-    .eg-tab[data-tab="services"] .ico,
-    .eg-tab[data-tab="account"] .ico,
     .eg-service-card[data-service-target="weather"] .eg-service-icon,
     .eg-service-card[data-service-target="lines"] .eg-service-icon,
     .eg-service-card[data-service-target="routes"] .eg-service-icon,
@@ -32,9 +29,6 @@
       border:0!important;
       box-shadow:none!important;
     }
-    .eg-tab[data-tab="home"] .ico>svg,
-    .eg-tab[data-tab="services"] .ico>svg,
-    .eg-tab[data-tab="account"] .ico>svg,
     .eg-service-card .eg-service-icon>svg,
     .eg-account-icon>svg,
     .eg-line-bus-icon>svg,
@@ -44,9 +38,6 @@
     .eg-permission-icon>svg,
     .eg-panel[data-panel="pharmacies"] .eg-weather-icon>svg{display:none!important}
 
-    .eg-tab[data-tab="home"] .ico{background-position:0 0}
-    .eg-tab[data-tab="services"] .ico{background-position:33.333% 0}
-    .eg-tab[data-tab="account"] .ico{background-position:66.667% 0}
     .eg-service-card[data-service-target="lines"] .eg-service-icon,
     .eg-line-bus-icon{background-position:100% 0}
     .eg-service-card[data-service-target="weather"] .eg-service-icon{background-position:0 33.333%}
@@ -63,7 +54,6 @@
     #egAccountLegal .eg-account-icon{background-position:100% 66.667%}
     .eg-permission-icon{background-position:0 100%}
 
-    .eg-tab .ico{width:38px!important;height:38px!important;flex-basis:38px!important}
     .eg-service-icon{width:58px!important;height:58px!important}
     .eg-account-icon{width:44px!important;height:44px!important}
     .eg-line-bus-icon,.eg-row-icon,.eg-route6-icon{width:48px!important;height:48px!important;flex-basis:48px!important}
