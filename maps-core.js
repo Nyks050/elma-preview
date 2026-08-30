@@ -224,4 +224,9 @@
   lostFound.defer=true;
   lostFound.dataset.elmaLostFoundService='1';
   document.head.appendChild(lostFound);
+  const lostFoundPremium=document.createElement('script');
+  lostFoundPremium.src='lost-found-premium.js?v=20260830-lost-found-premium';
+  lostFoundPremium.defer=true;
+  lostFoundPremium.dataset.elmaLostFoundPremium='1';
+  document.head.appendChild(lostFoundPremium);
 })();
