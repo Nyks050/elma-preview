@@ -186,7 +186,7 @@
 
 (()=>{
   const widgets=document.createElement('script');
-  widgets.src='home-widgets.js?v=20260830-three-day-weather';
+  widgets.src='home-widgets.js?v=20260830-remove-stops-service';
   widgets.defer=true;
   document.head.appendChild(widgets);
   const line=document.createElement('script');
@@ -199,11 +199,6 @@
   line1Route.defer=true;
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
-  const line1Stops=document.createElement('script');
-  line1Stops.src='line-1-stops.js?v=20260830-hide-coordinates';
-  line1Stops.defer=true;
-  line1Stops.dataset.elmaLine1Stops='1';
-  document.head.appendChild(line1Stops);
   const line2=document.createElement('script');
   line2.src='line-2-ui.js?v=20260830-past-contrast';
   line2.defer=true;
@@ -219,11 +214,6 @@
   line6Route.defer=true;
   line6Route.dataset.elmaLine6Route='1';
   document.head.appendChild(line6Route);
-  const line6Stops=document.createElement('script');
-  line6Stops.src='line-6-stops.js?v=20260830-line6-outbound-only';
-  line6Stops.defer=true;
-  line6Stops.dataset.elmaLine6Stops='1';
-  document.head.appendChild(line6Stops);
   const pharmacy=document.createElement('script');
   pharmacy.src='pharmacy-service.js?v=20260830-pharmacy-permission';
   pharmacy.defer=true;
