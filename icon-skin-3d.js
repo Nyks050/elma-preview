@@ -2,8 +2,8 @@
   if(window.__elma3dIconSkin)return;
   window.__elma3dIconSkin=true;
 
-  const UI_SPRITE='assets/elma-3d-icons.webp?v=20260830-fast';
-  const WEATHER_SPRITE='assets/elma-3d-weather.webp?v=20260830-fast';
+  const UI_SPRITE='assets/elma-3d-icons.webp?v=20260830-fast2';
+  const WEATHER_SPRITE='assets/elma-3d-weather.webp?v=20260830-fast2';
 
   const style=document.createElement('style');
   style.id='elma3dIconSkin';
@@ -23,53 +23,39 @@
     .eg-route6-icon,
     .eg-permission-icon,
     .eg-panel[data-panel="pharmacies"] .eg-weather-icon{
-      background-image:url("${UI_SPRITE}");
-      background-repeat:no-repeat;
-      background-size:400% 400%;
+      background-image:url("${UI_SPRITE}")!important;
+      background-repeat:no-repeat!important;
+      background-size:400% 400%!important;
       background-color:transparent!important;
+      color:transparent!important;
       padding:0!important;
       border:0!important;
       box-shadow:none!important;
     }
-    html.elma-3d-ui-ready .eg-service-card[data-service-target="weather"] .eg-service-icon,
-    html.elma-3d-ui-ready .eg-service-card[data-service-target="lines"] .eg-service-icon,
-    html.elma-3d-ui-ready .eg-service-card[data-service-target="routes"] .eg-service-icon,
-    html.elma-3d-ui-ready .eg-service-card[data-service-target="stops"] .eg-service-icon,
-    html.elma-3d-ui-ready .eg-pharmacy-card .eg-service-icon,
-    html.elma-3d-ui-ready #egAccountHelp .eg-account-icon,
-    html.elma-3d-ui-ready #egAccountSecurity .eg-account-icon,
-    html.elma-3d-ui-ready #egAccountPreferences .eg-account-icon,
-    html.elma-3d-ui-ready #egAccountLegal .eg-account-icon,
-    html.elma-3d-ui-ready .eg-line-bus-icon,
-    html.elma-3d-ui-ready .eg-row-icon,
-    html.elma-3d-ui-ready .eg-route-symbol,
-    html.elma-3d-ui-ready .eg-route6-icon,
-    html.elma-3d-ui-ready .eg-permission-icon,
-    html.elma-3d-ui-ready .eg-panel[data-panel="pharmacies"] .eg-weather-icon{color:transparent!important}
-    html.elma-3d-ui-ready .eg-service-card .eg-service-icon>svg,
-    html.elma-3d-ui-ready .eg-account-icon>svg,
-    html.elma-3d-ui-ready .eg-line-bus-icon>svg,
-    html.elma-3d-ui-ready .eg-row-icon>svg,
-    html.elma-3d-ui-ready .eg-route-symbol>svg,
-    html.elma-3d-ui-ready .eg-route6-icon>svg,
-    html.elma-3d-ui-ready .eg-permission-icon>svg,
-    html.elma-3d-ui-ready .eg-panel[data-panel="pharmacies"] .eg-weather-icon>svg{display:none!important}
+    .eg-service-card .eg-service-icon>svg,
+    .eg-account-icon>svg,
+    .eg-line-bus-icon>svg,
+    .eg-row-icon>svg,
+    .eg-route-symbol>svg,
+    .eg-route6-icon>svg,
+    .eg-permission-icon>svg,
+    .eg-panel[data-panel="pharmacies"] .eg-weather-icon>svg{display:none!important}
 
     .eg-service-card[data-service-target="lines"] .eg-service-icon,
-    .eg-line-bus-icon{background-position:100% 0}
-    .eg-service-card[data-service-target="weather"] .eg-service-icon{background-position:0 33.333%}
+    .eg-line-bus-icon{background-position:100% 0!important}
+    .eg-service-card[data-service-target="weather"] .eg-service-icon{background-position:0 33.333%!important}
     .eg-service-card[data-service-target="routes"] .eg-service-icon,
     .eg-route-symbol,
-    .eg-route6-icon{background-position:33.333% 33.333%}
+    .eg-route6-icon{background-position:33.333% 33.333%!important}
     .eg-service-card[data-service-target="stops"] .eg-service-icon,
-    .eg-row-icon{background-position:66.667% 33.333%}
+    .eg-row-icon{background-position:66.667% 33.333%!important}
     .eg-pharmacy-card .eg-service-icon,
-    .eg-panel[data-panel="pharmacies"] .eg-weather-icon{background-position:100% 33.333%}
-    #egAccountHelp .eg-account-icon{background-position:0 66.667%}
-    #egAccountSecurity .eg-account-icon{background-position:33.333% 66.667%}
-    #egAccountPreferences .eg-account-icon{background-position:66.667% 66.667%}
-    #egAccountLegal .eg-account-icon{background-position:100% 66.667%}
-    .eg-permission-icon{background-position:0 100%}
+    .eg-panel[data-panel="pharmacies"] .eg-weather-icon{background-position:100% 33.333%!important}
+    #egAccountHelp .eg-account-icon{background-position:0 66.667%!important}
+    #egAccountSecurity .eg-account-icon{background-position:33.333% 66.667%!important}
+    #egAccountPreferences .eg-account-icon{background-position:66.667% 66.667%!important}
+    #egAccountLegal .eg-account-icon{background-position:100% 66.667%!important}
+    .eg-permission-icon{background-position:0 100%!important}
 
     .eg-service-icon{width:58px!important;height:58px!important}
     .eg-account-icon{width:44px!important;height:44px!important}
@@ -78,35 +64,23 @@
     .eg-permission-icon{width:62px!important;height:62px!important}
 
     #egWeatherIcon,.eg-day-icon{
-      background-image:url("${WEATHER_SPRITE}");
-      background-repeat:no-repeat;
-      background-size:300% 200%;
+      background-image:url("${WEATHER_SPRITE}")!important;
+      background-repeat:no-repeat!important;
+      background-size:300% 200%!important;
       background-color:transparent!important;
+      color:transparent!important;
     }
-    html.elma-3d-weather-ready #egWeatherIcon,
-    html.elma-3d-weather-ready .eg-day-icon{color:transparent!important}
-    html.elma-3d-weather-ready #egWeatherIcon>svg,
-    html.elma-3d-weather-ready .eg-day-icon>svg{display:none!important}
+    #egWeatherIcon>svg,.eg-day-icon>svg{display:none!important}
     #egWeatherIcon{width:58px!important;height:58px!important}
     .eg-day-icon{width:48px!important;height:48px!important;margin:5px auto!important}
-    [data-weather-3d="sun"]{background-position:0 0}
-    [data-weather-3d="partly"]{background-position:50% 0}
-    [data-weather-3d="rain"]{background-position:100% 0}
-    [data-weather-3d="snow"]{background-position:0 100%}
-    [data-weather-3d="storm"]{background-position:50% 100%}
-    [data-weather-3d="fog"]{background-position:100% 100%}
+    [data-weather-3d="sun"]{background-position:0 0!important}
+    [data-weather-3d="partly"]{background-position:50% 0!important}
+    [data-weather-3d="rain"]{background-position:100% 0!important}
+    [data-weather-3d="snow"]{background-position:0 100%!important}
+    [data-weather-3d="storm"]{background-position:50% 100%!important}
+    [data-weather-3d="fog"]{background-position:100% 100%!important}
   `;
   document.head.appendChild(style);
-
-  function markReady(src,className){
-    const image=new Image();
-    image.decoding='async';
-    const ready=()=>document.documentElement.classList.add(className);
-    image.onload=()=>image.decode?image.decode().then(ready,ready):ready();
-    image.src=src;
-  }
-  markReady(UI_SPRITE,'elma-3d-ui-ready');
-  markReady(WEATHER_SPRITE,'elma-3d-weather-ready');
 
   function weatherKind(text=''){
     const value=text.toLocaleLowerCase('tr-TR');
