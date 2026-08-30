@@ -235,8 +235,13 @@
   helpCenter.dataset.elmaHelpCenter='1';
   document.head.appendChild(helpCenter);
   const accountProfile=document.createElement('script');
-  accountProfile.src='account-profile.js?v=20260830-google-profile';
+  accountProfile.src='account-profile.js?v=20260830-email-auth';
   accountProfile.type='module';
   accountProfile.dataset.elmaAccountProfile='1';
   document.head.appendChild(accountProfile);
+  const emailAuth=document.createElement('script');
+  emailAuth.src='email-auth.js?v=20260830-email-auth';
+  emailAuth.type='module';
+  emailAuth.dataset.elmaEmailAuth='1';
+  document.head.appendChild(emailAuth);
 })();
