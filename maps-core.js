@@ -174,12 +174,12 @@
   widgets.defer=true;
   document.head.appendChild(widgets);
   const line=document.createElement('script');
-  line.src='line-1-ui.js?v=20260830-frequency-labels';
+  line.src='line-1-ui.js?v=20260830-past-departures';
   line.defer=true;
   line.dataset.elmaLine1Ui='1';
   document.head.appendChild(line);
   const line2=document.createElement('script');
-  line2.src='line-2-ui.js?v=20260830-frequency-labels';
+  line2.src='line-2-ui.js?v=20260830-past-departures';
   line2.defer=true;
   line2.dataset.elmaLine2Ui='1';
   document.head.appendChild(line2);
