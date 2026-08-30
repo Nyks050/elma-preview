@@ -230,7 +230,7 @@
   lostFoundPremium.dataset.elmaLostFoundPremium='1';
   document.head.appendChild(lostFoundPremium);
   const helpCenter=document.createElement('script');
-  helpCenter.src='help-center.js?v=20260830-help-eye';
+  helpCenter.src='help-center.js?v=20260830-help-eye-motion';
   helpCenter.defer=true;
   helpCenter.dataset.elmaHelpCenter='1';
   document.head.appendChild(helpCenter);
