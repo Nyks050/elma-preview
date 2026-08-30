@@ -234,4 +234,9 @@
   helpCenter.defer=true;
   helpCenter.dataset.elmaHelpCenter='1';
   document.head.appendChild(helpCenter);
+  const accountProfile=document.createElement('script');
+  accountProfile.src='account-profile.js?v=20260830-google-profile';
+  accountProfile.type='module';
+  accountProfile.dataset.elmaAccountProfile='1';
+  document.head.appendChild(accountProfile);
 })();
