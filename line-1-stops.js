@@ -8,7 +8,7 @@
     if(document.getElementById('elmaLine1StopsStyle'))return;
     const style=document.createElement('style');
     style.id='elmaLine1StopsStyle';
-    style.textContent='.eg-line1-stops{margin-top:2px}.eg-line1-stops-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 2px 11px}.eg-line1-stops-head b{display:block;color:#09090a;font-size:15px}.eg-line1-stops-head small{display:block;color:#62656a;font-size:11px;margin-top:3px}.eg-line1-stops-count{min-width:44px;border-radius:99px;background:#09090a;color:#fff;padding:7px 10px;text-align:center;font-size:10px;font-weight:800}.eg-line1-stops-list{display:grid;gap:7px;max-height:62vh;overflow:auto;padding-right:2px}.eg-line1-stop{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid #dedee1;border-radius:15px;background:#f5f5f6;color:#09090a;text-decoration:none}.eg-line1-stop-number{width:30px;height:30px;border-radius:10px;background:#09090a;color:#fff;display:grid;place-items:center;flex:0 0 30px;font-size:10px;font-weight:850}.eg-line1-stop-copy{flex:1;min-width:0}.eg-line1-stop-copy b{display:block;font-size:12px;margin-bottom:3px}.eg-line1-stop-copy small{display:block;color:#696c72;font:500 9px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace}.eg-line1-stop-arrow{color:#777a80;font-size:18px}';
+    style.textContent='.eg-line1-stops{margin-top:2px}.eg-line1-stops-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 2px 11px}.eg-line1-stops-head b{display:block;color:#09090a;font-size:15px}.eg-line1-stops-head small{display:block;color:#62656a;font-size:11px;margin-top:3px}.eg-line1-stops-count{min-width:44px;border-radius:99px;background:#09090a;color:#fff;padding:7px 10px;text-align:center;font-size:10px;font-weight:800}.eg-line1-stops-list{display:grid;gap:7px;max-height:62vh;overflow:auto;padding-right:2px}.eg-line1-stop{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid #dedee1;border-radius:15px;background:#f5f5f6;color:#09090a;text-decoration:none}.eg-line1-stop-number{width:30px;height:30px;border-radius:10px;background:#09090a;color:#fff;display:grid;place-items:center;flex:0 0 30px;font-size:10px;font-weight:850}.eg-line1-stop-copy{flex:1;min-width:0}.eg-line1-stop-copy b{display:block;font-size:12px}.eg-line1-stop-arrow{color:#777a80;font-size:18px}';
     document.head.appendChild(style);
   }
 
@@ -21,7 +21,7 @@
     const block=document.createElement('section');
     block.className='eg-line1-stops';
     block.setAttribute('aria-label','1 numaralı hat gidiş durakları');
-    block.innerHTML='<div class="eg-line1-stops-head"><span><b>1 Numaralı Hat</b><small>Gidiş yönündeki sıralı duraklar</small></span><span class="eg-line1-stops-count">'+stops.length+' durak</span></div><div class="eg-line1-stops-list">'+stops.map(function(position,index){const lat=position[0].toFixed(7),lon=position[1].toFixed(7),url='https://www.google.com/maps/search/?api=1&query='+lat+','+lon;return '<a class="eg-line1-stop" href="'+url+'" target="_blank" rel="noopener" aria-label="'+(index+1)+'. durağı Google Maps üzerinde aç"><span class="eg-line1-stop-number">'+(index+1)+'</span><span class="eg-line1-stop-copy"><b>'+(index+1)+'. Durak</b><small>'+lat+', '+lon+'</small></span><span class="eg-line1-stop-arrow">›</span></a>'}).join('')+'</div>';
+    block.innerHTML='<div class="eg-line1-stops-head"><span><b>1 Numaralı Hat</b><small>Gidiş yönündeki sıralı duraklar</small></span><span class="eg-line1-stops-count">'+stops.length+' durak</span></div><div class="eg-line1-stops-list">'+stops.map(function(position,index){const lat=position[0].toFixed(7),lon=position[1].toFixed(7),url='https://www.google.com/maps/search/?api=1&query='+lat+','+lon;return '<a class="eg-line1-stop" href="'+url+'" target="_blank" rel="noopener" aria-label="'+(index+1)+'. durağı Google Maps üzerinde aç"><span class="eg-line1-stop-number">'+(index+1)+'</span><span class="eg-line1-stop-copy"><b>'+(index+1)+'. Durak</b></span><span class="eg-line1-stop-arrow">›</span></a>'}).join('')+'</div>';
     if(oldList)oldList.replaceWith(block);else card.appendChild(block);
     return true;
   }
@@ -30,4 +30,3 @@
   function boot(){if(mount())return;if(++tries<=50)setTimeout(boot,200)}
   boot();
 })();
-
