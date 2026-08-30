@@ -200,7 +200,7 @@
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
   const line1Stops=document.createElement('script');
-  line1Stops.src='line-1-stops.js?v=20260830-line1-stops';
+  line1Stops.src='line-1-stops.js?v=20260830-hide-coordinates';
   line1Stops.defer=true;
   line1Stops.dataset.elmaLine1Stops='1';
   document.head.appendChild(line1Stops);
