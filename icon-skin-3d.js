@@ -11,7 +11,6 @@
     .eg-service-card[data-service-target="weather"] .eg-service-icon,
     .eg-service-card[data-service-target="lines"] .eg-service-icon,
     .eg-service-card[data-service-target="routes"] .eg-service-icon,
-    .eg-service-card[data-service-target="stops"] .eg-service-icon,
     .eg-pharmacy-card .eg-service-icon,
     #egAccountHelp .eg-account-icon,
     #egAccountSecurity .eg-account-icon,
@@ -47,7 +46,6 @@
     .eg-service-card[data-service-target="routes"] .eg-service-icon,
     .eg-route-symbol,
     .eg-route6-icon{background-position:33.333% 33.333%!important}
-    .eg-service-card[data-service-target="stops"] .eg-service-icon,
     .eg-row-icon{background-position:66.667% 33.333%!important}
     .eg-pharmacy-card .eg-service-icon,
     .eg-panel[data-panel="pharmacies"] .eg-weather-icon{background-position:100% 33.333%!important}
