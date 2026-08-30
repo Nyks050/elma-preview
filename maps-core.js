@@ -190,7 +190,7 @@
   line6.dataset.elmaLine6Ui='1';
   document.head.appendChild(line6);
   const pharmacy=document.createElement('script');
-  pharmacy.src='pharmacy-service.js?v=20260830-pharmacy-auto-location';
+  pharmacy.src='pharmacy-service.js?v=20260830-pharmacy-permission';
   pharmacy.defer=true;
   pharmacy.dataset.elmaPharmacyService='1';
   document.head.appendChild(pharmacy);
