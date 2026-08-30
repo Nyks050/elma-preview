@@ -219,4 +219,9 @@
   pharmacy.defer=true;
   pharmacy.dataset.elmaPharmacyService='1';
   document.head.appendChild(pharmacy);
+  const lostFound=document.createElement('script');
+  lostFound.src='lost-found-service.js?v=20260830-lost-found';
+  lostFound.defer=true;
+  lostFound.dataset.elmaLostFoundService='1';
+  document.head.appendChild(lostFound);
 })();
