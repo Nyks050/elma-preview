@@ -12,6 +12,7 @@
     .eg-service-card[data-service-target="lines"] .eg-service-icon,
     .eg-service-card[data-service-target="routes"] .eg-service-icon,
     .eg-pharmacy-card .eg-service-icon,
+    .eg-lost-card .eg-service-icon,
     #egAccountHelp .eg-account-icon,
     #egAccountSecurity .eg-account-icon,
     #egAccountPreferences .eg-account-icon,
@@ -21,7 +22,8 @@
     .eg-route-symbol,
     .eg-route6-icon,
     .eg-permission-icon,
-    .eg-panel[data-panel="pharmacies"] .eg-weather-icon{
+    .eg-panel[data-panel="pharmacies"] .eg-weather-icon,
+    .eg-panel[data-panel="lost-found"] .eg-lost-head-icon{
       background-image:url("${UI_SPRITE}")!important;
       background-repeat:no-repeat!important;
       background-size:400% 400%!important;
@@ -38,7 +40,8 @@
     .eg-route-symbol>svg,
     .eg-route6-icon>svg,
     .eg-permission-icon>svg,
-    .eg-panel[data-panel="pharmacies"] .eg-weather-icon>svg{display:none!important}
+    .eg-panel[data-panel="pharmacies"] .eg-weather-icon>svg,
+    .eg-panel[data-panel="lost-found"] .eg-lost-head-icon>svg{display:none!important}
 
     .eg-service-card[data-service-target="lines"] .eg-service-icon,
     .eg-line-bus-icon{background-position:100% 0!important}
@@ -49,6 +52,8 @@
     .eg-row-icon{background-position:66.667% 33.333%!important}
     .eg-pharmacy-card .eg-service-icon,
     .eg-panel[data-panel="pharmacies"] .eg-weather-icon{background-position:100% 33.333%!important}
+    .eg-lost-card .eg-service-icon,
+    .eg-panel[data-panel="lost-found"] .eg-lost-head-icon{background-position:100% 66.667%!important}
     #egAccountHelp .eg-account-icon{background-position:0 66.667%!important}
     #egAccountSecurity .eg-account-icon{background-position:33.333% 66.667%!important}
     #egAccountPreferences .eg-account-icon{background-position:66.667% 66.667%!important}
