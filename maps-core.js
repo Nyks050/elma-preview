@@ -252,6 +252,17 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
 .elma-go-logo-crop img{position:absolute;display:block!important;max-width:none!important;width:86px!important;height:29px!important;object-fit:fill!important;left:-42px;top:2px;border-radius:0!important;filter:none!important}
 @media(max-width:390px){.elma-go-logo-crop{width:37px;height:32px}.elma-go-logo-crop img{width:80px!important;height:27px!important;left:-39px;top:2px}}
 
+/* Kompakt Nereden / Nereye alanı */
+.elma-search-body{margin-top:14px}
+.elma-route-fields{border-width:1.6px;border-radius:16px;box-shadow:0 5px 18px rgba(20,20,24,.055),0 1px 2px rgba(0,0,0,.035)}
+.elma-route-row{height:45px;gap:10px;padding-left:12px;padding-right:12px}
+.elma-route-row input{font-size:15px;line-height:20px;font-weight:500;letter-spacing:-.2px}
+.elma-route-point{width:20px;height:20px;flex-basis:20px}
+.elma-route-origin:before,.elma-route-destination:before{width:6px;height:6px}
+.elma-route-origin:after{left:8.5px;top:18px;width:2.5px;height:39px}
+.elma-route-row+.elma-route-row:before{left:42px}
+@media(max-width:390px){.elma-search-body{margin-top:12px}.elma-route-row{height:43px}.elma-route-row input{font-size:14.5px}.elma-route-origin:after{height:37px}}
+
 `;
     document.head.appendChild(style);
 
