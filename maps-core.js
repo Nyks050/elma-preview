@@ -228,6 +228,12 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
 .elma-location-title{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px;line-height:22px;font-weight:720;letter-spacing:-.25px;color:#55575b}
 @media(max-width:390px){.elma-wordmark{font-size:26px}.elma-location-title{font-size:14px}}
 
+/* Gerçek ElmaGo ana yazı logosu */
+.elma-wordmark{display:none!important}
+.elma-home-wordmark{display:block;width:126px;height:42px;object-fit:contain;border-radius:0;filter:none}
+.elma-search-title{font-size:20px;line-height:25px;font-weight:850;letter-spacing:-.55px;color:#09090a}
+@media(max-width:390px){.elma-home-wordmark{width:116px;height:39px}.elma-search-title{font-size:19px}}
+
 `;
     document.head.appendChild(style);
 
@@ -235,13 +241,13 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
     const home=document.createElement('section');
     home.id='elmaHomeScreen';
     home.className='elma-home-screen';
-    home.innerHTML=`<div class="elma-home-inner"><div class="elma-home-brand"><div class="elma-wordmark" aria-label="Elma Go"><span>Elma</span><b>Go</b></div></div><button class="elma-quick-search" id="elmaQuickSearch" type="button" aria-label="Nereye gitmek istiyorsunuz?"><svg class="elma-search-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span class="elma-quick-label">Nereye?</span></button></div>`;
+    home.innerHTML=`<div class="elma-home-inner"><div class="elma-home-brand"><img class="elma-home-wordmark" src="assets/elmago-logo.png?v=20260831-black" alt="ElmaGo"></div><button class="elma-quick-search" id="elmaQuickSearch" type="button" aria-label="Nereye gitmek istiyorsunuz?"><svg class="elma-search-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span class="elma-quick-label">Nereye?</span></button></div>`;
     wrapper.appendChild(home);
 
     const searchScreen=document.createElement('section');
     searchScreen.id='elmaSearchScreen';
     searchScreen.className='elma-search-screen';
-    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title elma-location-title" id="elmaHomeLocation">Konumunuz alınıyor…</h1><span></span></header><div class="elma-search-body"><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" readonly></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
+    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span></span></header><div class="elma-search-body"><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" readonly></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
     wrapper.appendChild(searchScreen);
 
     const pickNote=document.createElement('div');
@@ -291,12 +297,7 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
       home.classList.remove('hide');
       nav.style.display='grid';
       setNavActive('home');
-      ensureOrigin().then(point=>{
-        const locationLabel=$('#elmaHomeLocation');
-        if(!locationLabel)return;
-        const label=point?.name||'Konumunuz';
-        locationLabel.textContent=label.split(',').slice(0,3).join(',').trim()||'Konumunuz';
-      }).catch(()=>{const locationLabel=$('#elmaHomeLocation');if(locationLabel)locationLabel.textContent='Konum kullanılamıyor'});
+
     }
     function showMap(){
       wrapper.style.display='block';
