@@ -1,6 +1,6 @@
 (()=>{
   const DEFAULT_CENTER={lat:40.65,lng:35.83};
-  let map,origin,destination,originMarker,destinationMarker,directionsRenderer,step=0,timers={};
+  let map,origin,destination,originMarker,destinationMarker,directionsRenderer,fallbackRouteLine,step=0,timers={};
   let geocoder,placesLibrary;
   const $=selector=>document.querySelector(selector);
 
@@ -45,8 +45,18 @@
         point:{lat:item.geometry.location.lat(),lon:item.geometry.location.lng(),name:item.formatted_address}
       }));
     }catch(error){
-      console.warn('Google adres araması başarısız:',error);
-      return[];
+      console.warn('Google adres araması başarısız, yedek arama kullanılıyor:',error);
+      try{
+        const response=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=tr&addressdetails=1&limit=6&q='+encodeURIComponent(query),{headers:{'Accept-Language':'tr'}});
+        const items=await response.json();
+        return items.map(item=>({
+          label:item.display_name,
+          point:{lat:+item.lat,lon:+item.lon,name:item.display_name}
+        }));
+      }catch(fallbackError){
+        console.warn('Yedek adres araması da başarısız:',fallbackError);
+        return[];
+      }
     }
   }
 
@@ -70,7 +80,13 @@
       ));
       return result.formatted_address||lat.toFixed(5)+', '+lon.toFixed(5);
     }catch(error){
-      return lat.toFixed(5)+', '+lon.toFixed(5);
+      try{
+        const response=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lon)+'&zoom=18&addressdetails=1',{headers:{'Accept-Language':'tr'}});
+        const result=await response.json();
+        return result.display_name||lat.toFixed(5)+', '+lon.toFixed(5);
+      }catch(fallbackError){
+        return lat.toFixed(5)+', '+lon.toFixed(5);
+      }
     }
   }
 
@@ -259,8 +275,29 @@
           polylineOptions:{strokeColor:'#050506',strokeWeight:6,strokeOpacity:.92}
         });
       }catch(error){
-        console.error('Google rota hatası:',error);
-        alert('Rota gösterilemedi. Google Directions API ve faturalandırma ayarlarını kontrol et.');
+        console.warn('Google rota servisi kullanılamıyor, yedek rota açılıyor:',error);
+        try{
+          const url='https://router.project-osrm.org/route/v1/driving/'+origin.lon+','+origin.lat+';'+destination.lon+','+destination.lat+'?overview=full&geometries=geojson';
+          const response=await fetch(url);
+          const data=await response.json();
+          if(!data.routes?.[0])throw new Error('Yedek rota bulunamadı');
+          directionsRenderer?.setMap(null);
+          fallbackRouteLine?.setMap(null);
+          const path=data.routes[0].geometry.coordinates.map(coordinate=>({lat:coordinate[1],lng:coordinate[0]}));
+          fallbackRouteLine=new google.maps.Polyline({
+            map,
+            path,
+            strokeColor:'#050506',
+            strokeWeight:6,
+            strokeOpacity:.92
+          });
+          const bounds=new google.maps.LatLngBounds();
+          path.forEach(point=>bounds.extend(point));
+          map.fitBounds(bounds,48);
+        }catch(fallbackError){
+          console.error('Yedek rota hatası:',fallbackError);
+          alert('Rota şu anda gösterilemiyor. Biraz sonra tekrar dene.');
+        }
       }
     };
   }
