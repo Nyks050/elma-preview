@@ -234,6 +234,9 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
 .elma-search-title{font-size:20px;line-height:25px;font-weight:850;letter-spacing:-.55px;color:#09090a}
 @media(max-width:390px){.elma-home-wordmark{width:116px;height:39px}.elma-search-title{font-size:19px}}
 
+/* Ana logo görünürlüğü ve alt gezinme güvenliği */
+.elma-home-wordmark{display:block!important;width:126px!important;height:42px!important;object-fit:contain!important;opacity:1!important;visibility:visible!important}
+
 `;
     document.head.appendChild(style);
 
@@ -390,14 +393,20 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
       timers.elmaTo=setTimeout(async()=>renderSearchResults(await search(query)),250);
     };
 
+    function openLegacyTab(name,attempt=0){
+      const target=document.querySelector('.eg-tab[data-tab="'+name+'"]');
+      if(target){target.click();return}
+      if(attempt<12)setTimeout(()=>openLegacyTab(name,attempt+1),120);
+    }
     nav.querySelectorAll('.elma-main-tab').forEach(button=>button.onclick=()=>{
       const name=button.dataset.elmaTab;
       if(name==='home'){showHome();return}
       document.body.classList.remove('elma-white-flow');
       hideWhiteScreens();
       setNavActive(name);
-      if(name==='event'){eventScreen.classList.add('show');wrapper.style.display='block';return}
-      document.querySelector('.eg-tab[data-tab="'+name+'"]')?.click();
+      wrapper.style.display='block';
+      if(name==='event'){eventScreen.classList.add('show');return}
+      openLegacyTab(name);
     });
 
     window.elmaShowHome=showHome;
