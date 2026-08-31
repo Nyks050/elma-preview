@@ -237,6 +237,8 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
 /* Ana logo görünürlüğü ve alt gezinme güvenliği */
 .elma-home-wordmark{display:block!important;width:126px!important;height:42px!important;object-fit:contain!important;opacity:1!important;visibility:visible!important}
 
+.elma-home-brand .elma-home-wordmark{display:block!important;width:126px!important;height:42px!important;opacity:1!important;visibility:visible!important}
+
 `;
     document.head.appendChild(style);
 
