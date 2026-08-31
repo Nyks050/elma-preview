@@ -509,12 +509,19 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
     };
 
     function openLegacyTab(name){
-      if(typeof window.elmaSelectMainTab==='function'){
-        window.elmaSelectMainTab(name);
-        return;
-      }
-      const target=document.querySelector('.eg-tab[data-tab="'+name+'"]');
-      if(target)target.click();
+      const panels=[...document.querySelectorAll('.eg-panel[data-panel]')];
+      const target=panels.find(panel=>panel.dataset.panel===name);
+      if(!target)return;
+      panels.forEach(panel=>panel.classList.toggle('active',panel===target));
+      const widgets=document.getElementById('elmaHomeWidgets');
+      if(widgets)widgets.classList.remove('home-active');
+      document.querySelectorAll('.eg-tab[data-tab]').forEach(tab=>{
+        const active=tab.dataset.tab===name;
+        tab.classList.toggle('active',active);
+        tab.setAttribute('aria-selected',String(active));
+        if(active)tab.setAttribute('aria-current','page');
+        else tab.removeAttribute('aria-current');
+      });
     }
     nav.querySelectorAll('.elma-main-tab').forEach(button=>button.onclick=()=>{
       const name=button.dataset.elmaTab;
