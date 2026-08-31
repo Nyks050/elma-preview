@@ -508,10 +508,13 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
       timers.elmaTo=setTimeout(async()=>renderSearchResults(await search(query)),250);
     };
 
-    function openLegacyTab(name,attempt=0){
+    function openLegacyTab(name){
+      if(typeof window.elmaSelectMainTab==='function'){
+        window.elmaSelectMainTab(name);
+        return;
+      }
       const target=document.querySelector('.eg-tab[data-tab="'+name+'"]');
-      if(target){target.click();return}
-      if(attempt<12)setTimeout(()=>openLegacyTab(name,attempt+1),120);
+      if(target)target.click();
     }
     nav.querySelectorAll('.elma-main-tab').forEach(button=>button.onclick=()=>{
       const name=button.dataset.elmaTab;
