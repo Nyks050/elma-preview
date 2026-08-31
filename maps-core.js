@@ -322,6 +322,7 @@
       home.style.display='none';
       eventScreen.classList.remove('show');
       searchScreen.classList.add('show');
+      nav.style.display='none';
       renderDefaults();
       $('#elmaTo').value='';
       $('#elmaTo').focus();
