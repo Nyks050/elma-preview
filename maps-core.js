@@ -188,63 +188,173 @@
     document.querySelector('.top')?.setAttribute('style','display:none!important');
     const style=document.createElement('style');
     style.id='elmaFullscreenMapStyle';
-    style.textContent=`html,body,.app{margin:0!important;width:100%!important;min-height:100%!important;max-width:none!important}.app{padding:0!important}.mapwrap{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;min-height:100vh!important;margin:0!important;border:0!important;border-radius:0!important;background:#f7f7f8!important;overflow:hidden!important}.mapwrap #map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;background:#f7f7f8!important}.gm-style{font-family:"Inter","Helvetica Neue",Arial,sans-serif}.gm-style-mtc,.gm-fullscreen-control,.gm-svpc,.gmnoprint.gm-bundled-control{display:none!important}.elma-sheet{position:absolute;z-index:811;left:8px;right:8px;bottom:calc(116px + env(safe-area-inset-bottom));border:1px solid #d4d4d8;border-radius:25px;background:#fffffff7;padding:9px 12px 13px;box-shadow:0 12px 34px #7774}.elma-sheet.dismissed{transform:translateY(calc(100% + 150px));opacity:0;pointer-events:none}.elma-grab{width:72px;height:22px;margin:-5px auto 3px;position:relative;touch-action:none;cursor:pointer;-webkit-tap-highlight-color:transparent}.elma-grab:after{content:"";position:absolute;left:17px;right:17px;top:9px;height:4px;border-radius:9px;background:#8a8d92;transition:background .15s ease,transform .15s ease}.elma-grab:active:after{background:#09090a;transform:scaleX(.9)}.elma-grab:focus-visible{outline:2px solid #09090a;outline-offset:1px;border-radius:11px}.elma-restore{position:absolute;z-index:812;left:50%;bottom:calc(120px + env(safe-area-inset-bottom));transform:translateX(-50%);display:none;align-items:center;justify-content:center;gap:9px;width:auto;min-width:158px;height:42px;padding:0 15px;border:1px solid #d4d4d8;border-radius:999px;background:#fffffff5;color:#09090a;box-shadow:0 10px 30px #7774;font:800 12px/1 "Inter","Helvetica Neue",Arial,sans-serif;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);touch-action:manipulation;-webkit-tap-highlight-color:transparent}.elma-restore.show{display:flex}.elma-restore:active{transform:translateX(-50%) scale(.97)}.elma-restore:focus-visible{outline:2px solid #09090a;outline-offset:2px}.elma-restore-grip{width:27px;height:4px;border-radius:99px;background:#777b82;position:relative}.elma-restore-grip:after{content:"";position:absolute;left:10px;top:-5px;width:6px;height:6px;border-left:1.7px solid #61646a;border-top:1.7px solid #61646a;transform:rotate(45deg)}.elma-title{font-weight:850;font-size:21px;letter-spacing:-.55px;text-align:center;margin:1px 0 16px}.elma-search-wrap{display:flex;align-items:center;gap:10px}.elma-fields{position:relative;flex:1;min-width:0;border:3px solid #09090a;border-radius:22px;background:#fff;overflow:hidden}.elma-row{height:56px;display:flex;align-items:center;gap:13px;padding:0 15px;position:relative}.elma-row+.elma-row:before{content:"";position:absolute;left:57px;right:0;top:0;height:1px;background:#e4e4e7}.elma-point{position:relative;width:23px;height:23px;flex:0 0 23px;display:grid;place-items:center;z-index:2}.elma-point-origin{border-radius:50%;background:#09090a}.elma-point-origin:before{content:"";width:6px;height:6px;border-radius:50%;background:#fff}.elma-point-origin:after{content:"";position:absolute;left:10px;top:21px;width:3px;height:49px;background:#09090a;z-index:-1}.elma-point-destination{border-radius:5px;background:#09090a}.elma-point-destination:before{content:"";width:6px;height:6px;border-radius:1px;background:#fff}.elma-fieldtext{min-width:0;flex:1;display:flex;align-items:center}.elma-fieldtext small{display:none}.elma-row input{min-width:0;width:100%;border:0;outline:0;background:transparent;color:#09090a;font-size:16px;font-weight:560;line-height:22px;padding:0}.elma-row input::placeholder{color:#737373;opacity:1}.elma-plus{width:48px;height:48px;flex:0 0 48px;border:0;border-radius:50%;background:#ededee;color:#09090a;display:grid;place-items:center;font:400 32px/1 "Inter",sans-serif;padding:0 0 4px;touch-action:manipulation}.elma-plus:active{transform:scale(.96);background:#dedee0}.elma-results{display:none;max-height:220px;overflow:auto;margin:13px 0 0;background:#fff;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.elma-results.show{display:block}.elma-result{width:100%;min-height:62px;border:0;border-bottom:1px solid #ececef;background:#fff;color:#09090a;text-align:left;padding:8px 4px;display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;gap:11px}.elma-result:last-child{border-bottom:0}.elma-result:active{background:#f7f7f7}.elma-result-icon{position:relative;width:40px;height:40px;border-radius:50%;background:#f1f1f2;display:grid;place-items:center;color:#09090a}.elma-result-icon:before{content:"";width:13px;height:13px;border:2px solid currentColor;border-radius:50%}.elma-result-icon:after{content:"";position:absolute;width:7px;height:2px;background:currentColor;transform:translate(7px,7px) rotate(45deg);border-radius:2px}.elma-result-copy{min-width:0;display:block}.elma-result b,.elma-result small{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.elma-result b{font-size:14px;font-weight:790;line-height:19px}.elma-result small{color:#71717a;font-size:11.5px;line-height:16px;margin-top:1px}.elma-result-map .elma-result-icon:before{width:13px;height:13px;border:2px solid currentColor;border-radius:50%;box-shadow:inset 0 0 0 3px #f1f1f2}.elma-result-map .elma-result-icon:after{width:2px;height:7px;transform:translate(0,9px);background:currentColor}.elma-picked{height:28px;color:#62656a;font-size:11px;padding:8px 2px 0}.elma-go{width:100%;height:46px;border:0;border-radius:15px;background:#09090a;color:#fff;font-weight:850}`;
+    style.textContent=`html,body,.app{margin:0!important;width:100%!important;min-height:100%!important;max-width:none!important}.app{padding:0!important}.mapwrap{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;min-height:100vh!important;margin:0!important;border:0!important;border-radius:0!important;background:#f4f4f4!important;overflow:hidden!important}.mapwrap #map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;background:#f4f4f4!important}.gm-style{font-family:"Inter","Helvetica Neue",Arial,sans-serif}.gm-style-mtc,.gm-fullscreen-control,.gm-svpc,.gmnoprint.gm-bundled-control{display:none!important}.eg-bottom{display:none!important}.elma-home-screen,.elma-search-screen,.elma-event-screen{font-family:"Inter","Helvetica Neue",Arial,sans-serif;color:#09090a;background:#fff;-webkit-font-smoothing:antialiased}.elma-home-screen{position:absolute;z-index:810;inset:0;padding:calc(118px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) calc(112px + env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));overflow:auto}.elma-home-inner{width:100%;max-width:480px;margin:0 auto}.elma-quick-search{width:100%;height:66px;border:1px solid #d7d7d9;border-radius:36px;background:#fff;display:flex;align-items:center;gap:13px;padding:7px 8px 7px 20px;box-shadow:0 5px 13px rgba(0,0,0,.10);color:#09090a;text-align:left}.elma-quick-search:active{transform:scale(.992)}.elma-search-svg{width:27px;height:27px;flex:0 0 27px;fill:none;stroke:currentColor;stroke-width:2.25;stroke-linecap:round}.elma-quick-label{min-width:0;flex:1;font-size:20px;font-weight:570;letter-spacing:-.35px}.elma-later{height:50px;flex:0 0 auto;border:0;border-radius:28px;background:#f2f2f3;color:#09090a;display:flex;align-items:center;gap:8px;padding:0 17px;font-size:15px;font-weight:720;white-space:nowrap}.elma-later svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8}.elma-airport-card{width:100%;height:84px;margin-top:17px;border:1px solid #dedee0;border-radius:21px;background:#fff;display:grid;grid-template-columns:50px minmax(0,1fr) 20px;align-items:center;gap:11px;padding:10px 16px 10px 12px;color:#09090a;text-align:left}.elma-airport-icon{width:48px;height:48px;border-radius:15px;background:#f3f3f4;display:grid;place-items:center}.elma-airport-icon svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.elma-airport-copy{min-width:0}.elma-airport-copy b,.elma-airport-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.elma-airport-copy b{font-size:16px;line-height:21px;font-weight:820}.elma-airport-copy small{font-size:13px;line-height:18px;color:#737373;margin-top:2px}.elma-airport-arrow{font-size:28px;color:#a1a1a5;font-weight:350}.elma-search-screen{position:fixed;z-index:860;inset:0;display:none;overflow:auto;padding:calc(18px + env(safe-area-inset-top)) max(19px,env(safe-area-inset-right)) 34px max(19px,env(safe-area-inset-left))}.elma-search-screen.show{display:block}.elma-search-inner{width:100%;max-width:520px;margin:0 auto}.elma-search-head{height:48px;display:grid;grid-template-columns:48px 1fr 48px;align-items:center}.elma-back{width:44px;height:44px;border:0;background:transparent;color:#09090a;display:grid;place-items:center;padding:0}.elma-back svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:2.15;stroke-linecap:round;stroke-linejoin:round}.elma-search-title{margin:0;text-align:center;font-size:27px;line-height:34px;font-weight:850;letter-spacing:-.8px;white-space:nowrap}.elma-search-body{margin-top:118px}.elma-route-wrap{display:flex;align-items:center;gap:13px}.elma-route-fields{position:relative;flex:1;min-width:0;border:3px solid #09090a;border-radius:22px;background:#fff;overflow:hidden}.elma-route-row{height:58px;display:flex;align-items:center;gap:15px;padding:0 16px;position:relative}.elma-route-row+.elma-route-row:before{content:"";position:absolute;left:58px;right:0;top:0;height:1px;background:#dedee0}.elma-route-point{position:relative;width:24px;height:24px;flex:0 0 24px;display:grid;place-items:center;z-index:2;background:#09090a}.elma-route-origin{border-radius:50%}.elma-route-origin:before{content:"";width:7px;height:7px;border-radius:50%;background:#fff}.elma-route-origin:after{content:"";position:absolute;left:10px;top:22px;width:3px;height:51px;background:#09090a;z-index:-1}.elma-route-destination{border-radius:5px}.elma-route-destination:before{content:"";width:7px;height:7px;border-radius:1px;background:#fff}.elma-route-row input{min-width:0;width:100%;height:100%;border:0;outline:0;background:transparent;color:#09090a;font-size:19px;font-weight:500;letter-spacing:-.3px;padding:0}.elma-route-row input::placeholder{color:#858589;opacity:1}.elma-route-row input[readonly]{color:#242426}.elma-add{width:52px;height:52px;flex:0 0 52px;border:0;border-radius:50%;background:#f0f0f1;color:#09090a;font:350 36px/1 "Inter",sans-serif;padding:0 0 5px}.elma-flow-results{margin-top:16px}.elma-flow-result{width:100%;min-height:70px;border:0;border-bottom:1px solid #ececee;background:#fff;color:#09090a;display:grid;grid-template-columns:48px minmax(0,1fr) 18px;align-items:center;gap:12px;padding:7px 2px;text-align:left}.elma-flow-result:last-child{border-bottom:0}.elma-flow-result:active{background:#fafafa}.elma-flow-icon{position:relative;width:44px;height:44px;border-radius:50%;background:#f3f3f4;display:grid;place-items:center}.elma-flow-icon svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.elma-flow-copy{min-width:0}.elma-flow-copy b,.elma-flow-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.elma-flow-copy b{font-size:17px;line-height:22px;font-weight:760;letter-spacing:-.25px}.elma-flow-copy small{font-size:14px;line-height:19px;color:#717174;margin-top:1px}.elma-flow-arrow{font-size:25px;color:#aaa}.elma-main-nav{position:fixed;z-index:850;left:18px;right:18px;bottom:calc(10px + env(safe-area-inset-bottom));height:78px;max-width:470px;margin:0 auto;padding:6px;border:1px solid #dedee0;border-radius:42px;background:#fff;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;box-shadow:0 4px 14px rgba(0,0,0,.10);font-family:"Inter","Helvetica Neue",Arial,sans-serif}.elma-main-tab{min-width:0;border:0;border-radius:32px;background:transparent;color:#69696d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:3px 1px;font-size:11px;font-weight:600;line-height:1.05}.elma-main-tab svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.elma-main-tab.active{background:#f2f2f3;color:#09090a;font-weight:800}.elma-event-screen{position:fixed;z-index:840;inset:0;display:none;padding:calc(88px + env(safe-area-inset-top)) 24px calc(110px + env(safe-area-inset-bottom));text-align:center}.elma-event-screen.show{display:block}.elma-event-screen h2{font-size:29px;margin:0 0 10px}.elma-event-screen p{color:#777}.elma-map-pick-note{position:absolute;z-index:820;left:50%;top:calc(18px + env(safe-area-inset-top));transform:translateX(-50%);display:none;padding:11px 16px;border-radius:22px;background:#fff;color:#09090a;box-shadow:0 5px 18px rgba(0,0,0,.18);font:750 13px/1 "Inter",sans-serif;white-space:nowrap}.elma-map-pick-note.show{display:block}@media(max-width:360px){.elma-home-screen{padding-left:14px;padding-right:14px}.elma-quick-label{font-size:18px}.elma-later{padding:0 13px;font-size:14px}.elma-search-title{font-size:24px}.elma-search-body{margin-top:90px}.elma-route-row input{font-size:17px}}`;
     document.head.appendChild(style);
-    const wrapper=$('.mapwrap'),ui=document.createElement('div');
-    ui.innerHTML=`<button class="elma-restore" type="button" aria-label="Yolculuk panelini aç" aria-expanded="false"><span class="elma-restore-grip" aria-hidden="true"></span><span>Yolculuğu planla</span></button><section class="elma-sheet"><div class="elma-grab" role="button" tabindex="0" aria-label="Yolculuk panelini aşağı indir" aria-expanded="true"></div><div class="elma-title">Yolculuğunuzu planlayın</div><div class="elma-search-wrap"><div class="elma-fields"><div class="elma-row elma-row-origin"><span class="elma-point elma-point-origin" aria-hidden="true"></span><div class="elma-fieldtext"><input id="elmaFrom" aria-label="Nereden" placeholder="Nereden?" autocomplete="off"></div></div><div class="elma-row elma-row-destination"><span class="elma-point elma-point-destination" aria-hidden="true"></span><div class="elma-fieldtext"><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></div></div></div><button class="elma-plus" id="elmaPlus" type="button" aria-label="Yeni varış noktası ekle">+</button></div><div class="elma-results" id="elmaResults"></div><div class="elma-picked" id="elmaPicked">Haritada başlangıç konumuna dokun</div><button class="elma-go" id="elmaGo">Rotayı göster</button></section>`;
-    wrapper.appendChild(ui);
 
-    function bind(inputId,resultId,isOrigin){
-      const input=$('#'+inputId),results=$('#'+resultId);
-      input.onfocus=()=>mode(isOrigin?0:1);
-      input.oninput=()=>{
-        clearTimeout(timers[inputId]);
-        const query=input.value.trim();
-        if(query.length<2){results.classList.remove('show');return}
-        timers[inputId]=setTimeout(async()=>{
-          const items=await search(query);
-          results.innerHTML='';
-          items.forEach(item=>{
-            const button=document.createElement('button');
-            button.className='elma-result';
-            button.type='button';
-            button.innerHTML='<span class="elma-result-icon" aria-hidden="true"></span><span class="elma-result-copy"><b></b><small></small></span>';
-            const parts=item.label.split(',');
-            button.querySelector('b').textContent=parts.shift()||item.label;
-            button.querySelector('small').textContent=parts.join(',').trim()||item.label;
-            button.onclick=async()=>{
-              try{
-                const point=await resolveSearchItem(item);
-                clearRoute();
-                if(isOrigin)origin=point;else destination=point;
-                marker(isOrigin?'origin':'destination',point);
-                input.value=point.name;
-                results.classList.remove('show');
-                flyTo(point,16);
-                if(isOrigin)mode(1);else step=2;
-              }catch(error){
-                console.error(error);
-                alert('Bu konum açılamadı. Başka bir sonuç seç.');
-              }
-            };
-            results.appendChild(button);
-          });
-          const mapChoice=document.createElement('button');
-          mapChoice.className='elma-result elma-result-map';
-          mapChoice.type='button';
-          mapChoice.innerHTML='<span class="elma-result-icon" aria-hidden="true"></span><span class="elma-result-copy"><b>Konumu harita üzerinde belirleyin</b><small>Haritaya dokunarak nokta seçin</small></span>';
-          mapChoice.onclick=()=>{results.classList.remove('show');mode(isOrigin?0:1)};
-          results.appendChild(mapChoice);
-          results.classList.add('show');
-        },250);
-      };
+    const wrapper=$('.mapwrap');
+    const home=document.createElement('section');
+    home.id='elmaHomeScreen';
+    home.className='elma-home-screen';
+    home.innerHTML=`<div class="elma-home-inner"><div class="elma-quick-search" id="elmaQuickSearch" role="button" tabindex="0" aria-label="Nereye gitmek istiyorsunuz?"><svg class="elma-search-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span class="elma-quick-label">Nereye?</span><button class="elma-later" id="elmaLater" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="2"/><path d="M7 3v5M17 3v5M3.5 10h17"/></svg>Daha sonra</button></div><button class="elma-airport-card" id="elmaAirportCard" type="button"><span class="elma-airport-icon"><svg viewBox="0 0 24 24"><path d="M2.5 15.5 10 12V4.5c0-1.2.9-2 2-2s2 .8 2 2V12l7.5 3.5v2L14 16v4l2.5 1.5v1L12 21l-4.5 1.5v-1L10 20v-4l-7.5 1.5z"/></svg></span><span class="elma-airport-copy"><b>Kayseri Havalimanı</b><small>Yeşil, Mustafa Kemal Paşa Blv., Kocasinan/Kayseri</small></span><span class="elma-airport-arrow">›</span></button></div>`;
+    wrapper.appendChild(home);
+
+    const searchScreen=document.createElement('section');
+    searchScreen.id='elmaSearchScreen';
+    searchScreen.className='elma-search-screen';
+    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span></span></header><div class="elma-search-body"><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" readonly></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div><button class="elma-add" id="elmaAdd" type="button" aria-label="Yeni varış ekle">+</button></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
+    wrapper.appendChild(searchScreen);
+
+    const pickNote=document.createElement('div');
+    pickNote.id='elmaMapPickNote';
+    pickNote.className='elma-map-pick-note';
+    pickNote.textContent='Varış noktasını haritadan seçin';
+    wrapper.appendChild(pickNote);
+
+    const eventScreen=document.createElement('section');
+    eventScreen.id='elmaEventScreen';
+    eventScreen.className='elma-event-screen';
+    eventScreen.innerHTML='<h2>Etkinlik</h2><p>Yakındaki etkinlikler yakında burada.</p>';
+    document.body.appendChild(eventScreen);
+
+    const nav=document.createElement('nav');
+    nav.id='elmaMainNav';
+    nav.className='elma-main-nav';
+    nav.setAttribute('aria-label','Ana menü');
+    nav.innerHTML=`<button class="elma-main-tab active" data-elma-tab="home" type="button"><svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3z"/></svg><span>Ana Sayfa</span></button><button class="elma-main-tab" data-elma-tab="services" type="button"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="4" height="4" rx=".5"/><rect x="10" y="4" width="4" height="4" rx=".5"/><rect x="16" y="4" width="4" height="4" rx=".5"/><rect x="4" y="10" width="4" height="4" rx=".5"/><rect x="10" y="10" width="4" height="4" rx=".5"/><rect x="16" y="10" width="4" height="4" rx=".5"/><rect x="4" y="16" width="4" height="4" rx=".5"/><rect x="10" y="16" width="4" height="4" rx=".5"/><rect x="16" y="16" width="4" height="4" rx=".5"/></svg><span>Hizmetler</span></button><button class="elma-main-tab" data-elma-tab="event" type="button"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-3-6 3z"/><path d="M9 8h6M9 12h6"/></svg><span>Etkinlik</span></button><button class="elma-main-tab" data-elma-tab="account" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg><span>Hesap</span></button>`;
+    document.body.appendChild(nav);
+
+    const resultIcons={
+      clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>',
+      globe:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>',
+      pin:'<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="7"/><circle cx="12" cy="10" r="2"/><path d="M12 17v4"/></svg>',
+      star:'<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.7 6.3.8-4.6 4.4 1.2 6.1-5.6-3-5.6 3 1.2-6.1L3 9.5l6.3-.8z"/></svg>',
+      search:'<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>'
+    };
+
+    function setNavActive(name){
+      nav.querySelectorAll('.elma-main-tab').forEach(button=>button.classList.toggle('active',button.dataset.elmaTab===name));
+    }
+    function hideWhiteScreens(){
+      home.style.display='none';
+      searchScreen.classList.remove('show');
+      eventScreen.classList.remove('show');
+      pickNote.classList.remove('show');
+    }
+    function showHome(){
+      document.querySelector('.eg-tab[data-tab="home"]')?.click();
+      wrapper.style.display='block';
+      eventScreen.classList.remove('show');
+      searchScreen.classList.remove('show');
+      pickNote.classList.remove('show');
+      home.style.display='block';
+      nav.style.display='grid';
+      setNavActive('home');
+    }
+    function showMap(){
+      wrapper.style.display='block';
+      hideWhiteScreens();
+      nav.style.display='grid';
+      setNavActive('home');
+      requestAnimationFrame(()=>google.maps.event.trigger(map,'resize'));
+    }
+    async function ensureOrigin(){
+      if(origin){
+        $('#elmaFrom').value=origin.name||'Mevcut konumum';
+        return origin;
+      }
+      if(window.requestLocation)await window.requestLocation();
+      $('#elmaFrom').value=origin?.name||'Amasya Merkez';
+      return origin;
+    }
+    function resultButton(title,subtitle,kind,onClick,arrow=false){
+      const button=document.createElement('button');
+      button.className='elma-flow-result';
+      button.type='button';
+      button.innerHTML='<span class="elma-flow-icon">'+(resultIcons[kind]||resultIcons.search)+'</span><span class="elma-flow-copy"><b></b><small></small></span><span class="elma-flow-arrow">'+(arrow?'›':'')+'</span>';
+      button.querySelector('b').textContent=title;
+      const small=button.querySelector('small');
+      small.textContent=subtitle||'';
+      if(!subtitle)small.style.display='none';
+      if(onClick)button.onclick=onClick;
+      return button;
+    }
+    async function choosePoint(point){
+      await ensureOrigin();
+      if(!origin)return;
+      clearRoute();
+      destination=point;
+      marker('origin',origin);
+      marker('destination',destination);
+      $('#elmaTo').value=point.name;
+      step=2;
+      showMap();
+      await window.showRoute();
+    }
+    async function chooseQuery(query){
+      $('#elmaTo').value=query;
+      const items=await search(query);
+      if(!items.length)return;
+      const point=await resolveSearchItem(items[0]);
+      await choosePoint(point);
+    }
+    function renderDefaults(){
+      const results=$('#elmaFlowResults');
+      results.innerHTML='';
+      results.appendChild(resultButton('Kayseri Havalimanı','Yeşil, Mustafa Kemal Paşa Blv., Kocasinan/Kayseri','clock',()=>chooseQuery('Kayseri Havalimanı')));
+      results.appendChild(resultButton('Farklı bir şehirde arayın','', 'globe',()=>$('#elmaTo').focus()));
+      results.appendChild(resultButton('Konumu harita üzerinde belirleyin','', 'pin',async()=>{await ensureOrigin();showMap();step=1;pickNote.classList.add('show')}));
+      results.appendChild(resultButton('Kaydedilen yerler','', 'star',null));
+    }
+    function renderSearchResults(items){
+      const results=$('#elmaFlowResults');
+      results.innerHTML='';
+      items.forEach(item=>{
+        const parts=item.label.split(',');
+        const title=parts.shift()||item.label;
+        const subtitle=parts.join(',').trim();
+        results.appendChild(resultButton(title,subtitle,'search',async()=>{
+          try{await choosePoint(await resolveSearchItem(item))}catch(error){console.error(error)}
+        },true));
+      });
+      results.appendChild(resultButton('Konumu harita üzerinde belirleyin','', 'pin',async()=>{await ensureOrigin();showMap();step=1;pickNote.classList.add('show')}));
+    }
+    function openSearch(){
+      home.style.display='none';
+      eventScreen.classList.remove('show');
+      searchScreen.classList.add('show');
+      renderDefaults();
+      $('#elmaTo').value='';
+      $('#elmaTo').focus();
+      ensureOrigin();
     }
 
-    bind('elmaFrom','elmaResults',true);
-    bind('elmaTo','elmaResults',false);
-    $('#elmaPlus').onclick=()=>{clearRoute();destination=null;$('#elmaTo').value='';mode(1);$('#elmaTo').focus()};
-    $('#elmaGo').onclick=()=>window.showRoute();
-    dragSheet();
+    $('#elmaQuickSearch').onclick=openSearch;
+    $('#elmaQuickSearch').onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openSearch()}};
+    $('#elmaLater').onclick=event=>event.stopPropagation();
+    $('#elmaAirportCard').onclick=()=>chooseQuery('Kayseri Havalimanı');
+    $('#elmaSearchBack').onclick=showHome;
+    $('#elmaAdd').onclick=()=>{$('#elmaTo').value='';renderDefaults();$('#elmaTo').focus()};
+    $('#elmaTo').oninput=()=>{
+      clearTimeout(timers.elmaTo);
+      const query=$('#elmaTo').value.trim();
+      if(query.length<2){renderDefaults();return}
+      timers.elmaTo=setTimeout(async()=>renderSearchResults(await search(query)),250);
+    };
+
+    nav.querySelectorAll('.elma-main-tab').forEach(button=>button.onclick=()=>{
+      const name=button.dataset.elmaTab;
+      if(name==='home'){showHome();return}
+      hideWhiteScreens();
+      setNavActive(name);
+      if(name==='event'){eventScreen.classList.add('show');wrapper.style.display='block';return}
+      document.querySelector('.eg-tab[data-tab="'+name+'"]')?.click();
+    });
+
+    window.elmaShowHome=showHome;
+    window.elmaOpenSearch=openSearch;
+    window.elmaShowMapView=showMap;
+    renderDefaults();
+    showHome();
   }
 
   async function pickPoint(lat,lon){
@@ -253,13 +363,16 @@
     if(step===0){
       origin=point;
       marker('origin',point);
-      $('#elmaFrom').value=point.name;
-      mode(1);
+      if($('#elmaFrom'))$('#elmaFrom').value=point.name;
+      step=1;
     }else{
       destination=point;
       marker('destination',point);
-      $('#elmaTo').value=point.name;
+      if($('#elmaTo'))$('#elmaTo').value=point.name;
+      $('#elmaMapPickNote')?.classList.remove('show');
       step=2;
+      window.elmaShowMapView?.();
+      if(origin)await window.showRoute?.();
     }
   }
 
@@ -287,16 +400,22 @@
     });
     map.addListener('click',event=>pickPoint(event.latLng.lat(),event.latLng.lng()));
 
-    window.requestLocation=()=>navigator.geolocation?.getCurrentPosition(async position=>{
-      window.elmaUserPosition=position;
-      clearRoute();
-      origin={lon:position.coords.longitude,lat:position.coords.latitude};
-      origin.name=await reverse(origin.lon,origin.lat);
-      marker('origin',origin);
-      $('#elmaFrom').value=origin.name;
-      flyTo(origin,17);
-      mode(1);
-    },()=>alert('Konum izni verilmedi. Başlangıç noktasını haritadan seçebilirsin.'),{enableHighAccuracy:true,timeout:10000});
+    window.requestLocation=()=>new Promise(resolve=>{
+      const applyOrigin=async(lon,lat,fallbackName)=>{
+        clearRoute();
+        origin={lon,lat};
+        origin.name=await reverse(lon,lat)||fallbackName;
+        marker('origin',origin);
+        if($('#elmaFrom'))$('#elmaFrom').value=origin.name;
+        resolve(origin);
+      };
+      const fallback=()=>applyOrigin(DEFAULT_CENTER.lng,DEFAULT_CENTER.lat,'Amasya Merkez');
+      if(!navigator.geolocation){fallback();return}
+      navigator.geolocation.getCurrentPosition(position=>{
+        window.elmaUserPosition=position;
+        applyOrigin(position.coords.longitude,position.coords.latitude,'Mevcut konumum');
+      },fallback,{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+    });
 
     window.showRoute=async()=>{
       if(!origin||!destination)return alert('Başlangıç ve varış seç.');
@@ -317,7 +436,7 @@
           preserveViewport:false,
           polylineOptions:{strokeColor:'#050506',strokeWeight:6,strokeOpacity:.92}
         });
-        mode(0);
+        step=1;
       }catch(error){
         console.warn('Google rota servisi kullanılamıyor, yedek rota açılıyor:',error);
         try{
@@ -338,7 +457,7 @@
           const bounds=new google.maps.LatLngBounds();
           path.forEach(point=>bounds.extend(point));
           map.fitBounds(bounds,48);
-          mode(0);
+          step=1;
         }catch(fallbackError){
           console.error('Yedek rota hatası:',fallbackError);
           alert('Rota şu anda gösterilemiyor. Biraz sonra tekrar dene.');
