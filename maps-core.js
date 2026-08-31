@@ -669,7 +669,7 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
   line6.dataset.elmaLine6Ui='1';
   document.head.appendChild(line6);
   const line6Route=document.createElement('script');
-  line6Route.src='line-6-route.js?v=20260830-collapsed-route-cards';
+  line6Route.src='line-6-route.js?v=20260901-google-23-stops';
   line6Route.defer=true;
   line6Route.dataset.elmaLine6Route='1';
   document.head.appendChild(line6Route);
