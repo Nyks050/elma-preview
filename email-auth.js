@@ -1,225 +1,28 @@
 import { getApp, getApps } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
-import {
-  createUserWithEmailAndPassword,
-  getAuth,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  updateProfile
-} from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+import { createUserWithEmailAndPassword, getAuth, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
 
+const AUTH_API = 'https://elma-go-auth.purple-hill-3b24.workers.dev';
 const style = document.createElement('style');
-style.textContent = `
-  .email-auth-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px}
-  .email-auth-link{border:0;background:none;color:#85888e;padding:4px 0;font-size:13px;font-weight:700}
-  html[data-theme="light"] .email-auth-link{color:#4f5258}
-  .email-auth-note{text-align:center;color:#777b82;font-size:11px;line-height:1.4;margin:11px 12px 0}
-`;
+style.textContent = `.email-auth-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px}.email-auth-link{border:0;background:none;color:#85888e;padding:4px 0;font-size:13px;font-weight:700}.email-auth-note{text-align:center;color:#777b82;font-size:11px;line-height:1.4;margin:11px 12px 0}.email-code{letter-spacing:10px;text-align:center!important;font-size:25px!important;font-weight:800}html[data-theme="light"] .email-auth-link{color:#4f5258}`;
 document.head.appendChild(style);
 
-function messageFor(error, context = 'login') {
-  const code = error?.code || '';
-  if (code === 'auth/invalid-email') return 'Geçerli bir e-posta adresi gir.';
-  if (code === 'auth/weak-password') return 'Daha güçlü bir şifre seç.';
-  if (code === 'auth/email-already-in-use') return 'Bu e-posta ile hesap oluşturulamıyor.';
-  if (code === 'auth/operation-not-allowed') return 'E-posta ile giriş henüz etkinleştirilmemiş.';
-  if (code === 'auth/too-many-requests') return 'Çok fazla deneme yapıldı. Bir süre sonra tekrar dene.';
-  if (code === 'auth/network-request-failed') return 'İnternet bağlantını kontrol edip tekrar dene.';
-  if (code === 'auth/user-disabled') return 'Bu hesap kullanıma kapatılmış.';
-  if (context === 'login') return 'E-posta veya şifre hatalı.';
-  return 'Hesap oluşturulamadı. Lütfen tekrar dene.';
+function setMessage(id,text,success=false){const e=document.getElementById(id);if(!e)return;e.textContent=text||'';e.style.color=success?'#39845c':'';}
+function messageFor(error,context='login'){const c=error?.code||'';if(c==='auth/invalid-email')return'Geçerli bir e-posta adresi gir.';if(c==='auth/weak-password')return'Daha güçlü bir şifre seç.';if(c==='auth/email-already-in-use')return'Bu e-posta zaten kullanılıyor.';if(c==='auth/too-many-requests')return'Çok fazla deneme yapıldı. Bir süre sonra tekrar dene.';if(c==='auth/network-request-failed')return'İnternet bağlantını kontrol edip tekrar dene.';return context==='login'?'E-posta veya şifre hatalı.':'Hesap oluşturulamadı. Lütfen tekrar dene.';}
+async function api(path,data){const r=await fetch(`${AUTH_API}${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||'İşlem tamamlanamadı.');return j;}
+function field(placeholder,id,type='text',autocomplete='off'){const w=document.createElement('div');w.className='field';const i=document.createElement('input');i.id=id;i.type=type;i.placeholder=placeholder;i.autocomplete=autocomplete;w.appendChild(i);return w;}
+
+function configureRegister(auth){
+ const register=document.getElementById('register');if(!register)return;const inputs=[...register.querySelectorAll('.field input')];if(inputs.length<3)return;
+ const [name,email,password]=inputs;name.id='registerName';name.placeholder='Ad soyad';name.autocomplete='name';email.id='registerEmail';email.type='email';email.placeholder='E-posta adresi';email.autocomplete='email';password.id='registerPassword';password.type='password';password.placeholder='Şifre (en az 8 karakter)';password.autocomplete='new-password';
+ if(!document.getElementById('registerPasswordAgain'))password.closest('.field').insertAdjacentElement('afterend',field('Şifreyi tekrar gir','registerPasswordAgain','password','new-password'));
+ let msg=document.getElementById('registerMsg');if(!msg){msg=document.createElement('div');msg.id='registerMsg';msg.className='msg';register.querySelector('.back')?.before(msg);}
+ const verify=document.createElement('section');verify.id='emailCodeVerify';verify.className='register';verify.innerHTML=`<div class="box"><div class="brand wordmark"><span class="elma">elma</span><span class="go">go</span></div><h1>E-postanı doğrula</h1><p class="desc" id="emailCodeDesc">E-posta adresine gönderilen 6 haneli kodu gir.</p><div class="field"><input id="emailCodeInput" class="email-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div><button id="emailCodeSubmit" class="primary" type="button">Kodu doğrula</button><div id="emailCodeMsg" class="msg" aria-live="polite"></div><div class="email-auth-actions"><button id="emailCodeBack" class="email-auth-link" type="button">← Geri dön</button><button id="emailCodeResend" class="email-auth-link" type="button">Kodu tekrar gönder</button></div><p class="email-auth-note">Kod 10 dakika geçerlidir.</p></div>`;
+ register.after(verify);let pending=null;
+ async function sendCode(){const button=document.getElementById('registerBtn');const fullName=name.value.trim().replace(/\s+/g,' ');const mail=email.value.trim().toLowerCase();const pass=password.value;const again=document.getElementById('registerPasswordAgain').value;const kvkk=document.getElementById('kvkkCheck');setMessage('registerMsg','');if(fullName.length<2)return setMessage('registerMsg','Adını ve soyadını gir.');if(!mail)return setMessage('registerMsg','E-posta adresini gir.');if(pass.length<8)return setMessage('registerMsg','Şifre en az 8 karakter olmalı.');if(pass!==again)return setMessage('registerMsg','Şifreler birbiriyle aynı değil.');if(!kvkk?.checked)return setMessage('registerMsg','KVKK metnini okuyup onayla.');button.disabled=true;button.textContent='Kod gönderiliyor…';try{await api('/send-code',{email:mail});pending={fullName,email:mail,password:pass};document.getElementById('emailCodeDesc').textContent=`${mail} adresine gönderilen 6 haneli kodu gir.`;register.classList.remove('show');verify.classList.add('show');setTimeout(()=>document.getElementById('emailCodeInput')?.focus(),50);}catch(e){setMessage('registerMsg',e.message);}finally{button.disabled=!kvkk?.checked;button.textContent='Hesap oluştur';}}
+ document.getElementById('emailCodeSubmit').onclick=async()=>{if(!pending)return;const button=document.getElementById('emailCodeSubmit');const code=document.getElementById('emailCodeInput').value.replace(/\D/g,'').slice(0,6);setMessage('emailCodeMsg','');if(code.length!==6)return setMessage('emailCodeMsg','6 haneli doğrulama kodunu gir.');button.disabled=true;button.textContent='Doğrulanıyor…';try{await api('/verify-code',{email:pending.email,code});const credential=await createUserWithEmailAndPassword(auth,pending.email,pending.password);await updateProfile(credential.user,{displayName:pending.fullName});window.dispatchEvent(new CustomEvent('elma-user-profile-updated',{detail:credential.user}));verify.classList.remove('show');document.getElementById('login')?.classList.add('hide');pending=null;}catch(e){setMessage('emailCodeMsg',e.code?messageFor(e,'register'):e.message);}finally{button.disabled=false;button.textContent='Kodu doğrula';}};
+ document.getElementById('emailCodeInput').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6);});document.getElementById('emailCodeInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('emailCodeSubmit').click();});document.getElementById('emailCodeBack').onclick=()=>{verify.classList.remove('show');register.classList.add('show');};document.getElementById('emailCodeResend').onclick=async()=>{if(!pending)return;setMessage('emailCodeMsg','');try{await api('/send-code',{email:pending.email});setMessage('emailCodeMsg','Yeni kod gönderildi.',true);}catch(e){setMessage('emailCodeMsg',e.message);}};
+ window.finishRegister=sendCode;const button=document.getElementById('registerBtn');if(button)button.onclick=sendCode;
 }
 
-function setMessage(id, text, success = false) {
-  const element = document.getElementById(id);
-  if (!element) return;
-  element.textContent = text || '';
-  element.style.color = success ? '#39845c' : '';
-}
-
-function field(placeholder, id, type, autocomplete) {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'field';
-  const input = document.createElement('input');
-  input.id = id;
-  input.type = type;
-  input.placeholder = placeholder;
-  input.autocomplete = autocomplete;
-  wrapper.appendChild(input);
-  return wrapper;
-}
-
-function configureRegister(auth) {
-  const register = document.getElementById('register');
-  if (!register) return;
-  const inputs = [...register.querySelectorAll('.field input')];
-  if (inputs.length < 3) return;
-
-  const [name, second, third] = inputs;
-  name.id = 'registerName';
-  name.placeholder = 'Ad soyad';
-  name.autocomplete = 'name';
-
-  second.id = 'registerEmail';
-  second.type = 'email';
-  second.placeholder = 'E-posta adresi';
-  second.autocomplete = 'email';
-
-  third.id = 'registerPassword';
-  third.type = 'password';
-  third.placeholder = 'Şifre (en az 8 karakter)';
-  third.autocomplete = 'new-password';
-
-  if (!document.getElementById('registerPasswordAgain')) {
-    third.closest('.field').insertAdjacentElement(
-      'afterend',
-      field('Şifreyi tekrar gir', 'registerPasswordAgain', 'password', 'new-password')
-    );
-  }
-
-  let status = document.getElementById('registerMsg');
-  if (!status) {
-    status = document.createElement('div');
-    status.id = 'registerMsg';
-    status.className = 'msg';
-    register.querySelector('.back')?.before(status);
-  }
-
-  async function registerAccount() {
-    const button = document.getElementById('registerBtn');
-    const fullName = name.value.trim().replace(/\s+/g, ' ');
-    const email = second.value.trim();
-    const password = third.value;
-    const passwordAgain = document.getElementById('registerPasswordAgain').value;
-    const kvkk = document.getElementById('kvkkCheck');
-    setMessage('registerMsg', '');
-
-    if (fullName.length < 2) return setMessage('registerMsg', 'Adını ve soyadını gir.');
-    if (!email) return setMessage('registerMsg', 'E-posta adresini gir.');
-    if (password.length < 8) return setMessage('registerMsg', 'Şifre en az 8 karakter olmalı.');
-    if (password !== passwordAgain) return setMessage('registerMsg', 'Şifreler birbiriyle aynı değil.');
-    if (!kvkk?.checked) return setMessage('registerMsg', 'KVKK metnini okuyup onayla.');
-
-    button.disabled = true;
-    button.textContent = 'Hesap oluşturuluyor…';
-    try {
-      const credential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(credential.user, { displayName: fullName });
-      window.dispatchEvent(new CustomEvent('elma-user-profile-updated', { detail: credential.user }));
-      let verificationSent = true;
-      try {
-        await sendEmailVerification(credential.user);
-      } catch (error) {
-        verificationSent = false;
-      }
-      register.classList.remove('show');
-      document.getElementById('login')?.classList.add('hide');
-      alert(verificationSent
-        ? 'Hesabın oluşturuldu. Doğrulama bağlantısını e-posta adresine gönderdik.'
-        : 'Hesabın oluşturuldu. Doğrulama e-postası şu anda gönderilemedi.');
-    } catch (error) {
-      setMessage('registerMsg', messageFor(error, 'register'));
-    } finally {
-      button.disabled = !kvkk?.checked;
-      button.textContent = 'Hesap oluştur';
-    }
-  }
-
-  window.finishRegister = registerAccount;
-  const button = document.getElementById('registerBtn');
-  if (button) button.onclick = registerAccount;
-}
-
-function createEmailLogin(auth) {
-  if (document.getElementById('emailLogin')) return;
-  const section = document.createElement('section');
-  section.id = 'emailLogin';
-  section.className = 'register';
-  section.setAttribute('aria-label', 'E-posta ile giriş');
-  section.innerHTML = `
-    <div class="box">
-      <div class="brand wordmark"><span class="elma">elma</span><span class="go">go</span></div>
-      <h1>E-posta ile giriş</h1>
-      <p class="desc">E-posta adresin ve şifrenle hesabına devam et.</p>
-      <div class="field"><input id="emailLoginAddress" type="email" autocomplete="email" placeholder="E-posta adresi"></div>
-      <div class="field"><input id="emailLoginPassword" type="password" autocomplete="current-password" placeholder="Şifre"></div>
-      <button id="emailLoginSubmit" class="primary" type="button">Giriş yap</button>
-      <div id="emailLoginMsg" class="msg" aria-live="polite"></div>
-      <div class="email-auth-actions">
-        <button id="emailLoginBack" class="email-auth-link" type="button">← Diğer yöntemler</button>
-        <button id="emailResetPassword" class="email-auth-link" type="button">Şifremi unuttum</button>
-      </div>
-      <p class="email-auth-note">Hesabın yoksa giriş ekranındaki “Üye ol” seçeneğini kullan.</p>
-    </div>`;
-  document.getElementById('verify')?.before(section);
-
-  const close = () => section.classList.remove('show');
-  document.getElementById('emailLoginBack').onclick = close;
-  document.getElementById('emailLoginPassword').addEventListener('keydown', event => {
-    if (event.key === 'Enter') document.getElementById('emailLoginSubmit').click();
-  });
-
-  document.getElementById('emailLoginSubmit').onclick = async () => {
-    const button = document.getElementById('emailLoginSubmit');
-    const email = document.getElementById('emailLoginAddress').value.trim();
-    const password = document.getElementById('emailLoginPassword').value;
-    setMessage('emailLoginMsg', '');
-    if (!email || !password) return setMessage('emailLoginMsg', 'E-posta adresini ve şifreni gir.');
-    button.disabled = true;
-    button.textContent = 'Giriş yapılıyor…';
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      close();
-      document.getElementById('login')?.classList.add('hide');
-    } catch (error) {
-      setMessage('emailLoginMsg', messageFor(error));
-    } finally {
-      button.disabled = false;
-      button.textContent = 'Giriş yap';
-    }
-  };
-
-  document.getElementById('emailResetPassword').onclick = async () => {
-    const email = document.getElementById('emailLoginAddress').value.trim();
-    setMessage('emailLoginMsg', '');
-    if (!email) return setMessage('emailLoginMsg', 'Önce e-posta adresini gir.');
-    try {
-      await sendPasswordResetEmail(auth, email);
-      setMessage('emailLoginMsg', 'Kayıtlıysa şifre yenileme bağlantısı gönderildi.', true);
-    } catch (error) {
-      if (error?.code === 'auth/invalid-email') setMessage('emailLoginMsg', 'Geçerli bir e-posta adresi gir.');
-      else setMessage('emailLoginMsg', 'Şifre yenileme isteği tamamlanamadı.');
-    }
-  };
-
-  window.openEmailLogin = () => {
-    setMessage('emailLoginMsg', '');
-    section.classList.add('show');
-    setTimeout(() => document.getElementById('emailLoginAddress')?.focus(), 50);
-  };
-
-  const emailButton = [...document.querySelectorAll('#login .authbtn')]
-    .find(button => button.textContent.includes('E-posta'));
-  if (emailButton) {
-    emailButton.removeAttribute('onclick');
-    emailButton.onclick = window.openEmailLogin;
-  }
-
-  const appleButton = document.querySelector('#login .authbtn.apple');
-  if (appleButton) {
-    appleButton.removeAttribute('onclick');
-    appleButton.disabled = true;
-    appleButton.setAttribute('aria-disabled', 'true');
-    appleButton.title = 'Apple ile giriş yakında';
-    appleButton.lastChild.textContent = 'Apple ile devam et · Yakında';
-  }
-}
-
-function start() {
-  if (!getApps().length) return setTimeout(start, 50);
-  const auth = getAuth(getApp());
-  configureRegister(auth);
-  createEmailLogin(auth);
-}
-
-start();
+function createEmailLogin(auth){if(document.getElementById('emailLogin'))return;const section=document.createElement('section');section.id='emailLogin';section.className='register';section.innerHTML=`<div class="box"><div class="brand wordmark"><span class="elma">elma</span><span class="go">go</span></div><h1>E-posta ile giriş</h1><p class="desc">E-posta adresin ve şifrenle hesabına devam et.</p><div class="field"><input id="emailLoginAddress" type="email" autocomplete="email" placeholder="E-posta adresi"></div><div class="field"><input id="emailLoginPassword" type="password" autocomplete="current-password" placeholder="Şifre"></div><button id="emailLoginSubmit" class="primary" type="button">Giriş yap</button><div id="emailLoginMsg" class="msg"></div><div class="email-auth-actions"><button id="emailLoginBack" class="email-auth-link" type="button">← Diğer yöntemler</button><button id="emailResetPassword" class="email-auth-link" type="button">Şifremi unuttum</button></div></div>`;document.getElementById('verify')?.before(section);document.getElementById('emailLoginBack').onclick=()=>section.classList.remove('show');document.getElementById('emailLoginSubmit').onclick=async()=>{const b=document.getElementById('emailLoginSubmit');const email=document.getElementById('emailLoginAddress').value.trim();const password=document.getElementById('emailLoginPassword').value;setMessage('emailLoginMsg','');if(!email||!password)return setMessage('emailLoginMsg','E-posta adresini ve şifreni gir.');b.disabled=true;try{await signInWithEmailAndPassword(auth,email,password);section.classList.remove('show');document.getElementById('login')?.classList.add('hide');}catch(e){setMessage('emailLoginMsg',messageFor(e));}finally{b.disabled=false;}};document.getElementById('emailResetPassword').onclick=async()=>{const email=document.getElementById('emailLoginAddress').value.trim();if(!email)return setMessage('emailLoginMsg','Önce e-posta adresini gir.');try{await sendPasswordResetEmail(auth,email);setMessage('emailLoginMsg','Kayıtlıysa şifre yenileme bağlantısı gönderildi.',true);}catch{setMessage('emailLoginMsg','Şifre yenileme isteği tamamlanamadı.');}};window.openEmailLogin=()=>section.classList.add('show');const eb=[...document.querySelectorAll('#login .authbtn')].find(b=>b.textContent.includes('E-posta'));if(eb){eb.removeAttribute('onclick');eb.onclick=window.openEmailLogin;}const ab=document.querySelector('#login .authbtn.apple');if(ab){ab.removeAttribute('onclick');ab.disabled=true;ab.title='Apple ile giriş yakında';}}
+function start(){if(!getApps().length)return setTimeout(start,50);const auth=getAuth(getApp());configureRegister(auth);createEmailLogin(auth);}start();
