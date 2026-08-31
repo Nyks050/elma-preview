@@ -1,41 +1,103 @@
 (()=>{
-  const DEFAULT_CENTER=[40.65,35.83];
-  let map,origin,destination,originMarker,destinationMarker,routeLine,step=0,timers={};
+  const DEFAULT_CENTER={lat:40.65,lng:35.83};
+  let map,origin,destination,originMarker,destinationMarker,directionsRenderer,step=0,timers={};
+  let geocoder,placesLibrary;
   const $=selector=>document.querySelector(selector);
+
+  function loadGoogleMaps(){
+    if(window.google?.maps)return Promise.resolve(window.google.maps);
+    if(window.__elmaGoogleMapsPromise)return window.__elmaGoogleMapsPromise;
+    window.__elmaGoogleMapsPromise=new Promise((resolve,reject)=>{
+      const key=window.GOOGLE_MAPS_API_KEY;
+      if(!key){reject(new Error('Google Maps API anahtarı bulunamadı'));return}
+      const callback='__elmaGoogleMapsReady';
+      window[callback]=()=>{delete window[callback];resolve(window.google.maps)};
+      const script=document.createElement('script');
+      script.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(key)+'&libraries=places&language=tr&region=TR&v=weekly&loading=async&callback='+callback;
+      script.async=true;
+      script.onerror=()=>reject(new Error('Google Maps yüklenemedi'));
+      document.head.appendChild(script);
+    });
+    return window.__elmaGoogleMapsPromise;
+  }
 
   async function search(query){
     if(!query||query.trim().length<2)return[];
     try{
-      const response=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=tr&addressdetails=1&limit=6&q='+encodeURIComponent(query),{headers:{'Accept-Language':'tr'}});
-      return await response.json();
-    }catch(e){return[]}
+      if(placesLibrary?.AutocompleteSuggestion){
+        const response=await placesLibrary.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+          input:query,
+          includedRegionCodes:['tr'],
+          language:'tr'
+        });
+        return (response.suggestions||[]).slice(0,6).map(suggestion=>{
+          const prediction=suggestion.placePrediction;
+          const label=prediction?.text?.toString?.()||prediction?.mainText?.toString?.()||query;
+          return {label,prediction};
+        });
+      }
+      const results=await new Promise((resolve,reject)=>geocoder.geocode(
+        {address:query,componentRestrictions:{country:'TR'}},
+        (items,status)=>status==='OK'?resolve(items.slice(0,6)):reject(new Error(status))
+      ));
+      return results.map(item=>({
+        label:item.formatted_address,
+        point:{lat:item.geometry.location.lat(),lon:item.geometry.location.lng(),name:item.formatted_address}
+      }));
+    }catch(error){
+      console.warn('Google adres araması başarısız:',error);
+      return[];
+    }
+  }
+
+  async function resolveSearchItem(item){
+    if(item.point)return item.point;
+    const place=item.prediction.toPlace();
+    await place.fetchFields({fields:['displayName','formattedAddress','location']});
+    if(!place.location)throw new Error('Konum bulunamadı');
+    return {
+      lat:place.location.lat(),
+      lon:place.location.lng(),
+      name:place.formattedAddress||place.displayName||item.label
+    };
   }
 
   async function reverse(lon,lat){
     try{
-      const response=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lon)+'&zoom=18&addressdetails=1',{headers:{'Accept-Language':'tr'}});
-      const result=await response.json();
-      return result.display_name||lat.toFixed(5)+', '+lon.toFixed(5);
-    }catch(e){return lat.toFixed(5)+', '+lon.toFixed(5)}
+      const result=await new Promise((resolve,reject)=>geocoder.geocode(
+        {location:{lat,lng:lon}},
+        (items,status)=>status==='OK'&&items?.[0]?resolve(items[0]):reject(new Error(status))
+      ));
+      return result.formatted_address||lat.toFixed(5)+', '+lon.toFixed(5);
+    }catch(error){
+      return lat.toFixed(5)+', '+lon.toFixed(5);
+    }
   }
 
   function marker(kind,point){
     const previous=kind==='origin'?originMarker:destinationMarker;
-    previous?.remove();
+    previous?.setMap(null);
     const isOrigin=kind==='origin';
-    const next=L.circleMarker([point.lat,point.lon],{
-      radius:9,
-      color:isOrigin?'#ffffff':'#09090a',
-      weight:4,
-      fillColor:isOrigin?'#09090a':'#ffffff',
-      fillOpacity:1,
-      opacity:1
-    }).addTo(map);
+    const next=new google.maps.Marker({
+      map,
+      position:{lat:point.lat,lng:point.lon},
+      title:isOrigin?'Başlangıç':'Varış',
+      icon:{
+        path:google.maps.SymbolPath.CIRCLE,
+        scale:8,
+        fillColor:isOrigin?'#09090a':'#ffffff',
+        fillOpacity:1,
+        strokeColor:isOrigin?'#ffffff':'#09090a',
+        strokeWeight:4
+      },
+      zIndex:isOrigin?20:21
+    });
     if(isOrigin)originMarker=next;else destinationMarker=next;
   }
 
   function flyTo(point,zoom=16){
-    map.setView([point.lat,point.lon],zoom,{animate:false});
+    map.panTo({lat:point.lat,lng:point.lon});
+    map.setZoom(zoom);
   }
 
   function mode(next){
@@ -76,10 +138,10 @@
     document.querySelector('.top')?.setAttribute('style','display:none!important');
     const style=document.createElement('style');
     style.id='elmaFullscreenMapStyle';
-    style.textContent=`html,body,.app{margin:0!important;width:100%!important;min-height:100%!important;max-width:none!important}.app{padding:0!important}.mapwrap{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;min-height:100vh!important;margin:0!important;border:0!important;border-radius:0!important;background:#f7f7f8!important;overflow:hidden!important}.mapwrap #map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;background:#f7f7f8!important}.leaflet-container{background:#f7f7f8!important;font-family:"Inter","Helvetica Neue",Arial,sans-serif}.leaflet-control-zoom{display:none}.leaflet-bottom{bottom:calc(82px + env(safe-area-inset-bottom))}.leaflet-control-attribution{border-radius:8px 0 0 0!important;background:#ffffffe8!important;color:#444!important;font-size:9px!important;padding:2px 5px!important}.leaflet-control-attribution a{color:#09090a!important}.elma-sheet{position:absolute;z-index:811;left:8px;right:8px;bottom:calc(92px + env(safe-area-inset-bottom));border:1px solid #d4d4d8;border-radius:25px;background:#fffffff7;padding:9px 12px 13px;box-shadow:0 18px 55px #7775}.elma-sheet.dismissed{transform:translateY(calc(100% + 150px));opacity:0;pointer-events:none}.elma-grab{width:72px;height:22px;margin:-5px auto 3px;position:relative;touch-action:none;cursor:pointer;-webkit-tap-highlight-color:transparent}.elma-grab:after{content:"";position:absolute;left:17px;right:17px;top:9px;height:4px;border-radius:9px;background:#8a8d92;transition:background .15s ease,transform .15s ease}.elma-grab:active:after{background:#09090a;transform:scaleX(.9)}.elma-grab:focus-visible{outline:2px solid #09090a;outline-offset:1px;border-radius:11px}.elma-restore{position:absolute;z-index:812;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);display:none;align-items:center;justify-content:center;gap:9px;width:auto;min-width:158px;height:42px;padding:0 15px;border:1px solid #d4d4d8;border-radius:999px;background:#fffffff5;color:#09090a;box-shadow:0 10px 30px #7774;font:800 12px/1 "Inter","Helvetica Neue",Arial,sans-serif;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);touch-action:manipulation;-webkit-tap-highlight-color:transparent}.elma-restore.show{display:flex}.elma-restore:active{transform:translateX(-50%) scale(.97)}.elma-restore:focus-visible{outline:2px solid #09090a;outline-offset:2px}.elma-restore-grip{width:27px;height:4px;border-radius:99px;background:#777b82;position:relative}.elma-restore-grip:after{content:"";position:absolute;left:10px;top:-5px;width:6px;height:6px;border-left:1.7px solid #61646a;border-top:1.7px solid #61646a;transform:rotate(45deg)}.elma-title{font-weight:800;font-size:18px;margin:0 2px 9px}.elma-fields{border:1px solid #d8d8dc;border-radius:17px;background:#fff}.elma-row{height:50px;display:flex;align-items:center;gap:10px;padding:0 12px;position:relative}.elma-row+.elma-row{border-top:1px solid #dedee1}.elma-row input{min-width:0;width:100%;border:0;outline:0;background:transparent;color:#09090a;font-size:14px}.elma-my{border:0;background:#e4e4e7;color:#09090a;border-radius:10px;padding:8px}.elma-results{position:absolute;z-index:820;left:0;right:0;top:52px;display:none;max-height:185px;overflow:auto;background:#fff}.elma-results.show{display:block}.elma-result{width:100%;border:0;border-bottom:1px solid #dedee1;background:#fff;color:#09090a;text-align:left;padding:10px}.elma-result b,.elma-result small{display:block}.elma-picked{height:28px;color:#62656a;font-size:11px;padding-top:7px}.elma-go{width:100%;height:46px;border:0;border-radius:15px;background:#09090a;color:#fff;font-weight:850}`;
+    style.textContent=`html,body,.app{margin:0!important;width:100%!important;min-height:100%!important;max-width:none!important}.app{padding:0!important}.mapwrap{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;min-height:100vh!important;margin:0!important;border:0!important;border-radius:0!important;background:#f7f7f8!important;overflow:hidden!important}.mapwrap #map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;background:#f7f7f8!important}.gm-style{font-family:"Inter","Helvetica Neue",Arial,sans-serif}.gm-style-mtc,.gm-fullscreen-control,.gm-svpc,.gmnoprint.gm-bundled-control{display:none!important}.elma-sheet{position:absolute;z-index:811;left:8px;right:8px;bottom:calc(92px + env(safe-area-inset-bottom));border:1px solid #d4d4d8;border-radius:25px;background:#fffffff7;padding:9px 12px 13px;box-shadow:0 18px 55px #7775}.elma-sheet.dismissed{transform:translateY(calc(100% + 150px));opacity:0;pointer-events:none}.elma-grab{width:72px;height:22px;margin:-5px auto 3px;position:relative;touch-action:none;cursor:pointer;-webkit-tap-highlight-color:transparent}.elma-grab:after{content:"";position:absolute;left:17px;right:17px;top:9px;height:4px;border-radius:9px;background:#8a8d92;transition:background .15s ease,transform .15s ease}.elma-grab:active:after{background:#09090a;transform:scaleX(.9)}.elma-grab:focus-visible{outline:2px solid #09090a;outline-offset:1px;border-radius:11px}.elma-restore{position:absolute;z-index:812;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);display:none;align-items:center;justify-content:center;gap:9px;width:auto;min-width:158px;height:42px;padding:0 15px;border:1px solid #d4d4d8;border-radius:999px;background:#fffffff5;color:#09090a;box-shadow:0 10px 30px #7774;font:800 12px/1 "Inter","Helvetica Neue",Arial,sans-serif;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);touch-action:manipulation;-webkit-tap-highlight-color:transparent}.elma-restore.show{display:flex}.elma-restore:active{transform:translateX(-50%) scale(.97)}.elma-restore:focus-visible{outline:2px solid #09090a;outline-offset:2px}.elma-restore-grip{width:27px;height:4px;border-radius:99px;background:#777b82;position:relative}.elma-restore-grip:after{content:"";position:absolute;left:10px;top:-5px;width:6px;height:6px;border-left:1.7px solid #61646a;border-top:1.7px solid #61646a;transform:rotate(45deg)}.elma-title{font-weight:800;font-size:18px;margin:0 2px 9px}.elma-fields{border:1px solid #d8d8dc;border-radius:17px;background:#fff}.elma-row{height:50px;display:flex;align-items:center;gap:10px;padding:0 12px;position:relative}.elma-row+.elma-row{border-top:1px solid #dedee1}.elma-row input{min-width:0;width:100%;border:0;outline:0;background:transparent;color:#09090a;font-size:14px}.elma-my{border:0;background:#e4e4e7;color:#09090a;border-radius:10px;padding:8px}.elma-results{position:absolute;z-index:820;left:0;right:0;top:52px;display:none;max-height:185px;overflow:auto;background:#fff}.elma-results.show{display:block}.elma-result{width:100%;border:0;border-bottom:1px solid #dedee1;background:#fff;color:#09090a;text-align:left;padding:10px}.elma-result b,.elma-result small{display:block}.elma-result small{color:#676b72;font-size:11px;margin-top:2px}.elma-picked{height:28px;color:#62656a;font-size:11px;padding-top:7px}.elma-go{width:100%;height:46px;border:0;border-radius:15px;background:#09090a;color:#fff;font-weight:850}`;
     document.head.appendChild(style);
     const wrapper=$('.mapwrap'),ui=document.createElement('div');
-    ui.innerHTML=`<button class="elma-restore" type="button" aria-label="Yolculuk panelini aç" aria-expanded="false"><span class="elma-restore-grip" aria-hidden="true"></span><span>Yolculuğu planla</span></button><section class="elma-sheet"><div class="elma-grab" role="button" tabindex="0" aria-label="Yolculuk panelini aşağı indir" aria-expanded="true"></div><div class="elma-title">Yolculuğunu planla</div><div class="elma-fields"><div class="elma-row elma-row-origin"><input id="elmaFrom" placeholder="Başlangıç konumu"><button class="elma-my" id="elmaMy">Konumum</button><div class="elma-results" id="elmaFromResults"></div></div><div class="elma-row elma-row-destination"><input id="elmaTo" placeholder="Nereye gidiyorsun?"><div class="elma-results" id="elmaToResults"></div></div></div><div class="elma-picked" id="elmaPicked">Haritada başlangıç konumuna dokun</div><button class="elma-go" id="elmaGo">Rotayı göster</button></section>`;
+    ui.innerHTML=`<button class="elma-restore" type="button" aria-label="Yolculuk panelini aç" aria-expanded="false"><span class="elma-restore-grip" aria-hidden="true"></span><span>Yolculuğu planla</span></button><section class="elma-sheet"><div class="elma-grab" role="button" tabindex="0" aria-label="Yolculuk panelini aşağı indir" aria-expanded="true"></div><div class="elma-title">Yolculuğunu planla</div><div class="elma-fields"><div class="elma-row elma-row-origin"><input id="elmaFrom" placeholder="Başlangıç konumu" autocomplete="off"><button class="elma-my" id="elmaMy">Konumum</button><div class="elma-results" id="elmaFromResults"></div></div><div class="elma-row elma-row-destination"><input id="elmaTo" placeholder="Nereye gidiyorsun?" autocomplete="off"><div class="elma-results" id="elmaToResults"></div></div></div><div class="elma-picked" id="elmaPicked">Haritada başlangıç konumuna dokun</div><button class="elma-go" id="elmaGo">Rotayı göster</button></section>`;
     wrapper.appendChild(ui);
 
     function bind(inputId,resultId,isOrigin){
@@ -95,16 +157,24 @@
           items.forEach(item=>{
             const button=document.createElement('button');
             button.className='elma-result';
+            button.type='button';
             button.innerHTML='<b></b><small></small>';
-            button.querySelector('b').textContent=item.name||item.display_name.split(',')[0];
-            button.querySelector('small').textContent=item.display_name;
-            button.onclick=()=>{
-              const point={lon:+item.lon,lat:+item.lat,name:item.display_name};
-              if(isOrigin)origin=point;else destination=point;
-              marker(isOrigin?'origin':'destination',point);
-              input.value=item.display_name;
-              results.classList.remove('show');
-              flyTo(point,16);
+            const parts=item.label.split(',');
+            button.querySelector('b').textContent=parts.shift()||item.label;
+            button.querySelector('small').textContent=parts.join(',').trim()||item.label;
+            button.onclick=async()=>{
+              try{
+                const point=await resolveSearchItem(item);
+                if(isOrigin)origin=point;else destination=point;
+                marker(isOrigin?'origin':'destination',point);
+                input.value=point.name;
+                results.classList.remove('show');
+                flyTo(point,16);
+                if(isOrigin)mode(1);else step=2;
+              }catch(error){
+                console.error(error);
+                alert('Bu konum açılamadı. Başka bir sonuç seç.');
+              }
             };
             results.appendChild(button);
           });
@@ -142,19 +212,22 @@
     fresh.id='map';
     old.replaceWith(fresh);
     setup();
-    if(!window.L)throw new Error('Leaflet yüklenemedi');
+    await loadGoogleMaps();
+    geocoder=new google.maps.Geocoder();
+    try{placesLibrary=await google.maps.importLibrary('places')}catch(error){console.warn('Google Places kullanılamıyor, Geocoding ile devam ediliyor.',error)}
 
-    map=L.map('map',{zoomControl:false,attributionControl:true,preferCanvas:true,zoomAnimation:false,fadeAnimation:false,markerZoomAnimation:false,inertia:true,inertiaDeceleration:4000}).setView(DEFAULT_CENTER,14);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      maxZoom:19,
-      updateWhenIdle:true,
-      updateWhenZooming:false,
-      keepBuffer:1,
-      detectRetina:false,
-      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> katkıda bulunanlar'
-    }).addTo(map);
-
-    map.on('click',event=>pickPoint(event.latlng.lat,event.latlng.lng));
+    map=new google.maps.Map(fresh,{
+      center:DEFAULT_CENTER,
+      zoom:14,
+      mapTypeControl:false,
+      streetViewControl:false,
+      fullscreenControl:false,
+      zoomControl:false,
+      clickableIcons:false,
+      gestureHandling:'greedy',
+      backgroundColor:'#f7f7f8'
+    });
+    map.addListener('click',event=>pickPoint(event.latLng.lat(),event.latLng.lng()));
 
     window.requestLocation=()=>navigator.geolocation?.getCurrentPosition(async position=>{
       window.elmaUserPosition=position;
@@ -164,24 +237,39 @@
       $('#elmaFrom').value=origin.name;
       flyTo(origin,17);
       mode(1);
-    });
+    },()=>alert('Konum izni verilmedi. Başlangıç noktasını haritadan seçebilirsin.'),{enableHighAccuracy:true,timeout:10000});
 
     window.showRoute=async()=>{
       if(!origin||!destination)return alert('Başlangıç ve varış seç.');
-      const url='https://router.project-osrm.org/route/v1/driving/'+origin.lon+','+origin.lat+';'+destination.lon+','+destination.lat+'?overview=full&geometries=geojson';
-      const response=await fetch(url);
-      const data=await response.json();
-      if(!data.routes?.[0])return alert('Rota bulunamadı');
-      const points=data.routes[0].geometry.coordinates.map(coordinate=>[coordinate[1],coordinate[0]]);
-      routeLine?.remove();
-      routeLine=L.polyline(points,{color:'#050506',weight:6,opacity:.92,lineCap:'round',lineJoin:'round'}).addTo(map);
-      map.fitBounds(routeLine.getBounds(),{padding:[34,34],animate:false});
+      try{
+        directionsRenderer?.setMap(null);
+        const service=new google.maps.DirectionsService();
+        const result=await service.route({
+          origin:{lat:origin.lat,lng:origin.lon},
+          destination:{lat:destination.lat,lng:destination.lon},
+          travelMode:google.maps.TravelMode.DRIVING,
+          region:'TR',
+          language:'tr'
+        });
+        directionsRenderer=new google.maps.DirectionsRenderer({
+          map,
+          directions:result,
+          suppressMarkers:true,
+          preserveViewport:false,
+          polylineOptions:{strokeColor:'#050506',strokeWeight:6,strokeOpacity:.92}
+        });
+      }catch(error){
+        console.error('Google rota hatası:',error);
+        alert('Rota gösterilemedi. Google Directions API ve faturalandırma ayarlarını kontrol et.');
+      }
     };
-
-    requestAnimationFrame(()=>map.invalidateSize());
   }
 
-  init().catch(console.error);
+  init().catch(error=>{
+    console.error(error);
+    const mapElement=$('#map');
+    if(mapElement)mapElement.innerHTML='<div style="display:grid;place-items:center;height:100%;padding:24px;text-align:center;color:#171717;background:#f7f7f8">Google Maps yüklenemedi.<br>API anahtarı ve etkin API ayarlarını kontrol et.</div>';
+  });
 })();
 
 (()=>{
