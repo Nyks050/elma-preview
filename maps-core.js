@@ -268,6 +268,16 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
 .elma-go-logo-crop img{width:86px!important;height:29px!important;left:-39px!important;top:1px!important}
 @media(max-width:390px){.elma-go-logo-crop{width:44px!important;height:29px!important}.elma-go-logo-crop img{width:80px!important;height:27px!important;left:-36px!important;top:1px!important}}
 
+/* Kompakt ve orantılı adres sonuçları */
+.elma-flow-results{margin-top:8px}
+.elma-flow-result{min-height:54px;grid-template-columns:38px minmax(0,1fr) 14px;gap:9px;padding:5px 2px}
+.elma-flow-icon{width:36px;height:36px}
+.elma-flow-icon svg{width:19px;height:19px;stroke-width:1.7}
+.elma-flow-copy b{font-size:15px;line-height:19px;font-weight:730;letter-spacing:-.2px}
+.elma-flow-copy small{font-size:12.5px;line-height:16px;margin-top:0}
+.elma-flow-arrow{font-size:20px}
+@media(max-width:390px){.elma-flow-result{min-height:51px;grid-template-columns:35px minmax(0,1fr) 13px;gap:8px}.elma-flow-icon{width:33px;height:33px}.elma-flow-icon svg{width:18px;height:18px}.elma-flow-copy b{font-size:14.5px}.elma-flow-copy small{font-size:12px}}
+
 `;
     document.head.appendChild(style);
 
