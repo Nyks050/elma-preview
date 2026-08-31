@@ -1,6 +1,6 @@
 (()=>{
   const DEFAULT_CENTER={lat:40.65,lng:35.83};
-  let map,origin,destination,originMarker,destinationMarker,directionsRenderer,fallbackRouteLine,step=0,timers={},manualOriginEditing=false;
+  let map,origin,destination,originMarker,destinationMarker,directionsRenderer,fallbackRouteLine,routeBaseLine,routeAnimationFrame,step=0,timers={},manualOriginEditing=false;
   let geocoder,placesLibrary;
   const $=selector=>document.querySelector(selector);
 
@@ -152,10 +152,45 @@
   }
 
   function clearRoute(){
+    if(routeAnimationFrame)cancelAnimationFrame(routeAnimationFrame);
+    routeAnimationFrame=null;
     directionsRenderer?.setMap(null);
     directionsRenderer=null;
     fallbackRouteLine?.setMap(null);
     fallbackRouteLine=null;
+    routeBaseLine?.setMap(null);
+    routeBaseLine=null;
+  }
+
+  function animateRoute(path,duration=1900){
+    if(!path?.length)return Promise.resolve();
+    if(routeAnimationFrame)cancelAnimationFrame(routeAnimationFrame);
+    fallbackRouteLine?.setMap(null);
+    routeBaseLine?.setMap(null);
+    routeBaseLine=new google.maps.Polyline({
+      map,path,strokeColor:'#c7c7ca',strokeWeight:5,strokeOpacity:.48,
+      clickable:false,zIndex:3
+    });
+    fallbackRouteLine=new google.maps.Polyline({
+      map,path:[path[0]],strokeColor:'#747478',strokeWeight:6,strokeOpacity:.96,
+      clickable:false,zIndex:4
+    });
+    if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
+      fallbackRouteLine.setPath(path);
+      return Promise.resolve();
+    }
+    return new Promise(resolve=>{
+      const started=performance.now();
+      const draw=now=>{
+        const raw=Math.min(1,(now-started)/duration);
+        const progress=1-Math.pow(1-raw,3);
+        const last=Math.max(1,Math.floor(progress*(path.length-1)));
+        fallbackRouteLine.setPath(path.slice(0,last+1));
+        if(raw<1)routeAnimationFrame=requestAnimationFrame(draw);
+        else{fallbackRouteLine.setPath(path);routeAnimationFrame=null;resolve()}
+      };
+      routeAnimationFrame=requestAnimationFrame(draw);
+    });
   }
 
   function dragSheet(){
@@ -573,8 +608,10 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
           directions:result,
           suppressMarkers:true,
           preserveViewport:false,
-          polylineOptions:{strokeColor:'#050506',strokeWeight:6,strokeOpacity:.92}
+          polylineOptions:{strokeOpacity:0,strokeWeight:0}
         });
+        const animatedPath=result.routes?.[0]?.overview_path||[];
+        await animateRoute(animatedPath);
         step=1;
       }catch(error){
         console.warn('Google rota servisi kullanılamıyor, yedek rota açılıyor:',error);
@@ -584,18 +621,12 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
           const data=await response.json();
           if(!data.routes?.[0])throw new Error('Yedek rota bulunamadı');
           directionsRenderer?.setMap(null);
-          fallbackRouteLine?.setMap(null);
+          directionsRenderer=null;
           const path=data.routes[0].geometry.coordinates.map(coordinate=>({lat:coordinate[1],lng:coordinate[0]}));
-          fallbackRouteLine=new google.maps.Polyline({
-            map,
-            path,
-            strokeColor:'#050506',
-            strokeWeight:6,
-            strokeOpacity:.92
-          });
           const bounds=new google.maps.LatLngBounds();
           path.forEach(point=>bounds.extend(point));
           map.fitBounds(bounds,48);
+          await animateRoute(path);
           step=1;
         }catch(fallbackError){
           console.error('Yedek rota hatası:',fallbackError);
