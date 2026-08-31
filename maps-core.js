@@ -21,43 +21,70 @@
     return window.__elmaGoogleMapsPromise;
   }
 
-  async function search(query){
-    if(!query||query.trim().length<2)return[];
+  async function googleGeocodeSearch(query){
+    const request={
+      address:query,
+      componentRestrictions:{country:'TR'},
+      region:'TR'
+    };
+    const bounds=map?.getBounds?.();
+    if(bounds)request.bounds=bounds;
+    const results=await new Promise((resolve,reject)=>geocoder.geocode(
+      request,
+      (items,status)=>status==='OK'?resolve((items||[]).slice(0,6)):reject(new Error(status))
+    ));
+    return results.map(item=>({
+      label:item.formatted_address,
+      point:{lat:item.geometry.location.lat(),lon:item.geometry.location.lng(),name:item.formatted_address},
+      source:'google'
+    }));
+  }
+
+  async function fallbackSearch(query){
     try{
-      if(placesLibrary?.AutocompleteSuggestion){
-        const response=await placesLibrary.AutocompleteSuggestion.fetchAutocompleteSuggestions({
-          input:query,
-          includedRegionCodes:['tr'],
-          language:'tr'
-        });
-        return (response.suggestions||[]).slice(0,6).map(suggestion=>{
-          const prediction=suggestion.placePrediction;
-          const label=prediction?.text?.toString?.()||prediction?.mainText?.toString?.()||query;
-          return {label,prediction};
-        });
-      }
-      const results=await new Promise((resolve,reject)=>geocoder.geocode(
-        {address:query,componentRestrictions:{country:'TR'}},
-        (items,status)=>status==='OK'?resolve(items.slice(0,6)):reject(new Error(status))
-      ));
-      return results.map(item=>({
-        label:item.formatted_address,
-        point:{lat:item.geometry.location.lat(),lon:item.geometry.location.lng(),name:item.formatted_address}
+      const response=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=tr&addressdetails=1&limit=6&q='+encodeURIComponent(query),{headers:{'Accept-Language':'tr'}});
+      const items=await response.json();
+      return items.map(item=>({
+        label:item.display_name,
+        point:{lat:+item.lat,lon:+item.lon,name:item.display_name},
+        source:'fallback'
       }));
     }catch(error){
-      console.warn('Google adres araması başarısız, yedek arama kullanılıyor:',error);
+      console.warn('Yedek adres araması başarısız:',error);
+      return[];
+    }
+  }
+
+  async function search(query){
+    if(!query||query.trim().length<2)return[];
+    if(placesLibrary?.AutocompleteSuggestion){
       try{
-        const response=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=tr&addressdetails=1&limit=6&q='+encodeURIComponent(query),{headers:{'Accept-Language':'tr'}});
-        const items=await response.json();
-        return items.map(item=>({
-          label:item.display_name,
-          point:{lat:+item.lat,lon:+item.lon,name:item.display_name}
-        }));
-      }catch(fallbackError){
-        console.warn('Yedek adres araması da başarısız:',fallbackError);
-        return[];
+        const request={
+          input:query,
+          includedRegionCodes:['tr'],
+          language:'tr',
+          region:'tr'
+        };
+        const center=map?.getCenter?.();
+        if(center)request.locationBias={center:{lat:center.lat(),lng:center.lng()},radius:50000};
+        const response=await placesLibrary.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+        const suggestions=(response.suggestions||[]).slice(0,6).map(suggestion=>{
+          const prediction=suggestion.placePrediction;
+          const label=prediction?.text?.toString?.()||prediction?.mainText?.toString?.()||query;
+          return {label,prediction,source:'google'};
+        });
+        if(suggestions.length)return suggestions;
+      }catch(error){
+        console.warn('Google Places araması kullanılamıyor, Google Geocoder deneniyor:',error);
       }
     }
+    try{
+      const googleResults=await googleGeocodeSearch(query);
+      if(googleResults.length)return googleResults;
+    }catch(error){
+      console.warn('Google Geocoder araması kullanılamıyor:',error);
+    }
+    return fallbackSearch(query);
   }
 
   async function resolveSearchItem(item){
