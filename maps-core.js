@@ -263,6 +263,11 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
 .elma-route-row+.elma-route-row:before{left:42px}
 @media(max-width:390px){.elma-search-body{margin-top:12px}.elma-route-row{height:43px}.elma-route-row input{font-size:14.5px}.elma-route-origin:after{height:37px}}
 
+/* Tam Go + ok kırpımı */
+.elma-go-logo-crop{width:47px!important;height:31px!important;background:#fff!important}
+.elma-go-logo-crop img{width:86px!important;height:29px!important;left:-39px!important;top:1px!important}
+@media(max-width:390px){.elma-go-logo-crop{width:44px!important;height:29px!important}.elma-go-logo-crop img{width:80px!important;height:27px!important;left:-36px!important;top:1px!important}}
+
 `;
     document.head.appendChild(style);
 
