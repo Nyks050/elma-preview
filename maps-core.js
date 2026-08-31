@@ -644,10 +644,6 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
 })();
 
 (()=>{
-  const widgets=document.createElement('script');
-  widgets.src='home-widgets.js?v=20260830-remove-stops-service';
-  widgets.defer=true;
-  document.head.appendChild(widgets);
   const line=document.createElement('script');
   line.src='line-1-ui.js?v=20260830-past-contrast';
   line.defer=true;
@@ -696,6 +692,7 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
   const accountProfile=document.createElement('script');
   accountProfile.src='account-profile.js?v=20260830-email-auth';
   accountProfile.type='module';
+  accountProfile.fetchPriority='high';
   accountProfile.dataset.elmaAccountProfile='1';
   document.head.appendChild(accountProfile);
   const emailAuth=document.createElement('script');
