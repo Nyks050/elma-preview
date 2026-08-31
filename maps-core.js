@@ -246,6 +246,12 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
 .elma-go-arrow{fill:#fff}
 @media(max-width:390px){.elma-go-icon{width:36px;height:36px}.elma-go-icon svg{width:32px;height:32px}}
 
+/* Yeni ElmaGo logosundaki gerçek Go parçası */
+.elma-go-icon{display:none!important}
+.elma-go-logo-crop{position:relative;justify-self:end;display:block;width:40px;height:34px;overflow:hidden;background:#fff}
+.elma-go-logo-crop img{position:absolute;display:block!important;max-width:none!important;width:86px!important;height:29px!important;object-fit:fill!important;left:-42px;top:2px;border-radius:0!important;filter:none!important}
+@media(max-width:390px){.elma-go-logo-crop{width:37px;height:32px}.elma-go-logo-crop img{width:80px!important;height:27px!important;left:-39px;top:2px}}
+
 `;
     document.head.appendChild(style);
 
@@ -259,7 +265,7 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
     const searchScreen=document.createElement('section');
     searchScreen.id='elmaSearchScreen';
     searchScreen.className='elma-search-screen';
-    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span class="elma-go-icon" aria-label="Go"><svg viewBox="0 0 36 36" aria-hidden="true"><rect x="1" y="1" width="34" height="34" rx="11"/><path class="elma-go-trail" d="M7.5 13.5h8M6 18h9.5M7.5 22.5h8"/><path class="elma-go-arrow" d="M17 11.5h5.5l6 6.5-6 6.5H17l6-6.5z"/></svg></span></header><div class="elma-search-body"><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" readonly></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
+    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span class="elma-go-logo-crop" role="img" aria-label="Go"><img src="assets/elmago-logo.png?v=20260831-black" alt=""></span></header><div class="elma-search-body"><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" readonly></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
     wrapper.appendChild(searchScreen);
 
     const pickNote=document.createElement('div');
