@@ -206,6 +206,20 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
 .elma-add{width:48px;height:48px;flex-basis:48px;font-size:32px}.elma-flow-results{margin-top:12px;animation:elmaResultsIn .24s ease both}.elma-flow-result{min-height:64px}
 @keyframes elmaResultsIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @media(max-width:390px){.elma-home-screen{padding-left:14px;padding-right:14px}.elma-home-inner{max-width:350px}.elma-route-wrap:before{width:42px;flex-basis:42px}.elma-add{width:42px;height:42px;flex-basis:42px}.elma-search-title{font-size:19px}.elma-search-body{margin-top:18px}}
+/* Premium, tam simetrik ana ekran ve planlama formu */
+.elma-home-screen{padding-top:calc(10px + env(safe-area-inset-top))}
+.elma-home-inner{max-width:390px;display:flex;flex-direction:column;align-items:center}
+.elma-home-brand{width:100%;display:flex;flex-direction:column;align-items:center}
+.elma-home-brand img{width:46px;height:46px;display:block;object-fit:contain;border-radius:14px;filter:drop-shadow(0 5px 12px rgba(0,0,0,.09))}
+.elma-home-location{max-width:100%;height:25px;margin-top:7px;display:flex;align-items:center;justify-content:center;gap:5px;color:#69696d;font-size:13px;font-weight:650;letter-spacing:-.15px}
+.elma-home-location svg{width:15px;height:15px;flex:0 0 15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.elma-home-location span{max-width:310px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.elma-quick-search{margin-top:14px;width:min(100%,370px);height:52px;border-color:#dedee1;border-radius:26px;padding:0 17px;background:rgba(255,255,255,.96);box-shadow:0 7px 22px rgba(20,20,24,.075),0 1px 2px rgba(0,0,0,.04)}
+.elma-search-inner{max-width:560px}.elma-search-body{margin-top:18px}.elma-route-wrap{display:block;width:100%}.elma-route-wrap:before{display:none!important}
+.elma-route-fields{width:100%;border:1.8px solid #111114;border-radius:20px;box-shadow:0 8px 26px rgba(20,20,24,.07),0 1px 2px rgba(0,0,0,.04)}
+.elma-route-row{height:54px;padding-left:15px;padding-right:15px}.elma-route-row input{font-size:17px}.elma-flow-results{width:100%;margin-left:auto;margin-right:auto}
+@media(max-width:390px){.elma-home-brand img{width:42px;height:42px}.elma-quick-search{width:calc(100% - 8px);margin-top:12px}.elma-search-body{margin-top:15px}}
+
 `;
     document.head.appendChild(style);
 
@@ -213,13 +227,13 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
     const home=document.createElement('section');
     home.id='elmaHomeScreen';
     home.className='elma-home-screen';
-    home.innerHTML=`<div class="elma-home-inner"><button class="elma-quick-search" id="elmaQuickSearch" type="button" aria-label="Nereye gitmek istiyorsunuz?"><svg class="elma-search-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span class="elma-quick-label">Nereye?</span></button></div>`;
+    home.innerHTML=`<div class="elma-home-inner"><div class="elma-home-brand"><img src="assets/elmago-icon.png?v=20260831" alt="Elma Go"><div class="elma-home-location"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"/><circle cx="12" cy="10" r="2.2"/></svg><span id="elmaHomeLocation">Konumunuz alınıyor…</span></div></div><button class="elma-quick-search" id="elmaQuickSearch" type="button" aria-label="Nereye gitmek istiyorsunuz?"><svg class="elma-search-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span class="elma-quick-label">Nereye?</span></button></div>`;
     wrapper.appendChild(home);
 
     const searchScreen=document.createElement('section');
     searchScreen.id='elmaSearchScreen';
     searchScreen.className='elma-search-screen';
-    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span></span></header><div class="elma-search-body"><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" readonly></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div><button class="elma-add" id="elmaAdd" type="button" aria-label="Yeni varış ekle">+</button></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
+    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span></span></header><div class="elma-search-body"><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" readonly></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
     wrapper.appendChild(searchScreen);
 
     const pickNote=document.createElement('div');
@@ -269,6 +283,12 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
       home.classList.remove('hide');
       nav.style.display='grid';
       setNavActive('home');
+      ensureOrigin().then(point=>{
+        const locationLabel=$('#elmaHomeLocation');
+        if(!locationLabel)return;
+        const label=point?.name||'Konumunuz';
+        locationLabel.textContent=label.split(',').slice(0,3).join(',').trim()||'Konumunuz';
+      }).catch(()=>{const locationLabel=$('#elmaHomeLocation');if(locationLabel)locationLabel.textContent='Konum kullanılamıyor'});
     }
     function showMap(){
       wrapper.style.display='block';
@@ -354,7 +374,6 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
     $('#elmaQuickSearch').onclick=openSearch;
     $('#elmaQuickSearch').onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openSearch()}};
     $('#elmaSearchBack').onclick=showHome;
-    $('#elmaAdd').onclick=()=>{$('#elmaTo').value='';renderDefaults();$('#elmaTo').focus()};
     $('#elmaTo').oninput=()=>{
       clearTimeout(timers.elmaTo);
       const query=$('#elmaTo').value.trim();
