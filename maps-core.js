@@ -278,6 +278,11 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
 .elma-flow-arrow{font-size:20px}
 @media(max-width:390px){.elma-flow-result{min-height:51px;grid-template-columns:35px minmax(0,1fr) 13px;gap:8px}.elma-flow-icon{width:33px;height:33px}.elma-flow-icon svg{width:18px;height:18px}.elma-flow-copy b{font-size:14.5px}.elma-flow-copy small{font-size:12px}}
 
+/* Alt menü planlama ekranında da erişilebilir */
+.elma-main-nav{z-index:880}
+.elma-search-screen{padding-bottom:calc(108px + env(safe-area-inset-bottom))}
+.elma-flow-results{padding-bottom:8px}
+
 `;
     document.head.appendChild(style);
 
@@ -417,7 +422,8 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
       home.classList.add('hide');
       eventScreen.classList.remove('show');
       searchScreen.classList.add('show');
-      nav.style.display='none';
+      nav.style.display='grid';
+      setNavActive('home');
       renderDefaults();
       $('#elmaTo').value='';
       $('#elmaTo').focus();
