@@ -1,6 +1,6 @@
 (()=>{
   const DEFAULT_CENTER={lat:40.65,lng:35.83};
-  let map,origin,destination,originMarker,destinationMarker,directionsRenderer,fallbackRouteLine,step=0,timers={};
+  let map,origin,destination,originMarker,destinationMarker,directionsRenderer,fallbackRouteLine,step=0,timers={},manualOriginEditing=false;
   let geocoder,placesLibrary;
   const $=selector=>document.querySelector(selector);
 
@@ -307,7 +307,7 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
     const searchScreen=document.createElement('section');
     searchScreen.id='elmaSearchScreen';
     searchScreen.className='elma-search-screen';
-    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span aria-hidden="true"></span></header><div class="elma-search-body"><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" readonly></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
+    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span aria-hidden="true"></span></header><div class="elma-search-body"><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" placeholder="Nereden?" autocomplete="off"></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
     wrapper.appendChild(searchScreen);
     document.querySelectorAll('.elma-go-icon,.elma-go-logo-crop').forEach(element=>element.remove());
 
@@ -375,11 +375,11 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
     }
     async function ensureOrigin(){
       if(origin){
-        $('#elmaFrom').value=origin.name||'Mevcut konumum';
+        if(!manualOriginEditing)$('#elmaFrom').value=origin.name||'Mevcut konumum';
         return origin;
       }
       if(window.requestLocation)await window.requestLocation();
-      $('#elmaFrom').value=origin?.name||'Amasya Merkez';
+      if(!manualOriginEditing)$('#elmaFrom').value=origin?.name||'Amasya Merkez';
       return origin;
     }
     function resultButton(title,subtitle,kind,onClick,arrow=false){
@@ -393,6 +393,16 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
       if(!subtitle)small.style.display='none';
       if(onClick)button.onclick=onClick;
       return button;
+    }
+    async function chooseOriginPoint(point){
+      manualOriginEditing=true;
+      clearRoute();
+      origin=point;
+      marker('origin',origin);
+      $('#elmaFrom').value=point.name;
+      $('#elmaFlowResults').innerHTML='';
+      step=1;
+      $('#elmaTo').focus();
     }
     async function choosePoint(point){
       await ensureOrigin();
@@ -416,7 +426,7 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
     function renderDefaults(){
       $('#elmaFlowResults').innerHTML='';
     }
-    function renderSearchResults(items){
+    function renderSearchResults(items,target='destination'){
       const results=$('#elmaFlowResults');
       results.innerHTML='';
       items.forEach(item=>{
@@ -424,7 +434,10 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
         const title=parts.shift()||item.label;
         const subtitle=parts.join(',').trim();
         results.appendChild(resultButton(title,subtitle,'search',async()=>{
-          try{await choosePoint(await resolveSearchItem(item))}catch(error){console.error(error)}
+          try{
+            const point=await resolveSearchItem(item);
+            if(target==='origin')await chooseOriginPoint(point);else await choosePoint(point);
+          }catch(error){console.error(error)}
         },true));
       });
     }
@@ -445,6 +458,14 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
     $('#elmaQuickSearch').onclick=openSearch;
     $('#elmaQuickSearch').onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openSearch()}};
     $('#elmaSearchBack').onclick=showHome;
+    $('#elmaFrom').oninput=()=>{
+      manualOriginEditing=true;
+      clearTimeout(timers.elmaFrom);
+      const query=$('#elmaFrom').value.trim();
+      if(query.length<2){renderDefaults();return}
+      timers.elmaFrom=setTimeout(async()=>renderSearchResults(await search(query),'origin'),250);
+    };
+    $('#elmaFrom').onfocus=()=>{manualOriginEditing=true};
     $('#elmaTo').oninput=()=>{
       clearTimeout(timers.elmaTo);
       const query=$('#elmaTo').value.trim();
@@ -524,7 +545,7 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
         origin={lon,lat};
         origin.name=await reverse(lon,lat)||fallbackName;
         marker('origin',origin);
-        if($('#elmaFrom'))$('#elmaFrom').value=origin.name;
+        if(!manualOriginEditing&&$('#elmaFrom'))$('#elmaFrom').value=origin.name;
         resolve(origin);
       };
       const fallback=()=>applyOrigin(DEFAULT_CENTER.lng,DEFAULT_CENTER.lat,'Amasya Merkez');
