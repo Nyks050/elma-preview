@@ -772,7 +772,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line.dataset.elmaLine1Ui='1';
   document.head.appendChild(line);
   const line1Route=document.createElement('script');
-  line1Route.src='line-1-route.js?v=20260901-nolu-hat';
+  line1Route.src='line-1-route.js?v=20260901-route-stable';
   line1Route.defer=true;
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
@@ -782,7 +782,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line1Planner.dataset.elmaLine1Planner='1';
   document.head.appendChild(line1Planner);
   const journeyResults=document.createElement('script');
-  journeyResults.src='journey-results.js?v=20260901-osm-fallback';
+  journeyResults.src='journey-results.js?v=20260901-route-stable';
   journeyResults.defer=true;
   journeyResults.dataset.elmaJourneyResults='1';
   document.head.appendChild(journeyResults);
