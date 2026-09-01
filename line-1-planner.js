@@ -51,8 +51,12 @@
     try{
       const result=await new google.maps.DirectionsService().route({origin:from,destination:to,travelMode:google.maps.TravelMode.WALKING,region:'TR',language:'tr'});
       const leg=result.routes?.[0]?.legs?.[0];
-      return {path:result.routes?.[0]?.overview_path||[from,to],meters:leg?.distance?.value,duration:leg?.duration?.value};
-    }catch(error){return {path:[from,to]}}
+      const detailedPath=leg?.steps?.flatMap(routeStep=>routeStep.path||[])||[];
+      return {path:detailedPath.length?detailedPath:result.routes?.[0]?.overview_path||[],meters:leg?.distance?.value,duration:leg?.duration?.value};
+    }catch(error){
+      console.warn('Google yaya rotası alınamadı:',error);
+      return {path:[],error:true};
+    }
   }
 
   function removeSheet(){document.getElementById('elmaLine1Trip')?.remove()}
@@ -92,11 +96,11 @@
     const boardPoint=point(data.stops[journey.board]),alightPoint=point(data.stops[journey.alight]);
     const startPoint={lat:origin.lat,lng:origin.lon},endPoint={lat:destination.lat,lng:destination.lon};
     const [walkStart,walkEnd]=await Promise.all([walkingPath(startPoint,boardPoint),walkingPath(alightPoint,endPoint)]);
-    addPolyline(map,walkStart.path,{strokeColor:'#777a80',strokeOpacity:.8,strokeWeight:4,icons:[{icon:{path:'M 0,-1 0,1',strokeOpacity:1,scale:2},offset:'0',repeat:'12px'}]});
+    if(walkStart.path.length)addPolyline(map,walkStart.path,{strokeColor:'#050505',strokeOpacity:0,strokeWeight:0,icons:[{icon:{path:'M 0,-1 0,1',strokeColor:'#050505',strokeOpacity:1,strokeWeight:3.5,scale:2},offset:'0',repeat:'12px'}]});
     let fromIndex=closestRouteIndex(data.route,data.stops[journey.board]);
     let toIndex=closestRouteIndex(data.route,data.stops[journey.alight],fromIndex);
     addPolyline(map,data.route.slice(fromIndex,toIndex+1).map(point),{strokeColor:'#050506',strokeOpacity:1,strokeWeight:7,zIndex:5});
-    addPolyline(map,walkEnd.path,{strokeColor:'#777a80',strokeOpacity:.8,strokeWeight:4,icons:[{icon:{path:'M 0,-1 0,1',strokeOpacity:1,scale:2},offset:'0',repeat:'12px'}]});
+    if(walkEnd.path.length)addPolyline(map,walkEnd.path,{strokeColor:'#050505',strokeOpacity:0,strokeWeight:0,icons:[{icon:{path:'M 0,-1 0,1',strokeColor:'#050505',strokeOpacity:1,strokeWeight:3.5,scale:2},offset:'0',repeat:'12px'}]});
     const bounds=new google.maps.LatLngBounds();
     [...walkStart.path,...data.route.slice(fromIndex,toIndex+1).map(point),...walkEnd.path].forEach(item=>bounds.extend(item));
     map.fitBounds(bounds,70);
