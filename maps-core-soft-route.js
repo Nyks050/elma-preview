@@ -816,7 +816,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line6.dataset.elmaLine6Ui='1';
   document.head.appendChild(line6);
   const line6Route=document.createElement('script');
-  line6Route.src='line-6-route-road.js?v=20260901-split-colors';
+  line6Route.src='line-6-route-road.js?v=20260901-gd-labels';
   line6Route.async=false;
   line6Route.dataset.elmaLine6Route='1';
   document.head.appendChild(line6Route);
