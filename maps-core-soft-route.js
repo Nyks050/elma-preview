@@ -1,6 +1,6 @@
 (()=>{
   const DEFAULT_CENTER={lat:40.65,lng:35.83};
-  let map,origin,destination,originMarker,destinationMarker,directionsRenderer,fallbackRouteLine,routeBaseLine,routeAnimationFrame,step=0,timers={},manualOriginEditing=false;
+  let map,origin,destination,originMarker,destinationMarker,directionsRenderer,fallbackRouteLine,routeBaseLine,routeAnimationFrame,step=0,timers={},manualOriginEditing=false,selectedTravelMode='TRANSIT';
   let geocoder,placesLibrary;
   const $=selector=>document.querySelector(selector);
 
@@ -153,6 +153,7 @@
 
   function clearRoute(){
     window.elmaClearLine1Plan?.();
+    document.getElementById('elmaDirectTrip')?.remove();
     if(routeAnimationFrame)cancelAnimationFrame(routeAnimationFrame);
     routeAnimationFrame=null;
     directionsRenderer?.setMap(null);
@@ -223,6 +224,16 @@
       };
       routeAnimationFrame=requestAnimationFrame(draw);
     });
+  }
+
+  function showDirectTrip(modeName,leg){
+    document.getElementById('elmaDirectTrip')?.remove();
+    const walking=modeName==='WALKING',panel=document.createElement('section');
+    panel.id='elmaDirectTrip';panel.className='elma-direct-trip';
+    panel.innerHTML=`<span class="elma-direct-icon" aria-hidden="true">${walking?'🚶':'🚗'}</span><span class="elma-direct-copy"><b>${walking?'Yürüme rotası':'Araba rotası'}</b><small></small></span><button class="elma-direct-close" type="button" aria-label="Kapat">×</button>`;
+    panel.querySelector('small').textContent=[leg?.duration?.text,leg?.distance?.text].filter(Boolean).join(' • ')||'Rota hazır';
+    panel.querySelector('button').onclick=()=>panel.remove();
+    document.body.appendChild(panel);
   }
 
   function dragSheet(){
@@ -364,6 +375,10 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
 
 `;
     document.head.appendChild(style);
+    const modeStyle=document.createElement('style');
+    modeStyle.id='elmaTravelModeStyle';
+    modeStyle.textContent=`.elma-mode-picker{margin:2px 0 15px}.elma-mode-heading{display:flex;align-items:flex-end;justify-content:space-between;margin:0 2px 9px}.elma-mode-heading b{font-size:15px;letter-spacing:-.25px}.elma-mode-heading small{color:#858589;font-size:10px}.elma-mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.elma-mode-card{min-width:0;height:100px;border:1px solid #e0e0e3;border-radius:20px;background:#f6f6f7;color:#626268;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:7px 3px;font-size:10.5px;font-weight:780;transition:transform .16s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease}.elma-mode-card:active{transform:scale(.96)}.elma-mode-card.active{border-color:#09090a;background:#fff;color:#09090a;box-shadow:0 7px 18px #14141918}.elma-mode-art{width:62px;height:62px;display:grid;place-items:center;background-image:url('assets/elma-3d-icons.webp?v=20260830-fast2');background-size:400% 400%;background-repeat:no-repeat;filter:drop-shadow(0 7px 8px #0002)}.elma-mode-art.bus{background-position:100% 0}.elma-mode-art.walk{background-position:66.667% 0}.elma-mode-art.car{background-image:none;font-size:45px;line-height:1;filter:drop-shadow(0 7px 7px #0003)}.elma-direct-trip{position:fixed;z-index:875;left:12px;right:12px;bottom:calc(96px + env(safe-area-inset-bottom));max-width:496px;margin:auto;display:flex;align-items:center;gap:12px;border:1px solid #d9d9dc;border-radius:24px;background:#fff;color:#09090a;box-shadow:0 16px 44px #0003;padding:14px 15px;font-family:Inter,-apple-system,sans-serif}.elma-direct-icon{width:46px;height:46px;flex:0 0 46px;border-radius:15px;background:#09090a;color:#fff;display:grid;place-items:center;font-size:25px}.elma-direct-copy{min-width:0;flex:1}.elma-direct-copy b,.elma-direct-copy small{display:block}.elma-direct-copy b{font-size:15px}.elma-direct-copy small{margin-top:3px;color:#6f6f74;font-size:11px}.elma-direct-close{width:32px;height:32px;border:0;border-radius:50%;background:#f0f0f2;color:#09090a;font-size:19px}@media(max-width:390px){.elma-mode-card{height:91px;border-radius:17px}.elma-mode-art{width:54px;height:54px}.elma-mode-art.car{font-size:40px}.elma-mode-heading b{font-size:14px}.elma-direct-trip{left:9px;right:9px;bottom:calc(91px + env(safe-area-inset-bottom))}}`;
+    document.head.appendChild(modeStyle);
 
     const wrapper=$('.mapwrap');
     const home=document.createElement('section');
@@ -375,9 +390,18 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     const searchScreen=document.createElement('section');
     searchScreen.id='elmaSearchScreen';
     searchScreen.className='elma-search-screen';
-    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span aria-hidden="true"></span></header><div class="elma-search-body"><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" placeholder="Nereden?" autocomplete="off"></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
+    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span aria-hidden="true"></span></header><div class="elma-search-body"><section class="elma-mode-picker" aria-labelledby="elmaModeTitle"><div class="elma-mode-heading"><b id="elmaModeTitle">Nasıl gitmek istersin?</b><small>Ulaşım şeklini seç</small></div><div class="elma-mode-grid" role="radiogroup" aria-label="Ulaşım şekli"><button class="elma-mode-card active" type="button" data-travel-mode="TRANSIT" role="radio" aria-checked="true"><span class="elma-mode-art bus" aria-hidden="true"></span><span>Toplu taşıma</span></button><button class="elma-mode-card" type="button" data-travel-mode="DRIVING" role="radio" aria-checked="false"><span class="elma-mode-art car" aria-hidden="true">🚗</span><span>Araba</span></button><button class="elma-mode-card" type="button" data-travel-mode="WALKING" role="radio" aria-checked="false"><span class="elma-mode-art walk" aria-hidden="true"></span><span>Yürüme</span></button></div></section><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" placeholder="Nereden?" autocomplete="off"></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
     wrapper.appendChild(searchScreen);
     document.querySelectorAll('.elma-go-icon,.elma-go-logo-crop').forEach(element=>element.remove());
+    searchScreen.querySelectorAll('.elma-mode-card').forEach(button=>button.onclick=()=>{
+      selectedTravelMode=button.dataset.travelMode;
+      searchScreen.querySelectorAll('.elma-mode-card').forEach(item=>{
+        const active=item===button;
+        item.classList.toggle('active',active);
+        item.setAttribute('aria-checked',String(active));
+      });
+      clearRoute();
+    });
 
     const pickNote=document.createElement('div');
     pickNote.id='elmaMapPickNote';
@@ -667,7 +691,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     window.showRoute=async()=>{
       if(!origin||!destination)return alert('Başlangıç ve varış seç.');
       clearRoute();
-      if(await window.elmaPlanLine1?.(origin,destination,map)){
+      if(selectedTravelMode==='TRANSIT'&&await window.elmaPlanLine1?.(origin,destination,map)){
         step=1;
         return;
       }
@@ -676,7 +700,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
         const result=await service.route({
           origin:{lat:origin.lat,lng:origin.lon},
           destination:{lat:destination.lat,lng:destination.lon},
-          travelMode:google.maps.TravelMode.DRIVING,
+          travelMode:selectedTravelMode==='WALKING'?google.maps.TravelMode.WALKING:google.maps.TravelMode.DRIVING,
           region:'TR',
           language:'tr'
         });
@@ -689,10 +713,12 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
         });
         const animatedPath=result.routes?.[0]?.overview_path||[];
         await animateRoute(animatedPath);
+        showDirectTrip(selectedTravelMode,result.routes?.[0]?.legs?.[0]);
         step=1;
       }catch(error){
         console.warn('Google rota servisi kullanılamıyor, yedek rota açılıyor:',error);
         try{
+          if(selectedTravelMode==='WALKING')throw error;
           const url='https://router.project-osrm.org/route/v1/driving/'+origin.lon+','+origin.lat+';'+destination.lon+','+destination.lat+'?overview=full&geometries=geojson';
           const response=await fetch(url);
           const data=await response.json();
