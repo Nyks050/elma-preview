@@ -236,6 +236,17 @@
     document.body.appendChild(panel);
   }
 
+  function showWalkingRoute(path){
+    if(!path?.length)return;
+    fallbackRouteLine?.setMap(null);
+    routeBaseLine?.setMap(null);
+    const points=path.map(position=>({lat:typeof position.lat==='function'?position.lat():position.lat,lng:typeof position.lng==='function'?position.lng():position.lng}));
+    fallbackRouteLine=new google.maps.Polyline({
+      map,path:points,strokeOpacity:0,strokeWeight:0,clickable:false,zIndex:5,
+      icons:[{icon:{path:'M 0,-1 0,1',strokeColor:'#050505',strokeOpacity:1,strokeWeight:4,scale:2.2},offset:'0',repeat:'13px'}]
+    });
+  }
+
   function dragSheet(){
     const sheet=$('.elma-sheet'),grab=$('.elma-grab'),restore=$('.elma-restore');
     if(!sheet||!grab||!restore)return;
@@ -712,7 +723,8 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
           polylineOptions:{strokeOpacity:0,strokeWeight:0}
         });
         const animatedPath=result.routes?.[0]?.overview_path||[];
-        await animateRoute(animatedPath);
+        if(selectedTravelMode==='WALKING')showWalkingRoute(animatedPath);
+        else await animateRoute(animatedPath);
         showDirectTrip(selectedTravelMode,result.routes?.[0]?.legs?.[0]);
         step=1;
       }catch(error){
@@ -753,12 +765,12 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line.dataset.elmaLine1Ui='1';
   document.head.appendChild(line);
   const line1Route=document.createElement('script');
-  line1Route.src='line-1-route.js?v=20260901-transit-planner';
+  line1Route.src='line-1-route.js?v=20260901-nolu-hat';
   line1Route.defer=true;
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
   const line1Planner=document.createElement('script');
-  line1Planner.src='line-1-planner.js?v=20260901-first-test';
+  line1Planner.src='line-1-planner.js?v=20260901-nolu-hat';
   line1Planner.defer=true;
   line1Planner.dataset.elmaLine1Planner='1';
   document.head.appendChild(line1Planner);
