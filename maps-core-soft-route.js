@@ -152,6 +152,7 @@
   }
 
   function clearRoute(){
+    window.elmaClearLine1Plan?.();
     if(routeAnimationFrame)cancelAnimationFrame(routeAnimationFrame);
     routeAnimationFrame=null;
     directionsRenderer?.setMap(null);
@@ -665,8 +666,12 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
 
     window.showRoute=async()=>{
       if(!origin||!destination)return alert('Başlangıç ve varış seç.');
+      clearRoute();
+      if(await window.elmaPlanLine1?.(origin,destination,map)){
+        step=1;
+        return;
+      }
       try{
-        clearRoute();
         const service=new google.maps.DirectionsService();
         const result=await service.route({
           origin:{lat:origin.lat,lng:origin.lon},
@@ -722,10 +727,15 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line.dataset.elmaLine1Ui='1';
   document.head.appendChild(line);
   const line1Route=document.createElement('script');
-  line1Route.src='line-1-route.js?v=20260901-google-map-active';
+  line1Route.src='line-1-route.js?v=20260901-transit-planner';
   line1Route.defer=true;
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
+  const line1Planner=document.createElement('script');
+  line1Planner.src='line-1-planner.js?v=20260901-first-test';
+  line1Planner.defer=true;
+  line1Planner.dataset.elmaLine1Planner='1';
+  document.head.appendChild(line1Planner);
   const line2=document.createElement('script');
   line2.src='line-2-ui.js?v=20260830-past-contrast';
   line2.defer=true;
