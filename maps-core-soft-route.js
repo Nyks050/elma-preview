@@ -152,6 +152,7 @@
   }
 
   function clearRoute(){
+    window.elmaClearJourneyResults?.();
     window.elmaClearLine1Plan?.();
     document.getElementById('elmaDirectTrip')?.remove();
     if(routeAnimationFrame)cancelAnimationFrame(routeAnimationFrame);
@@ -702,6 +703,10 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     window.showRoute=async()=>{
       if(!origin||!destination)return alert('Başlangıç ve varış seç.');
       clearRoute();
+      if(await window.elmaShowJourneyResults?.(origin,destination,map,selectedTravelMode)){
+        step=1;
+        return;
+      }
       if(selectedTravelMode==='TRANSIT'&&await window.elmaPlanLine1?.(origin,destination,map)){
         step=1;
         return;
@@ -776,6 +781,11 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line1Planner.defer=true;
   line1Planner.dataset.elmaLine1Planner='1';
   document.head.appendChild(line1Planner);
+  const journeyResults=document.createElement('script');
+  journeyResults.src='journey-results.js?v=20260901-sheet-v1';
+  journeyResults.defer=true;
+  journeyResults.dataset.elmaJourneyResults='1';
+  document.head.appendChild(journeyResults);
   const line2=document.createElement('script');
   line2.src='line-2-ui.js?v=20260830-past-contrast';
   line2.defer=true;
