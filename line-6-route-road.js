@@ -3,14 +3,7 @@
   window.__elmaLine6RouteMounted=true;
   const stops=[[40.6509073,35.7937144],[40.6496713,35.7953616],[40.6498748,35.7958499],[40.6505504,35.7977596],[40.6510022,35.799656],[40.6518446,35.8012573],[40.6528886,35.8036471],[40.6549682,35.8051076],[40.6551016,35.8085505],[40.65373,35.810204],[40.6529848,35.8126388],[40.6502092,35.813002],[40.6474741,35.8136941],[40.6450238,35.8109662],[40.6427973,35.8079917],[40.6375686,35.8087695],[40.6198218,35.8185006],[40.6174031,35.814268],[40.607308,35.8118447],[40.6044503,35.8110975],[40.6018431,35.8095904],[40.6017107,35.8098962],[40.6045149,35.811527],[40.6067489,35.8120597],[40.6026047,35.8190569],[40.6058272,35.814206],[40.6074148,35.8122048],[40.6178206,35.8153746],[40.6203356,35.819112],[40.6327046,35.8138447],[40.646188,35.8111236],[40.6478685,35.8097459],[40.6506649,35.8070686],[40.6552399,35.8086085],[40.6506649,35.8070686],[40.6552399,35.8086085],[40.6558426,35.8063643],[40.6544141,35.8045297],[40.6529116,35.803455],[40.6520203,35.8014058],[40.6509621,35.7990991],[40.6506956,35.798104],[40.6500281,35.7960199],[40.6497452,35.795285],[40.6493225,35.7908953]];
   const outboundStops=stops.slice(0,25),returnStops=stops.slice(24);
-  const routeChunks=[
-    {direction:'Gidiş',color:'#050506',stops:stops.slice(0,10)},
-    {direction:'Gidiş',color:'#050506',stops:stops.slice(9,19)},
-    {direction:'Gidiş',color:'#050506',stops:stops.slice(18,25)},
-    {direction:'Dönüş',color:'#0b8f9c',stops:stops.slice(24,34)},
-    {direction:'Dönüş',color:'#0b8f9c',stops:stops.slice(34,44)},
-    {direction:'Dönüş',color:'#0b8f9c',stops:stops.slice(43,45)}
-  ];
+  const routeChunks=(window.ELMA_FIXED_ROAD_PATHS?.line6Chunks||[]).map((path,index)=>({direction:index<3?'Gidiş':'Dönüş',color:index<3?'#050506':'#0b8f9c',path}));
   const directions=[{line:'6',name:'6 Nolu Hat',direction:'Gidiş',stops:outboundStops},{line:'6',name:'6 Nolu Hat',direction:'Dönüş',stops:returnStops}];
   window.ELMA_LINE_6_ROUTE={stops,outboundStops,returnStops,directions};
   window.ELMA_TRANSIT_LINES=window.ELMA_TRANSIT_LINES||[];
@@ -25,19 +18,17 @@
     document.head.appendChild(style);
   }
   function fitRoute(){if(routeMap&&routeBounds&&!routeBounds.isEmpty())routeMap.fitBounds(routeBounds,30)}
-  function detailedPath(route){return route?.legs?.flatMap(leg=>leg.steps?.flatMap(step=>step.path||[])||[])||route?.overview_path||[]}
-  async function drawGoogleChunk(service,chunk){
-    const positions=chunk.stops,result=await service.route({origin:point(positions[0]),destination:point(positions.at(-1)),waypoints:positions.slice(1,-1).map(position=>({location:point(position),stopover:true})),optimizeWaypoints:false,travelMode:google.maps.TravelMode.DRIVING,provideRouteAlternatives:false,region:'TR',language:'tr'});
-    const path=detailedPath(result.routes?.[0]);if(!path.length)throw new Error(`${chunk.direction} Google güzergâh parçası boş geldi`);
-    path.forEach(position=>routeBounds.extend(position));
-    routeLines.push(new google.maps.Polyline({map:routeMap,path,strokeColor:chunk.color,strokeOpacity:.96,strokeWeight:6,geodesic:false,zIndex:chunk.direction==='Dönüş'?6:5}));
+  function drawFixedChunk(chunk){
+    if(!Array.isArray(chunk.path)||chunk.path.length<2)return;
+    const path=chunk.path.map(point);path.forEach(position=>routeBounds.extend(position));
+    routeLines.push(new google.maps.Polyline({map:routeMap,path,strokeColor:chunk.color,strokeOpacity:.96,strokeWeight:6,geodesic:false,zIndex:chunk.direction==='Dönüş'?6:5,clickable:false}));
   }
   async function initMap(container){
     if(routeMap)return routeMap;if(!window.google?.maps)return null;
     routeBounds=new google.maps.LatLngBounds();routeMap=new google.maps.Map(container,{center:point(stops[0]),zoom:12,disableDefaultUI:true,clickableIcons:false,gestureHandling:'greedy',mapTypeId:'roadmap'});
     routeMarkers=stops.map((position,index)=>{const isReturn=index>=25,number=isReturn?index-24:index+1,color=isReturn?'#0b8f9c':'#050506';routeBounds.extend(point(position));return new google.maps.Marker({map:routeMap,position:point(position),zIndex:100+index,title:`6 Nolu Hat • ${isReturn?'Dönüş':'Gidiş'} • ${isReturn?'D':'G'}${number}`,label:{text:(isReturn?'D':'G')+number,color,fontSize:'8px',fontWeight:'800'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:9,fillColor:'#fff',fillOpacity:1,strokeColor:color,strokeOpacity:1,strokeWeight:2}})});
-    const service=new google.maps.DirectionsService();
-    for(const chunk of routeChunks)try{await drawGoogleChunk(service,chunk)}catch(error){console.error(`6 Nolu Hat ${chunk.direction} parçası çizilemedi:`,error)}
+    if(routeChunks.length!==6)console.error('6 Nolu Hat sabit güzergâh parçaları yüklenemedi');
+    routeChunks.forEach(drawFixedChunk);
     fitRoute();return routeMap;
   }
   function refreshMap(container){if(!routeLoading)routeLoading=initMap(container).finally(()=>{routeLoading=null});requestAnimationFrame(()=>requestAnimationFrame(()=>{if(routeMap){google.maps.event.trigger(routeMap,'resize');fitRoute()}}))}
