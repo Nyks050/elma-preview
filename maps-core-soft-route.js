@@ -796,7 +796,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line1Planner.dataset.elmaLine1Planner='1';
   document.head.appendChild(line1Planner);
   const journeyResults=document.createElement('script');
-  journeyResults.src='journey-results.js?v=20260901-route-stable';
+  journeyResults.src='journey-results.js?v=20260901-compact-sheet1';
   journeyResults.defer=true;
   journeyResults.dataset.elmaJourneyResults='1';
   document.head.appendChild(journeyResults);
