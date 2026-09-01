@@ -54,6 +54,12 @@
     .eg-panel[data-panel="pharmacies"] .eg-weather-icon{background-position:100% 33.333%!important}
     .eg-lost-card .eg-service-icon,
     .eg-panel[data-panel="lost-found"] .eg-lost-head-icon{background-position:100% 66.667%!important}
+    .eg-service-card[data-service-target="weather"] .eg-service-icon{background-image:url("assets/elma-service-weather-3d-mono.png?v=20260901-services1")!important}
+    .eg-service-card[data-service-target="lines"] .eg-service-icon{background-image:url("assets/elma-service-lines-3d-mono.png?v=20260901-services1")!important}
+    .eg-service-card[data-service-target="routes"] .eg-service-icon{background-image:url("assets/elma-service-routes-3d-mono.png?v=20260901-services1")!important}
+    .eg-lost-card .eg-service-icon,.eg-panel[data-panel="lost-found"] .eg-lost-head-icon{background-image:url("assets/elma-service-lost-3d-mono.png?v=20260901-services1")!important}
+    .eg-pharmacy-card .eg-service-icon,.eg-panel[data-panel="pharmacies"] .eg-weather-icon{background-image:url("assets/elma-service-pharmacy-3d-mono.png?v=20260901-services1")!important}
+    .eg-service-card[data-service-target="weather"] .eg-service-icon,.eg-service-card[data-service-target="lines"] .eg-service-icon,.eg-service-card[data-service-target="routes"] .eg-service-icon,.eg-lost-card .eg-service-icon,.eg-pharmacy-card .eg-service-icon,.eg-panel[data-panel="lost-found"] .eg-lost-head-icon,.eg-panel[data-panel="pharmacies"] .eg-weather-icon{background-size:contain!important;background-position:center!important}
     #egAccountHelp .eg-account-icon{background-position:0 66.667%!important}
     #egAccountSecurity .eg-account-icon{background-position:33.333% 66.667%!important}
     #egAccountPreferences .eg-account-icon{background-position:66.667% 66.667%!important}
