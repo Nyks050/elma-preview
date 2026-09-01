@@ -785,9 +785,14 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line.defer=true;
   line.dataset.elmaLine1Ui='1';
   document.head.appendChild(line);
+  const roadData=document.createElement('script');
+  roadData.src='road-path-data.js?v=20260901-road-fixed';
+  roadData.async=false;
+  roadData.dataset.elmaRoadPathData='1';
+  document.head.appendChild(roadData);
   const line1Route=document.createElement('script');
-  line1Route.src='line-1-route.js?v=20260901-return-60-stops';
-  line1Route.defer=true;
+  line1Route.src='line-1-route.js?v=20260901-fixed-road-path';
+  line1Route.async=false;
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
   const line1Planner=document.createElement('script');
@@ -811,8 +816,8 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line6.dataset.elmaLine6Ui='1';
   document.head.appendChild(line6);
   const line6Route=document.createElement('script');
-  line6Route.src='line-6-route-road.js?v=20260901-full-45-stops';
-  line6Route.defer=true;
+  line6Route.src='line-6-route-road.js?v=20260901-fixed-road-path';
+  line6Route.async=false;
   line6Route.dataset.elmaLine6Route='1';
   document.head.appendChild(line6Route);
   const pharmacy=document.createElement('script');

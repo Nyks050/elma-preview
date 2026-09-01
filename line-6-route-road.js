@@ -15,23 +15,14 @@
     style.textContent='.eg-route6{overflow:hidden;border:1px solid #d8d8dc;border-radius:22px;background:#fff}.eg-route6-head{display:flex;align-items:center;gap:13px;width:100%;padding:15px 16px;border:0;background:#fff;text-align:left;cursor:pointer}.eg-route6-icon{width:42px;height:42px;border-radius:14px;background:#09090a;color:#fff;display:grid;place-items:center;padding:10px;flex:0 0 42px}.eg-route6-icon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.eg-route6-copy{flex:1;min-width:0}.eg-route6-copy b{display:block;color:#09090a;font-size:15px;margin-bottom:4px}.eg-route6-copy small{display:block;color:#62656a;font-size:11px}.eg-route6-toggle{width:30px;height:30px;border-radius:50%;background:#f0f0f2;color:#09090a;display:grid;place-items:center;flex:0 0 30px;transition:transform .2s}.eg-route6-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}.eg-route6-head[aria-expanded="true"] .eg-route6-toggle{transform:rotate(180deg)}.eg-route6-body[hidden]{display:none}.eg-route6-map{height:360px;border-top:1px solid #e3e3e5;border-bottom:1px solid #e3e3e5;background:#f7f7f8}.eg-route6-footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 16px;color:#62656a;font-size:10px}.eg-route6-legend{display:flex;align-items:center;gap:7px}.eg-route6-key{width:24px;height:5px;border-radius:99px;background:#050506}.eg-route6-stop-key{width:13px;height:13px;border:2px solid #050506;border-radius:50%;background:#fff}.eg-route6-footer-count{margin-left:auto;font-weight:800;color:#303034}';
     document.head.appendChild(style);
   }
-  async function buildRoadPath(){
-    const service=new google.maps.DirectionsService(),fullPath=[];
-    for(let start=0;start<stops.length-1;start+=7){
-      const segment=stops.slice(start,Math.min(start+8,stops.length));
-      const result=await service.route({origin:point(segment[0]),destination:point(segment.at(-1)),waypoints:segment.slice(1,-1).map(position=>({location:point(position),stopover:true})),optimizeWaypoints:false,travelMode:google.maps.TravelMode.DRIVING,provideRouteAlternatives:false});
-      const segmentPath=result.routes?.[0]?.overview_path?.slice()||[];if(!segmentPath.length)throw new Error('6 Nolu Hat yol parçası üretilemedi');
-      if(fullPath.length)segmentPath.shift();segmentPath.forEach(location=>routeBounds.extend(location));fullPath.push(...segmentPath);
-    }
-    return fullPath;
-  }
   function fitRoute(){if(routeMap&&routeBounds&&!routeBounds.isEmpty())routeMap.fitBounds(routeBounds,30)}
   async function initMap(container){
     if(routeMap)return routeMap;if(!window.google?.maps)return null;
     routeBounds=new google.maps.LatLngBounds();routeMap=new google.maps.Map(container,{center:point(stops[0]),zoom:12,disableDefaultUI:true,clickableIcons:false,gestureHandling:'greedy',mapTypeId:'roadmap'});
     routeMarkers=stops.map((position,index)=>{routeBounds.extend(point(position));return new google.maps.Marker({map:routeMap,position:point(position),zIndex:100+index,title:`6 Nolu Hat • Durak ${index+1}`,label:{text:String(index+1),color:'#050506',fontSize:'8px',fontWeight:'800'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:9,fillColor:'#fff',fillOpacity:1,strokeColor:'#050506',strokeOpacity:1,strokeWeight:2}})});
-    try{routeLine=new google.maps.Polyline({map:routeMap,path:await buildRoadPath(),strokeColor:'#050506',strokeOpacity:.94,strokeWeight:6,geodesic:false})}
-    catch(error){console.error('6 Nolu Hat Google yol güzergâhı oluşturulamadı:',error);routeLine=new google.maps.Polyline({map:routeMap,path:stops.map(point),strokeColor:'#050506',strokeOpacity:.5,strokeWeight:5,geodesic:false})}
+    const roadPath=window.ELMA_FIXED_ROAD_PATHS?.line6||[];
+    if(roadPath.length){roadPath.forEach(position=>routeBounds.extend(point(position)));routeLine=new google.maps.Polyline({map:routeMap,path:roadPath.map(point),strokeColor:'#050506',strokeOpacity:.94,strokeWeight:6,geodesic:false})}
+    else console.error('6 Nolu Hat sabit yol verisi yüklenemedi.');
     fitRoute();return routeMap;
   }
   function refreshMap(container){if(!routeLoading)routeLoading=initMap(container).finally(()=>{routeLoading=null});requestAnimationFrame(()=>requestAnimationFrame(()=>{if(routeMap){google.maps.event.trigger(routeMap,'resize');fitRoute()}}))}

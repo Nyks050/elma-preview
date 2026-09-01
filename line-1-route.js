@@ -23,20 +23,6 @@
 
   function point(position){return {lat:position[0],lng:position[1]}}
 
-  async function buildRoadPath(service,positions){
-    const fullPath=[],maxPointsPerRequest=8;
-    for(let start=0;start<positions.length-1;start+=maxPointsPerRequest-1){
-      const segment=positions.slice(start,Math.min(start+maxPointsPerRequest,positions.length));
-      const result=await service.route({origin:point(segment[0]),destination:point(segment[segment.length-1]),waypoints:segment.slice(1,-1).map(position=>({location:point(position),stopover:true})),optimizeWaypoints:false,travelMode:google.maps.TravelMode.DRIVING,provideRouteAlternatives:false});
-      const segmentPath=result.routes?.[0]?.overview_path?.slice()||[];
-      if(!segmentPath.length)throw new Error('1 Nolu Hat dönüş yol parçası üretilemedi');
-      if(fullPath.length)segmentPath.shift();
-      segmentPath.forEach(location=>routeBounds.extend(location));
-      fullPath.push(...segmentPath);
-    }
-    return fullPath;
-  }
-
   function fitRoute(){
     if(!routeMap||!routeBounds||routeBounds.isEmpty())return;
     routeMap.fitBounds(routeBounds,30);
@@ -54,13 +40,11 @@
       const isReturn=index>=stops.length,number=isReturn?index-stops.length+1:index+1;
       return new google.maps.Marker({map:routeMap,position:point(position),zIndex:100+index,title:`1 Nolu Hat • ${isReturn?'Dönüş':'Gidiş'} • Durak ${number}`,label:{text:String(number),color:'#050506',fontSize:'8px',fontWeight:'800'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:9,fillColor:isReturn?'#e7e7e9':'#ffffff',fillOpacity:1,strokeColor:'#050506',strokeOpacity:1,strokeWeight:2}});
     });
-    try{
-      const returnPath=await buildRoadPath(new google.maps.DirectionsService(),returnStops);
-      returnLine=new google.maps.Polyline({map:routeMap,path:returnPath,strokeColor:'#050506',strokeOpacity:.55,strokeWeight:5,geodesic:false});
-    }catch(error){
-      console.error('1 Nolu Hat dönüş güzergâhı oluşturulamadı:',error);
-      returnStops.forEach(position=>routeBounds.extend(point(position)));
-    }
+    const returnPath=window.ELMA_FIXED_ROAD_PATHS?.line1Return||[];
+    if(returnPath.length){
+      returnPath.forEach(position=>routeBounds.extend(point(position)));
+      returnLine=new google.maps.Polyline({map:routeMap,path:returnPath.map(point),strokeColor:'#050506',strokeOpacity:.72,strokeWeight:5,geodesic:false});
+    }else console.error('1 Nolu Hat sabit dönüş yol verisi yüklenemedi.');
     fitRoute();
     return routeMap;
   }
