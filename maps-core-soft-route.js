@@ -402,7 +402,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     const searchScreen=document.createElement('section');
     searchScreen.id='elmaSearchScreen';
     searchScreen.className='elma-search-screen';
-    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span aria-hidden="true"></span></header><div class="elma-search-body"><section class="elma-mode-picker" aria-labelledby="elmaModeTitle"><div class="elma-mode-heading"><b id="elmaModeTitle">Nasıl gitmek istersin?</b><small>Ulaşım şeklini seç</small></div><div class="elma-mode-grid" role="radiogroup" aria-label="Ulaşım şekli"><button class="elma-mode-card active" type="button" data-travel-mode="TRANSIT" role="radio" aria-checked="true"><span class="elma-mode-art bus" aria-hidden="true"></span><span>Toplu taşıma</span></button><button class="elma-mode-card" type="button" data-travel-mode="DRIVING" role="radio" aria-checked="false"><span class="elma-mode-art car" aria-hidden="true">🚗</span><span>Araba</span></button><button class="elma-mode-card" type="button" data-travel-mode="WALKING" role="radio" aria-checked="false"><span class="elma-mode-art walk" aria-hidden="true"></span><span>Yürüme</span></button></div></section><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" value="Konumunuz alınıyor…" aria-label="Başlangıç konumu" placeholder="Nereden?" autocomplete="off"></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
+    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span aria-hidden="true"></span></header><div class="elma-search-body"><section class="elma-mode-picker" aria-labelledby="elmaModeTitle"><div class="elma-mode-heading"><b id="elmaModeTitle">Nasıl gitmek istersin?</b><small>Ulaşım şeklini seç</small></div><div class="elma-mode-grid" role="radiogroup" aria-label="Ulaşım şekli"><button class="elma-mode-card active" type="button" data-travel-mode="TRANSIT" role="radio" aria-checked="true"><span class="elma-mode-art bus" aria-hidden="true"></span><span>Toplu taşıma</span></button><button class="elma-mode-card" type="button" data-travel-mode="DRIVING" role="radio" aria-checked="false"><span class="elma-mode-art car" aria-hidden="true">🚗</span><span>Araba</span></button><button class="elma-mode-card" type="button" data-travel-mode="WALKING" role="radio" aria-checked="false"><span class="elma-mode-art walk" aria-hidden="true"></span><span>Yürüme</span></button></div></section><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" aria-label="Başlangıç konumu" placeholder="Nereden?" autocomplete="off"></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
     wrapper.appendChild(searchScreen);
     document.querySelectorAll('.elma-go-icon,.elma-go-logo-crop').forEach(element=>element.remove());
     searchScreen.querySelectorAll('.elma-mode-card').forEach(button=>button.onclick=()=>{
@@ -531,6 +531,13 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     function renderDefaults(){
       $('#elmaFlowResults').innerHTML='';
     }
+    function renderOriginDefaults(){
+      const results=$('#elmaFlowResults');results.innerHTML='';
+      results.appendChild(resultButton('Mevcut konumumu kullan','GPS ile başlangıç noktasını belirle','pin',async()=>{
+        manualOriginEditing=false;const point=await window.requestLocation?.();if(!point)return;
+        $('#elmaFrom').value=point.name||'Mevcut konumum';results.innerHTML='';step=1;$('#elmaTo').focus();
+      },true));
+    }
     function renderSearchResults(items,target='destination'){
       const results=$('#elmaFlowResults');
       results.innerHTML='';
@@ -557,7 +564,6 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       renderDefaults();
       $('#elmaTo').value='';
       $('#elmaTo').focus();
-      ensureOrigin();
     }
 
     $('#elmaQuickSearch').onclick=openSearch;
@@ -570,13 +576,14 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       if(query.length<2){renderDefaults();return}
       timers.elmaFrom=setTimeout(async()=>renderSearchResults(await search(query),'origin'),250);
     };
-    $('#elmaFrom').onfocus=()=>{manualOriginEditing=true};
+    $('#elmaFrom').onfocus=()=>{manualOriginEditing=true;renderOriginDefaults()};
     $('#elmaTo').oninput=()=>{
       clearTimeout(timers.elmaTo);
       const query=$('#elmaTo').value.trim();
       if(query.length<2){renderDefaults();return}
       timers.elmaTo=setTimeout(async()=>renderSearchResults(await search(query)),250);
     };
+    $('#elmaTo').onfocus=renderDefaults;
 
     function openLegacyTab(name){
       document.getElementById('elmaFlowBootGuard')?.remove();
