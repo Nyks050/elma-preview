@@ -786,7 +786,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line.dataset.elmaLine1Ui='1';
   document.head.appendChild(line);
   const roadData=document.createElement('script');
-  roadData.src='road-path-data.js?v=20260901-road-fixed';
+  roadData.src='road-path-data.js?v=20260901-line6-split';
   roadData.async=false;
   roadData.dataset.elmaRoadPathData='1';
   document.head.appendChild(roadData);
@@ -816,7 +816,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line6.dataset.elmaLine6Ui='1';
   document.head.appendChild(line6);
   const line6Route=document.createElement('script');
-  line6Route.src='line-6-route-road.js?v=20260901-fixed-road-path';
+  line6Route.src='line-6-route-road.js?v=20260901-split-colors';
   line6Route.async=false;
   line6Route.dataset.elmaLine6Route='1';
   document.head.appendChild(line6Route);
