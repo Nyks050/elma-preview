@@ -1,8 +1,14 @@
 (()=>{
   const DEFAULT_CENTER={lat:40.65,lng:35.83};
+  const LOCAL_PLACES=[
+    {label:'Amasya Üniversitesi Eğitim Fakültesi, Muhsin Yazıcıoğlu Caddesi, Akbilek, Amasya',aliases:'amasya universitesi egitim fakultesi milli hakimiyet yerleskesi',point:{lat:40.654339,lon:35.80468,name:'Amasya Üniversitesi Eğitim Fakültesi'}}
+  ];
   let map,origin,destination,originMarker,destinationMarker,directionsRenderer,fallbackRouteLine,routeBaseLine,routeAnimationFrame,step=0,timers={},manualOriginEditing=false,selectedTravelMode='TRANSIT';
   let geocoder,placesLibrary;
   const $=selector=>document.querySelector(selector);
+  const normalizeSearch=value=>String(value||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9çğıöşü]+/g,' ').trim();
+  function localSearch(query){const terms=normalizeSearch(query).split(' ').filter(Boolean);if(!terms.length)return[];return LOCAL_PLACES.filter(place=>{const haystack=normalizeSearch(place.label+' '+place.aliases);return terms.every(term=>haystack.includes(term))}).map(place=>({label:place.label,point:{...place.point},source:'local'}))}
+  function mergeSearchResults(local,remote){const seen=new Set();return [...local,...remote].filter(item=>{const key=normalizeSearch(item.label);if(seen.has(key))return false;seen.add(key);return true}).slice(0,6)}
 
   function loadGoogleMaps(){
     if(window.google?.maps)return Promise.resolve(window.google.maps);
@@ -57,6 +63,7 @@
 
   async function search(query){
     if(!query||query.trim().length<2)return[];
+    const localResults=localSearch(query);
     if(placesLibrary?.AutocompleteSuggestion){
       try{
         const request={
@@ -73,18 +80,18 @@
           const label=prediction?.text?.toString?.()||prediction?.mainText?.toString?.()||query;
           return {label,prediction,source:'google'};
         });
-        if(suggestions.length)return suggestions;
+        if(suggestions.length)return mergeSearchResults(localResults,suggestions);
       }catch(error){
         console.warn('Google Places araması kullanılamıyor, Google Geocoder deneniyor:',error);
       }
     }
     try{
       const googleResults=await googleGeocodeSearch(query);
-      if(googleResults.length)return googleResults;
+      if(googleResults.length)return mergeSearchResults(localResults,googleResults);
     }catch(error){
       console.warn('Google Geocoder araması kullanılamıyor:',error);
     }
-    return fallbackSearch(query);
+    return mergeSearchResults(localResults,await fallbackSearch(query));
   }
 
   async function resolveSearchItem(item){
