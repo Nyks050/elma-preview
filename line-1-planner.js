@@ -62,7 +62,7 @@
     addStyles();removeSheet();
     const sheet=document.createElement('section');
     sheet.id='elmaLine1Trip';sheet.className='elma-trip-sheet unavailable';
-    sheet.innerHTML=`<div class="elma-trip-head"><span class="elma-trip-badge">1</span><span class="elma-trip-title"><b>1 numaralı hat uygun değil</b><small></small></span><button class="elma-trip-close" type="button" aria-label="Kapat">×</button></div>`;
+    sheet.innerHTML=`<div class="elma-trip-head"><span class="elma-trip-badge">1</span><span class="elma-trip-title"><b>1 nolu hat uygun değil</b><small></small></span><button class="elma-trip-close" type="button" aria-label="Kapat">×</button></div>`;
     sheet.querySelector('small').textContent=message;
     sheet.querySelector('button').onclick=removeSheet;
     document.body.appendChild(sheet);
@@ -76,7 +76,7 @@
     const totalMinutes=Math.max(1,Math.round((walkSeconds+busSeconds)/60));
     const sheet=document.createElement('section');
     sheet.id='elmaLine1Trip';sheet.className='elma-trip-sheet';
-    sheet.innerHTML=`<div class="elma-trip-head"><span class="elma-trip-badge">1</span><span class="elma-trip-title"><b>1 numaralı otobüs</b><small>Yaklaşık ${totalMinutes} dk • Aktarmasız</small></span><button class="elma-trip-close" type="button" aria-label="Kapat">×</button></div><div class="elma-trip-steps"><div class="elma-trip-step"><span class="elma-trip-dot">↗</span><span><b>${meters(walkStart.meters||journey.walkStart)} yürü</b><small>${journey.board+1}. durağa git</small></span></div><div class="elma-trip-step bus"><span class="elma-trip-dot">1</span><span><b>1 numaralı otobüse bin</b><small>${journey.board+1}. duraktan ${journey.alight+1}. durağa • ${stopCount} durak</small></span></div><div class="elma-trip-step"><span class="elma-trip-dot">↓</span><span><b>${journey.alight+1}. durakta in</b><small>Hedefe ${meters(walkEnd.meters||journey.walkEnd)} yürü</small></span></div></div><div class="elma-trip-warning">Deneme sürümü: Şimdilik yalnızca 1 numaralı hattın gidiş yönü hesaplanır.</div>`;
+    sheet.innerHTML=`<div class="elma-trip-head"><span class="elma-trip-badge">1</span><span class="elma-trip-title"><b>1 nolu hat</b><small>Yaklaşık ${totalMinutes} dk • Aktarmasız</small></span><button class="elma-trip-close" type="button" aria-label="Kapat">×</button></div><div class="elma-trip-steps"><div class="elma-trip-step"><span class="elma-trip-dot">↗</span><span><b>${meters(walkStart.meters||journey.walkStart)} yürü</b><small>${journey.board+1}. durağa git</small></span></div><div class="elma-trip-step bus"><span class="elma-trip-dot">1</span><span><b>1 nolu hatta bin</b><small>${journey.board+1}. duraktan ${journey.alight+1}. durağa • ${stopCount} durak</small></span></div><div class="elma-trip-step"><span class="elma-trip-dot">↓</span><span><b>${journey.alight+1}. durakta in</b><small>Hedefe ${meters(walkEnd.meters||journey.walkEnd)} yürü</small></span></div></div><div class="elma-trip-warning">Deneme sürümü: Şimdilik yalnızca 1 nolu hattın gidiş yönü hesaplanır.</div>`;
     sheet.querySelector('button').onclick=removeSheet;
     document.body.appendChild(sheet);
   }
@@ -86,7 +86,7 @@
     const journey=bestJourney(origin,destination,data.stops);
     if(!journey)return false;
     if(journey.walkStart>3000||journey.walkEnd>3000){
-      showUnavailable('Başlangıç veya hedef 1 numaralı hattın gidiş güzergâhına çok uzak.');
+      showUnavailable('Başlangıç veya hedef 1 nolu hattın gidiş güzergâhına çok uzak.');
       return true;
     }
     const boardPoint=point(data.stops[journey.board]),alightPoint=point(data.stops[journey.alight]);
