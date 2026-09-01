@@ -801,7 +801,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line1Planner.dataset.elmaLine1Planner='1';
   document.head.appendChild(line1Planner);
   const journeyResults=document.createElement('script');
-  journeyResults.src='journey-results.js?v=20260901-lines-1-6-directions';
+  journeyResults.src='journey-results.js?v=20260901-arrival-summary1';
   journeyResults.defer=true;
   journeyResults.dataset.elmaJourneyResults='1';
   document.head.appendChild(journeyResults);
