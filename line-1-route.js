@@ -31,7 +31,7 @@
     routeLine=new google.maps.Polyline({map:routeMap,path:route.map(point),strokeColor:'#050506',strokeOpacity:.94,strokeWeight:6,geodesic:false});
     routeMarkers=stops.map((position,index)=>{
       routeBounds.extend(point(position));
-      return new google.maps.Marker({map:routeMap,position:point(position),zIndex:100+index,title:`1 No • Durak ${index+1}`,label:{text:String(index+1),color:'#050506',fontSize:'8px',fontWeight:'800'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:10,fillColor:'#ffffff',fillOpacity:1,strokeColor:'#050506',strokeOpacity:1,strokeWeight:2}});
+      return new google.maps.Marker({map:routeMap,position:point(position),zIndex:100+index,title:`1 Nolu Hat • Durak ${index+1}`,label:{text:String(index+1),color:'#050506',fontSize:'8px',fontWeight:'800'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:10,fillColor:'#ffffff',fillOpacity:1,strokeColor:'#050506',strokeOpacity:1,strokeWeight:2}});
     });
     fitRoute();
     return routeMap;
