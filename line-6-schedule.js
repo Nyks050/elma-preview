@@ -1,6 +1,7 @@
 window.ELMA_TRANSIT=window.ELMA_TRANSIT||{};
 window.ELMA_TRANSIT['6']={
-  name:'6 Numaralı Hat',
+  name:'6 Nolu Hat',
+  stopCount:45,
   frequency:'Hafta içi çoğunlukla 10 dk’da bir',
   schedules:{
     weekday:{

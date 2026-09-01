@@ -786,7 +786,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line.dataset.elmaLine1Ui='1';
   document.head.appendChild(line);
   const line1Route=document.createElement('script');
-  line1Route.src='line-1-route.js?v=20260901-route-stable';
+  line1Route.src='line-1-route.js?v=20260901-return-60-stops';
   line1Route.defer=true;
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
@@ -796,7 +796,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line1Planner.dataset.elmaLine1Planner='1';
   document.head.appendChild(line1Planner);
   const journeyResults=document.createElement('script');
-  journeyResults.src='journey-results.js?v=20260901-transit-viability1';
+  journeyResults.src='journey-results.js?v=20260901-lines-1-6-directions';
   journeyResults.defer=true;
   journeyResults.dataset.elmaJourneyResults='1';
   document.head.appendChild(journeyResults);
@@ -806,12 +806,12 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line2.dataset.elmaLine2Ui='1';
   document.head.appendChild(line2);
   const line6=document.createElement('script');
-  line6.src='line-6-ui.js?v=20260830-line6';
+  line6.src='line-6-ui.js?v=20260901-45-stops';
   line6.defer=true;
   line6.dataset.elmaLine6Ui='1';
   document.head.appendChild(line6);
   const line6Route=document.createElement('script');
-  line6Route.src='line-6-route-road.js';
+  line6Route.src='line-6-route-road.js?v=20260901-full-45-stops';
   line6Route.defer=true;
   line6Route.dataset.elmaLine6Route='1';
   document.head.appendChild(line6Route);

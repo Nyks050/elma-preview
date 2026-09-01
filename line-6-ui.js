@@ -35,7 +35,7 @@
     if(!schedule)return;
     const now=amasyaNow();
     const today=now.day==='weekday'&&key==='weekday'||now.day==='saturday'&&key==='saturday'||now.day==='sunday'&&key.startsWith('sunday');
-    detail.querySelector('.eg-line-meta').textContent=`${schedule.departure} • ${schedule.times.length} sefer`;
+    detail.querySelector('.eg-line-meta').textContent=`${schedule.departure} • ${schedule.times.length} sefer • ${data.stopCount} durak`;
     detail.querySelector('.eg-line-times').innerHTML=schedule.times.map(time=>{
       const [hour,minute]=time.split(':').map(Number),past=today&&hour*60+minute<now.minute;
       return `<div class="eg-line-time${past?' is-past':''}"${past?` aria-label="${time} geçti"`:''}>${time}</div>`;

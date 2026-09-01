@@ -52,27 +52,46 @@
     }catch(error){console.warn(mode+' Google rotası alınamadı, OSM deneniyor:',error);return osmRoute(from,to,mode)}
   }
   function bestTransit(origin,destination,stops){
-    let best=null;
+    let best=null,prefix=[0];
+    for(let index=1;index<stops.length;index++)prefix.push(prefix[index-1]+distance(pt(stops[index-1]),pt(stops[index])));
     for(let board=0;board<stops.length-1;board++)for(let alight=board+1;alight<stops.length;alight++){
-      const access=distance(pt(origin),pt(stops[board])),exit=distance(pt(stops[alight]),pt(destination)),score=access+exit;
-      if(!best||score<best.score)best={board,alight,access,exit,score};
+      const access=distance(pt(origin),pt(stops[board])),exit=distance(pt(stops[alight]),pt(destination)),busMeters=prefix[alight]-prefix[board],estimatedSeconds=access/1.22+busMeters/8.4+exit/1.22,score=access+exit;
+      if(!best||estimatedSeconds<best.estimatedSeconds)best={board,alight,access,exit,busMeters,estimatedSeconds,score};
     }
     return best;
   }
-  function closestIndex(route,stop,start=0){let best=start,min=Infinity;for(let i=start;i<route.length;i++){const d=distance(pt(route[i]),pt(stop));if(d<min){min=d;best=i}}return best}
-  async function lineData(){for(let attempt=0;attempt<30;attempt++){if(window.ELMA_LINE_1_ROUTE)return window.ELMA_LINE_1_ROUTE;await new Promise(resolve=>setTimeout(resolve,50))}return null}
+  async function lineData(){
+    for(let attempt=0;attempt<40;attempt++){
+      if(window.ELMA_LINE_1_ROUTE&&window.ELMA_LINE_6_ROUTE)return window.ELMA_TRANSIT_LINES||[];
+      await new Promise(resolve=>setTimeout(resolve,50));
+    }
+    return window.ELMA_TRANSIT_LINES||[];
+  }
+  async function transitBusRoute(positions){
+    const path=[];let seconds=0,meters=0;
+    for(let start=0;start<positions.length-1;start+=7){
+      const segment=positions.slice(start,Math.min(start+8,positions.length));
+      const result=await new google.maps.DirectionsService().route({origin:pt(segment[0]),destination:pt(segment.at(-1)),waypoints:segment.slice(1,-1).map(stop=>({location:pt(stop),stopover:true})),optimizeWaypoints:false,travelMode:google.maps.TravelMode.DRIVING,region:'TR',language:'tr'});
+      const route=result.routes?.[0];if(!route)throw new Error('Otobüs yol parçası oluşturulamadı');
+      const segmentPath=detailedPath(route);if(path.length&&segmentPath.length)segmentPath.shift();path.push(...segmentPath);
+      route.legs?.forEach(leg=>{seconds+=leg.duration?.value||0;meters+=leg.distance?.value||0});
+    }
+    return{path,seconds,meters};
+  }
   async function transitRoute(origin,destination){
-    const data=await lineData();if(!data)return null;
-    const trip=bestTransit(origin,destination,data.stops);if(!trip||trip.access>3000||trip.exit>3000)return null;
+    const lines=await lineData();if(!lines.length)return null;
+    let selected=null;
+    for(const line of lines){const trip=bestTransit(origin,destination,line.stops);if(trip&&(!selected||trip.estimatedSeconds<selected.estimatedSeconds))selected={...trip,lineData:line}}
+    if(!selected||selected.access>3000||selected.exit>3000)return null;
+    const trip=selected,data=selected.lineData;
     const directMeters=distance(pt(origin),pt(destination)),maxStopWalk=Math.min(850,Math.max(450,directMeters*.38));
     if(trip.access>maxStopWalk||trip.exit>maxStopWalk||trip.score>Math.min(1450,directMeters*.62))return null;
     const boardPoint=pt(data.stops[trip.board]),alightPoint=pt(data.stops[trip.alight]);
     const [access,exit]=await Promise.all([googleRoute(origin,boardPoint,'WALKING'),googleRoute(alightPoint,destination,'WALKING')]);
     if(!access||!exit)return null;
-    const fromIndex=closestIndex(data.route,data.stops[trip.board]),toIndex=closestIndex(data.route,data.stops[trip.alight],fromIndex);
-    const busPath=data.route.slice(fromIndex,toIndex+1).map(pt),stops=trip.alight-trip.board,busSeconds=Math.max(180,stops*105),seconds=access.seconds+busSeconds+exit.seconds;
+    const stopSlice=data.stops.slice(trip.board,trip.alight+1),bus=await transitBusRoute(stopSlice),busPath=bus.path,stops=trip.alight-trip.board,busSeconds=Math.max(180,bus.seconds||stops*105),seconds=access.seconds+busSeconds+exit.seconds;
     if(stops<2||seconds>=directMeters/1.22*1.08)return null;
-    return {mode:'TRANSIT',...trip,accessRoute:access,exitRoute:exit,busPath,stopPoints:data.stops.slice(trip.board,trip.alight+1).map(pt),stops,seconds,meters:access.meters+exit.meters,busSeconds};
+    return {mode:'TRANSIT',...trip,line:data.line,lineName:data.name,direction:data.direction,accessRoute:access,exitRoute:exit,busPath,stopPoints:stopSlice.map(pt),stops,seconds,meters:access.meters+bus.meters+exit.meters,busSeconds};
   }
   function addTransitStopMarkers(map,transit,showAll=false){
     clearStopOverlays();if(!transit?.stopPoints?.length)return;
@@ -117,12 +136,12 @@
     styles();sheet?.remove();sheet=document.createElement('section');sheet.id='elmaJourneyResults';sheet.className='jr-sheet';
     const now=new Date(),transitRange=transit?interval(now,transit.seconds):'',driveRange=drive?interval(now,drive.seconds):'',walkRange=walk?interval(now,walk.seconds):'';
     const links={TRANSIT:mapsUrl(origin,destination,'TRANSIT'),DRIVING:mapsUrl(origin,destination,'DRIVING'),WALKING:mapsUrl(origin,destination,'WALKING')};
-    const empty=(message,mode)=>mode==='TRANSIT'?`<div class="jr-empty jr-transit-unavailable"><span class="jr-unavailable-line" aria-hidden="true"></span><b>Bu bölgede toplu taşıma mevcut değil</b><small>Yakındaki 1 Nolu Hat durağı yürüyüş mesafesinin dışında veya yolculuğu gereksiz yere uzatıyor.</small></div>`:`<div class="jr-empty"><b>${message}</b><a class="jr-map-link" href="${links[mode]}" target="_blank" rel="noopener">Google Maps'te aç ↗</a></div>`;
+    const empty=(message,mode)=>mode==='TRANSIT'?`<div class="jr-empty jr-transit-unavailable"><span class="jr-unavailable-line" aria-hidden="true"></span><b>Bu bölgede toplu taşıma mevcut değil</b><small>1 veya 6 Nolu Hat durakları yürüyüş mesafesinin dışında ya da yolculuğu gereksiz yere uzatıyor.</small></div>`:`<div class="jr-empty"><b>${message}</b><a class="jr-map-link" href="${links[mode]}" target="_blank" rel="noopener">Google Maps'te aç ↗</a></div>`;
     const attribution='';
     const activeLink=links[preferred]||links.TRANSIT;
     const stopsAction=preferred==='TRANSIT'&&transit?`<button class="jr-action" id="jrStopsToggle" type="button"><b>≡</b><span>Duraklar</span></button>`:`<button class="jr-action" type="button" disabled><b>•</b><span>Rota</span></button>`;
     sheet.setAttribute('role','dialog');sheet.setAttribute('aria-modal','true');
-    sheet.innerHTML=`<div class="jr-grab" role="button" tabindex="0" aria-label="Yolculuk özetini küçült veya aç"></div><header class="jr-head"><h2 id="jrTitle">Toplu taşıma</h2><button class="jr-circle" id="jrClose" type="button" aria-label="Ulaşım şeklini yeniden seç">×</button></header><div class="jr-actions">${stopsAction}<button class="jr-action" id="jrShare" type="button"><b>⌁</b><span>Paylaş</span></button><button class="jr-action" id="jrRefresh" type="button"><b>↻</b><span>Yenile</span></button></div>${preferred==='TRANSIT'&&transit?`<div class="jr-stop-list" id="jrStops" hidden><b>1 Nolu Hat • Yolculuktaki duraklar</b>${transit.stopPoints.map((point,index)=>{const number=transit.board+index+1,kind=index===0?'Biniş durağı':index===transit.stopPoints.length-1?'İniş durağı':'Ara durak';return `<div class="jr-stop-row ${index===0?'board':index===transit.stopPoints.length-1?'alight':''}"><span class="jr-stop-number">${number}</span><span class="jr-stop-copy"><strong>${number}. Durak • ${kind}</strong><small>${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}</small></span></div>`}).join('')}</div>`:''}<main class="jr-content"><section class="jr-section" data-section="TRANSIT">${transit?`<button class="jr-card active" type="button" data-route-card="TRANSIT"><div class="jr-card-top"><span class="jr-card-time">${mins(transit)}</span><span class="jr-card-cost">Ücret bilgisi yakında</span></div><div class="jr-range" data-duration-seconds="${transit.seconds}">${transitRange}</div><div class="jr-steps"><span class="jr-step"><i class="jr-step-icon walk"></i>${Math.max(1,Math.round(transit.accessRoute.seconds/60))} dk.</span><span>›</span><span class="jr-step jr-line"><i class="jr-step-icon bus"></i>1 Nolu Hat</span><span>›</span><span class="jr-step"><i class="jr-step-icon walk"></i>${Math.max(1,Math.round(transit.exitRoute.seconds/60))} dk.</span></div><div class="jr-muted">${transit.board+1}. durakta bin • ${transit.stops} durak git • ${transit.alight+1}. durakta in</div></button>`:empty('Bu yolculuk için 1 nolu hattın gidiş yönü uygun değil.','TRANSIT')}</section><section class="jr-section" data-section="DRIVING" hidden>${drive?`<button class="jr-card active" type="button" data-route-card="DRIVING"><div class="jr-card-top"><span class="jr-card-time">${mins(drive)}</span><span class="jr-card-cost">${fmtMeters(drive.meters)}</span></div><div class="jr-range" data-duration-seconds="${drive.seconds}">${driveRange}</div><div class="jr-muted">${escapeHtml(drive.summary||'Yol ağı rotası')} üzerinden</div></button>`:empty('Araba rotası şu anda hesaplanamadı.','DRIVING')}</section><section class="jr-section" data-section="WALKING" hidden>${walk?`<button class="jr-card active" type="button" data-route-card="WALKING"><div class="jr-card-top"><span class="jr-card-time">${mins(walk)}</span><span class="jr-card-cost">${fmtMeters(walk.meters)}</span></div><div class="jr-range" data-duration-seconds="${walk.seconds}">${walkRange}</div><div class="jr-muted">Yaya yolları ve dönüşler takip edilir; rota düz çizgi değildir.</div></button>`:empty('Yürüme rotası şu anda hesaplanamadı.','WALKING')}</section>${attribution}</main>`;
+    sheet.innerHTML=`<div class="jr-grab" role="button" tabindex="0" aria-label="Yolculuk özetini küçült veya aç"></div><header class="jr-head"><h2 id="jrTitle">Toplu taşıma</h2><button class="jr-circle" id="jrClose" type="button" aria-label="Ulaşım şeklini yeniden seç">×</button></header><div class="jr-actions">${stopsAction}<button class="jr-action" id="jrShare" type="button"><b>⌁</b><span>Paylaş</span></button><button class="jr-action" id="jrRefresh" type="button"><b>↻</b><span>Yenile</span></button></div>${preferred==='TRANSIT'&&transit?`<div class="jr-stop-list" id="jrStops" hidden><b>${escapeHtml(transit.lineName)} • ${escapeHtml(transit.direction)} • Yolculuktaki duraklar</b>${transit.stopPoints.map((point,index)=>{const number=transit.board+index+1,kind=index===0?'Biniş durağı':index===transit.stopPoints.length-1?'İniş durağı':'Ara durak';return `<div class="jr-stop-row ${index===0?'board':index===transit.stopPoints.length-1?'alight':''}"><span class="jr-stop-number">${number}</span><span class="jr-stop-copy"><strong>${number}. Durak • ${kind}</strong><small>${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}</small></span></div>`}).join('')}</div>`:''}<main class="jr-content"><section class="jr-section" data-section="TRANSIT">${transit?`<button class="jr-card active" type="button" data-route-card="TRANSIT"><div class="jr-card-top"><span class="jr-card-time">${mins(transit)}</span><span class="jr-card-cost">Ücret bilgisi yakında</span></div><div class="jr-range" data-duration-seconds="${transit.seconds}">${transitRange}</div><div class="jr-steps"><span class="jr-step"><i class="jr-step-icon walk"></i>${Math.max(1,Math.round(transit.accessRoute.seconds/60))} dk.</span><span>›</span><span class="jr-step jr-line"><i class="jr-step-icon bus"></i>${escapeHtml(transit.lineName)}</span><span>›</span><span class="jr-step"><i class="jr-step-icon walk"></i>${Math.max(1,Math.round(transit.exitRoute.seconds/60))} dk.</span></div><div class="jr-muted">${transit.board+1}. durakta bin • ${transit.stops} durak git • ${transit.alight+1}. durakta in • ${escapeHtml(transit.direction)}</div></button>`:empty('Bu yolculuk için uygun bir otobüs yönü bulunamadı.','TRANSIT')}</section><section class="jr-section" data-section="DRIVING" hidden>${drive?`<button class="jr-card active" type="button" data-route-card="DRIVING"><div class="jr-card-top"><span class="jr-card-time">${mins(drive)}</span><span class="jr-card-cost">${fmtMeters(drive.meters)}</span></div><div class="jr-range" data-duration-seconds="${drive.seconds}">${driveRange}</div><div class="jr-muted">${escapeHtml(drive.summary||'Yol ağı rotası')} üzerinden</div></button>`:empty('Araba rotası şu anda hesaplanamadı.','DRIVING')}</section><section class="jr-section" data-section="WALKING" hidden>${walk?`<button class="jr-card active" type="button" data-route-card="WALKING"><div class="jr-card-top"><span class="jr-card-time">${mins(walk)}</span><span class="jr-card-cost">${fmtMeters(walk.meters)}</span></div><div class="jr-range" data-duration-seconds="${walk.seconds}">${walkRange}</div><div class="jr-muted">Yaya yolları ve dönüşler takip edilir; rota düz çizgi değildir.</div></button>`:empty('Yürüme rotası şu anda hesaplanamadı.','WALKING')}</section>${attribution}</main>`;
     document.body.appendChild(sheet);const mainNav=$('#elmaMainNav');if(mainNav)mainNav.style.display='none';
     sheet.querySelectorAll('[data-route-card]').forEach(button=>button.onclick=()=>draw(button.dataset.routeCard));
     enableSheetDrag(sheet);
