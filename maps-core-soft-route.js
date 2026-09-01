@@ -722,7 +722,9 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
           preserveViewport:false,
           polylineOptions:{strokeOpacity:0,strokeWeight:0}
         });
-        const animatedPath=result.routes?.[0]?.overview_path||[];
+        const routeResult=result.routes?.[0];
+        const detailedWalkingPath=routeResult?.legs?.flatMap(leg=>leg.steps?.flatMap(routeStep=>routeStep.path||[])||[])||[];
+        const animatedPath=selectedTravelMode==='WALKING'&&detailedWalkingPath.length?detailedWalkingPath:routeResult?.overview_path||[];
         if(selectedTravelMode==='WALKING')showWalkingRoute(animatedPath);
         else await animateRoute(animatedPath);
         showDirectTrip(selectedTravelMode,result.routes?.[0]?.legs?.[0]);
@@ -770,7 +772,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
   const line1Planner=document.createElement('script');
-  line1Planner.src='line-1-planner.js?v=20260901-nolu-hat';
+  line1Planner.src='line-1-planner.js?v=20260901-detailed-walking';
   line1Planner.defer=true;
   line1Planner.dataset.elmaLine1Planner='1';
   document.head.appendChild(line1Planner);
