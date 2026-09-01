@@ -831,7 +831,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   lostFound.dataset.elmaLostFoundService='1';
   document.head.appendChild(lostFound);
   const lostFoundPremium=document.createElement('script');
-  lostFoundPremium.src='lost-found-premium.js?v=20260830-lost-found-modern';
+  lostFoundPremium.src='lost-found-premium.js?v=20260901-digging-dog1';
   lostFoundPremium.defer=true;
   lostFoundPremium.dataset.elmaLostFoundPremium='1';
   document.head.appendChild(lostFoundPremium);
