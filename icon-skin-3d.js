@@ -150,7 +150,7 @@
 
     #elmaHomeWidgets .eg-services-grid .eg-service-icon.eg-icon-media{background-image:none!important;overflow:visible}
     #elmaHomeWidgets .eg-services-grid .eg-service-icon.eg-icon-media>img{display:block!important;width:100%;height:100%;object-fit:contain}
-    #elmaHomeWidgets .eg-services-grid .eg-pharmacy-card .eg-service-icon.eg-icon-media{filter:none!important}\n    #elmaHomeWidgets .eg-services-grid .eg-pharmacy-card .eg-service-icon.eg-icon-media>img{display:block!important;width:100%;height:100%;object-fit:contain;border-radius:7px}
+    #elmaHomeWidgets .eg-services-grid .eg-pharmacy-card .eg-service-icon.eg-icon-media{filter:none!important}\n    #elmaHomeWidgets .eg-services-grid .eg-pharmacy-card .eg-service-icon.eg-icon-media>svg{display:block!important;width:100%;height:100%;fill:#000!important;stroke:none!important}
   `;
   document.head.appendChild(servicesStyle);
 
@@ -201,7 +201,7 @@
     if(pharmacy&&!pharmacy.dataset.trPharmacy){
       pharmacy.dataset.trPharmacy='true';
       pharmacy.classList.add('eg-icon-media');
-      pharmacy.innerHTML='<img src="assets/turkiye-eczane-logo.jpg?v=20260907" alt="" width="62" height="62" decoding="async">';
+      pharmacy.innerHTML='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M13 5h40v11H25v10h24v11H25v11h29v11H13Z"/></svg>';
     }
     // Move the original buttons so their existing click handlers remain attached.
     ordered.forEach((card,index)=>{
