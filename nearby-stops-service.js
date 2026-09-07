@@ -2,6 +2,7 @@
   if(window.__elmaNearbyStopsMounted)return;
   window.__elmaNearbyStopsMounted=true;
 
+  const DEFAULT_POSITION={coords:{latitude:40.65,longitude:35.83}};
   const stopIcon='<svg viewBox="0 0 64 64" aria-hidden="true"><path fill="currentColor" d="M18 4h25c9 0 15 6 15 15v20c0 9-6 15-15 15H18Z"/><path fill="#fff" d="M25 13h18c4 0 7 3 7 7v8H25Zm2 22h7v7h-7Zm14 0h7v7h-7Z"/><path fill="currentColor" d="M13 4h8v56h-8Zm8 48h15v8H21Z"/></svg>';
 
   function addStyles(){
@@ -78,13 +79,15 @@
     if(status)status.textContent=text;
   }
 
-  function render(position){
+  let dataWaits=0;
+  function render(position,isDefault=false){
     const origin={lat:position.coords.latitude,lng:position.coords.longitude};
     const results=document.getElementById('egNearbyResults');
     const stops=collectStops().map(stop=>({...stop,distance:distanceMetres(origin,stop)})).sort((a,b)=>a.distance-b.distance).slice(0,8);
     if(!results)return;
     results.replaceChildren();
-    if(!stops.length){setStatus('Durak verileri henüz hazır değil. Birkaç saniye sonra tekrar dene.');return false}
+    if(!stops.length){if(dataWaits++<20){setStatus('Durak verileri hazırlanıyor…');setTimeout(()=>render(position,isDefault),150);return false}setStatus('Amasya durak verileri henüz hazır değil.');return false}
+    dataWaits=0;
     stops.forEach((stop,index)=>{
       const link=document.createElement('a');
       link.className='eg-nearby-stop';
@@ -95,32 +98,24 @@
       link.innerHTML='<span class="eg-nearby-rank">'+(index+1)+'</span><span class="eg-nearby-copy"><b>Yakındaki Durak '+(index+1)+'</b><small>'+stop.lines.join(' · ')+'</small></span><span class="eg-nearby-distance">'+formatDistance(stop.distance)+'</span><span class="eg-nearby-arrow">›</span>';
       results.appendChild(link);
     });
-    setStatus('En yakın '+stops.length+' durak mesafeye göre sıralandı.');
+    setStatus((isDefault?'Konum kapalı · Amasya merkez · ':'Konum açık · ')+'En yakın '+stops.length+' durak sıralandı.');
     return true;
   }
 
-  function requestLocation(){
+  async function requestLocation(){
     const button=document.getElementById('egNearbyLocate');
-    if(button){button.hidden=false;button.disabled=true;button.textContent='Konum alınıyor…'}
-    setStatus('Yakındaki duraklar bulunuyor.');
-    if(window.elmaUserPosition){
-      render(window.elmaUserPosition);
-      if(button)button.hidden=true;
-      return;
-    }
-    if(!navigator.geolocation){
-      setStatus('Bu cihazda konum özelliği desteklenmiyor.');
-      if(button){button.disabled=false;button.textContent='Tekrar dene'}
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(position=>{
+    if(button)button.hidden=true;
+    if(window.elmaUserPosition)return render(window.elmaUserPosition,false);
+    if(!navigator.geolocation||!navigator.permissions?.query)return render(DEFAULT_POSITION,true);
+    try{
+      const permission=await navigator.permissions.query({name:'geolocation'});
+      if(permission.state!=='granted')return render(DEFAULT_POSITION,true);
+      const position=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:false,timeout:8000,maximumAge:120000}));
       window.elmaUserPosition=position;
-      render(position);
-      if(button)button.hidden=true;
-    },()=>{
-      setStatus('Yakındaki durakları görmek için konum izni ver.');
-      if(button){button.hidden=false;button.disabled=false;button.textContent='Konuma izin ver'}
-    },{enableHighAccuracy:false,timeout:12000,maximumAge:120000});
+      return render(position,false);
+    }catch(error){
+      return render(DEFAULT_POSITION,true);
+    }
   }
 
   function mount(){
@@ -137,7 +132,7 @@
     const panel=document.createElement('div');
     panel.className='eg-panel';
     panel.dataset.panel='nearby-stops';
-    panel.innerHTML='<button class="eg-service-back" type="button">‹ Hizmetler</button><div class="eg-card"><div class="eg-head"><div><div class="eg-title">Yakındaki Duraklar</div><div class="eg-muted">Konumuna en yakın duraklar</div></div><div class="eg-nearby-head-icon">'+stopIcon+'</div></div><p class="eg-nearby-intro">Hat 1 ve Hat 6 üzerindeki durakları bulunduğun konuma göre mesafeleriyle gösterir.</p><button id="egNearbyLocate" class="eg-nearby-locate" type="button">Konumumu kullan</button><div id="egNearbyStatus" class="eg-nearby-status" aria-live="polite">Yakındaki durakları görmek için konumunu kullan.</div><div id="egNearbyResults" class="eg-nearby-results"></div></div>';
+    panel.innerHTML='<button class="eg-service-back" type="button">‹ Hizmetler</button><div class="eg-card"><div class="eg-head"><div><div class="eg-title">Yakındaki Duraklar</div><div class="eg-muted">Konumuna en yakın duraklar</div></div><div class="eg-nearby-head-icon">'+stopIcon+'</div></div><p class="eg-nearby-intro">Hat 1 ve Hat 6 üzerindeki durakları bulunduğun konuma göre mesafeleriyle gösterir.</p><button id="egNearbyLocate" class="eg-nearby-locate" type="button" hidden>Konumumu kullan</button><div id="egNearbyStatus" class="eg-nearby-status" aria-live="polite">Yakındaki durakları görmek için konumunu kullan.</div><div id="egNearbyResults" class="eg-nearby-results"></div></div>';
     const weather=grid.querySelector('[data-service-target="weather"]');
     grid.insertBefore(card,weather||null);
     widgets.insertBefore(panel,widgets.querySelector('.eg-panel[data-panel="account"]'));

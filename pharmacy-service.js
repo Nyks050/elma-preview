@@ -3,6 +3,7 @@
   window.__elmaPharmacyServiceMounted=true;
 
   const API_URL='https://elma-eczane-api.enesmalik2147.workers.dev/';
+  const DEFAULT_POSITION={coords:{latitude:40.65,longitude:35.83}};
   const pharmacyIcon='<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 4h10v7h7v10h-7v7H11v-7H4V11h7z"/></svg>';
 
   function addStyles(){
@@ -74,18 +75,18 @@
     });
   }
 
-  async function loadForPosition(position){
+  async function loadForPosition(position,isDefault=false){
     const button=document.getElementById('egPharmacyLocate');
-    window.elmaUserPosition=position;
+    if(!isDefault)window.elmaUserPosition=position;
     if(button){button.hidden=true;button.disabled=true;button.textContent='Nöbetçi eczaneler aranıyor…'}
-    setStatus('Konumuna en yakın nöbetçi eczaneler alınıyor.');
+    setStatus(isDefault?'Konum kapalı · Amasya merkez eczaneleri hazırlanıyor.':'Konum açık · Yakındaki eczaneler hazırlanıyor.');
     try{
       const {latitude,longitude}=position.coords;
       const response=await fetch(API_URL+'?latitude='+encodeURIComponent(latitude)+'&longitude='+encodeURIComponent(longitude));
       const payload=await response.json();
       if(!response.ok||payload.status!=='success'||!Array.isArray(payload.data))throw new Error('service');
       render(payload.data);
-      setStatus(payload.data.length?payload.data.length+' nöbetçi eczane bulundu.':'Bu konumun yakınında nöbetçi eczane bulunamadı.');
+      setStatus(payload.data.length?(isDefault?'Konum kapalı · Amasya merkez · ':'Konum açık · ')+payload.data.length+' nöbetçi eczane bulundu.':(isDefault?'Amasya merkezde nöbetçi eczane bulunamadı.':'Bu konumun yakınında nöbetçi eczane bulunamadı.'));
     }catch(error){
       setStatus('Eczane bilgileri alınamadı. İnternet bağlantını kontrol edip tekrar dene.');
     }finally{
@@ -93,19 +94,19 @@
     }
   }
 
-  function requestLocation(){
-    if(window.elmaUserPosition)return loadForPosition(window.elmaUserPosition);
+  async function requestLocation(){
     const button=document.getElementById('egPharmacyLocate');
-    if(!navigator.geolocation){
-      if(button)button.hidden=false;
-      return setStatus('Bu cihaz konum özelliğini desteklemiyor.');
+    if(button)button.hidden=true;
+    if(window.elmaUserPosition)return loadForPosition(window.elmaUserPosition,false);
+    if(!navigator.geolocation||!navigator.permissions?.query)return loadForPosition(DEFAULT_POSITION,true);
+    try{
+      const permission=await navigator.permissions.query({name:'geolocation'});
+      if(permission.state!=='granted')return loadForPosition(DEFAULT_POSITION,true);
+      const position=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:false,timeout:8000,maximumAge:300000}));
+      return loadForPosition(position,false);
+    }catch(error){
+      return loadForPosition(DEFAULT_POSITION,true);
     }
-    if(button){button.hidden=true;button.disabled=true;button.textContent='Konum alınıyor…'}
-    setStatus('Konumuna göre nöbetçi eczaneler hazırlanıyor.');
-    navigator.geolocation.getCurrentPosition(loadForPosition,error=>{
-      if(button){button.hidden=false;button.disabled=false;button.textContent='Konuma izin ver'}
-      setStatus(error.code===1?'Yakındaki eczaneler için konum izni gerekli.':'Konum alınamadı. Tekrar deneyebilirsin.');
-    },{enableHighAccuracy:false,timeout:15000,maximumAge:300000});
   }
 
   function mount(){
