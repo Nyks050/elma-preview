@@ -4,7 +4,7 @@
     {label:'Amasya Üniversitesi Eğitim Fakültesi, Muhsin Yazıcıoğlu Caddesi, Akbilek, Amasya',aliases:'amasya universitesi egitim fakultesi milli hakimiyet yerleskesi',point:{lat:40.654339,lon:35.80468,name:'Amasya Üniversitesi Eğitim Fakültesi'}}
   ];
   let map,origin,destination,originMarker,destinationMarker,directionsRenderer,fallbackRouteLine,routeBaseLine,routeAnimationFrame,step=0,timers={},manualOriginEditing=false,selectedTravelMode='TRANSIT';
-  let geocoder,placesLibrary;
+  let geocoder,placesLibrary,legacyAutocomplete;
   const $=selector=>document.querySelector(selector);
   const normalizeSearch=value=>String(value||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9çğıöşü]+/g,' ').trim();
   function localSearch(query){const terms=normalizeSearch(query).split(' ').filter(Boolean);if(!terms.length)return[];return LOCAL_PLACES.filter(place=>{const haystack=normalizeSearch(place.label+' '+place.aliases);return terms.every(term=>haystack.includes(term))}).map(place=>({label:place.label,point:{...place.point},source:'local'}))}
@@ -48,6 +48,19 @@
 
   async function fallbackSearch(){return[]}
 
+  async function legacyPlacesSearch(query){
+    if(!legacyAutocomplete)return[];
+    return new Promise(resolve=>{
+      const request={input:query,componentRestrictions:{country:'tr'}};
+      const bounds=map?.getBounds?.();
+      if(bounds)request.bounds=bounds;
+      legacyAutocomplete.getPlacePredictions(request,(items,status)=>{
+        if(status!==google.maps.places.PlacesServiceStatus.OK||!Array.isArray(items)){resolve([]);return}
+        resolve(items.slice(0,6).map(item=>({label:item.description||query,placeId:item.place_id,source:'google'})));
+      });
+    });
+  }
+
   async function search(query){
     if(!query||query.trim().length<2)return[];
     const localResults=localSearch(query);
@@ -73,6 +86,12 @@
       }
     }
     try{
+      const legacyResults=await legacyPlacesSearch(query);
+      if(legacyResults.length)return mergeSearchResults(localResults,legacyResults);
+    }catch(error){
+      console.warn('Google Places otomatik tamamlama kullanılamıyor:',error);
+    }
+    try{
       const googleResults=await googleGeocodeSearch(query);
       if(googleResults.length)return mergeSearchResults(localResults,googleResults);
     }catch(error){
@@ -83,6 +102,10 @@
 
   async function resolveSearchItem(item){
     if(item.point)return item.point;
+    if(item.placeId){
+      const result=await new Promise((resolve,reject)=>geocoder.geocode({placeId:item.placeId,region:'TR',language:'tr'},(items,status)=>status==='OK'&&items?.[0]?resolve(items[0]):reject(new Error(status))));
+      return {lat:result.geometry.location.lat(),lon:result.geometry.location.lng(),name:result.formatted_address||item.label};
+    }
     const place=item.prediction.toPlace();
     await place.fetchFields({fields:['displayName','formattedAddress','location']});
     if(!place.location)throw new Error('Konum bulunamadı');
@@ -529,6 +552,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     function renderSearchResults(items,target='destination'){
       const results=$('#elmaFlowResults');
       results.innerHTML='';
+      if(!items.length){results.appendChild(resultButton('Sonuç bulunamadı','Başka bir adres veya yer adı dene','search',null,false));return}
       items.forEach(item=>{
         const parts=item.label.split(',');
         const title=parts.shift()||item.label;
@@ -648,7 +672,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     setup();
     await loadGoogleMaps();
     geocoder=new google.maps.Geocoder();
-    try{placesLibrary=await google.maps.importLibrary('places')}catch(error){console.warn('Google Places kullanılamıyor, Geocoding ile devam ediliyor.',error)}
+    try{placesLibrary=await google.maps.importLibrary('places');if(google.maps.places?.AutocompleteService)legacyAutocomplete=new google.maps.places.AutocompleteService()}catch(error){console.warn('Google Places kullanılamıyor, Geocoding ile devam ediliyor.',error)}
 
     map=new google.maps.Map(fresh,{
       center:DEFAULT_CENTER,
@@ -746,11 +770,6 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
 })();
 
 (()=>{
-  const line=document.createElement('script');
-  line.src='line-1-ui.js?v=20260830-past-contrast';
-  line.defer=true;
-  line.dataset.elmaLine1Ui='1';
-  document.head.appendChild(line);
   const roadData=document.createElement('script');
   roadData.src='road-path-data.js?v=20260901-google-fixed';
   roadData.async=false;
@@ -761,26 +780,6 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line1Route.async=false;
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
-  const line1Planner=document.createElement('script');
-  line1Planner.src='line-1-planner.js?v=20260901-detailed-walking';
-  line1Planner.defer=true;
-  line1Planner.dataset.elmaLine1Planner='1';
-  document.head.appendChild(line1Planner);
-  const journeyResults=document.createElement('script');
-  journeyResults.src='journey-results.js?v=20260901-arrival-summary1';
-  journeyResults.defer=true;
-  journeyResults.dataset.elmaJourneyResults='1';
-  document.head.appendChild(journeyResults);
-  const line2=document.createElement('script');
-  line2.src='line-2-ui.js?v=20260830-past-contrast';
-  line2.defer=true;
-  line2.dataset.elmaLine2Ui='1';
-  document.head.appendChild(line2);
-  const line6=document.createElement('script');
-  line6.src='line-6-ui.js?v=20260901-45-stops';
-  line6.defer=true;
-  line6.dataset.elmaLine6Ui='1';
-  document.head.appendChild(line6);
   const line6Route=document.createElement('script');
   line6Route.src='line-6-route-road.js?v=20260901-google-fixed';
   line6Route.async=false;
