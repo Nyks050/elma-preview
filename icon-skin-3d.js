@@ -147,6 +147,10 @@
     #elmaHomeWidgets .eg-services-grid [data-service-target="lines"] .eg-service-icon{width:62px!important;height:62px!important}
     @media(max-width:359px){#elmaHomeWidgets .eg-services-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}#elmaHomeWidgets .eg-services-grid .eg-service-card{min-height:140px!important;padding:14px 8px!important}#elmaHomeWidgets .eg-services-grid .eg-service-card:nth-child(5){width:calc(50% - 4px)!important}}
     html[data-large-text="true"] #elmaHomeWidgets .eg-services-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+    #elmaHomeWidgets .eg-services-grid .eg-service-icon.eg-icon-media{background-image:none!important;overflow:visible}
+    #elmaHomeWidgets .eg-services-grid .eg-service-icon.eg-icon-media>img{display:block!important;width:100%;height:100%;object-fit:contain}
+    #elmaHomeWidgets .eg-services-grid .eg-pharmacy-card .eg-service-icon.eg-icon-media>svg{display:block!important;width:100%;height:100%;overflow:visible}
   `;
   document.head.appendChild(servicesStyle);
 
@@ -180,6 +184,25 @@
       copy.appendChild(detail);
       card.querySelector('.eg-service-icon')?.setAttribute('aria-hidden','true');
     });
+    const iconMedia=[
+      ['[data-service-target="lines"]','assets/elma-service-lines-3d-mono.png?v=20260907-visible2','Hatlar'],
+      ['[data-service-target="routes"]','assets/elma-service-routes-3d-mono.png?v=20260907-visible2','Güzergâhlar']
+    ];
+    iconMedia.forEach(([selector,src,label])=>{
+      const holder=grid.querySelector(selector+' .eg-service-icon');
+      if(!holder)return;
+      holder.classList.add('eg-icon-media');
+      if(!holder.querySelector('img')){
+        holder.innerHTML='<img src="'+src+'" alt="" width="62" height="62" decoding="async">';
+        holder.setAttribute('aria-hidden','true');
+      }
+    });
+    const pharmacy=grid.querySelector('.eg-pharmacy-card .eg-service-icon');
+    if(pharmacy&&!pharmacy.dataset.trPharmacy){
+      pharmacy.dataset.trPharmacy='true';
+      pharmacy.classList.add('eg-icon-media');
+      pharmacy.innerHTML='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8Z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M20 18v28h19M20 32h15M20 18h19" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M47 37v14M40 44h14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>';
+    }
     // Move the original buttons so their existing click handlers remain attached.
     ordered.forEach((card,index)=>{
       if(grid.children[index]!==card)grid.insertBefore(card,grid.children[index]||null);
