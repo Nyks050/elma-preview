@@ -150,6 +150,10 @@
     #elmaHomeWidgets .eg-services-grid .eg-service-icon.eg-icon-media{background-image:none!important;overflow:visible}
     #elmaHomeWidgets .eg-services-grid .eg-service-icon.eg-icon-media>img{display:block!important;width:100%;height:100%;object-fit:contain}
     #elmaHomeWidgets .eg-services-grid .eg-pharmacy-card .eg-service-icon.eg-icon-media{filter:none!important}\n    #elmaHomeWidgets .eg-services-grid .eg-pharmacy-card .eg-service-icon.eg-icon-media>svg{display:block!important;width:100%;height:100%;fill:#000!important;stroke:none!important}
+
+    #elmaHomeWidgets .eg-services-grid .eg-service-icon.eg-simple-service-icon{width:48px!important;height:48px!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;color:#000!important;filter:none!important;box-shadow:none!important}
+    #elmaHomeWidgets .eg-services-grid .eg-service-icon.eg-simple-service-icon>svg{display:block!important;width:100%!important;height:100%!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+    html:not([data-theme="light"]) #elmaHomeWidgets .eg-services-grid .eg-service-icon.eg-simple-service-icon{color:#fff!important}
   `;
   document.head.appendChild(servicesStyle);
 
@@ -203,6 +207,22 @@
       pharmacy.classList.add('eg-icon-media');
       pharmacy.innerHTML='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M13 5h40v11H25v10h24v11H25v11h29v11H13Z"/></svg>';
     }
+    const simpleIcons=[
+      ['[data-service-target="lines"]','<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="10" y="6" width="28" height="34" rx="6"/><path d="M15 14h18M15 22h18M16 40v3M32 40v3"/><circle cx="17" cy="33" r="2"/><circle cx="31" cy="33" r="2"/></svg>'],
+      ['[data-service-target="routes"]','<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="12" cy="36" r="4"/><circle cx="36" cy="12" r="4"/><path d="M15 33c5-10 10 0 16-11l3-6"/></svg>'],
+      ['[data-service-target="nearby-stops"]','<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 43V7h17a7 7 0 0 1 7 7v12a7 7 0 0 1-7 7H14"/><path d="M14 16h24M20 43V33"/><circle cx="22" cy="26" r="2"/><circle cx="32" cy="26" r="2"/></svg>'],
+      ['[data-service-target="weather"]','<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M15 36h21a8 8 0 0 0 1-15.9A12 12 0 0 0 14.6 18 9 9 0 0 0 15 36Z"/></svg>'],
+      ['.eg-lost-card','<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="21" cy="21" r="11"/><path d="m29 29 10 10M21 15v8M21 28h.01"/></svg>']
+    ];
+    simpleIcons.forEach(([selector,markup])=>{
+      const holder=grid.querySelector(selector+' .eg-service-icon');
+      if(!holder||holder.dataset.simpleServiceIcon)return;
+      holder.dataset.simpleServiceIcon='true';
+      holder.classList.add('eg-simple-service-icon');
+      holder.classList.remove('eg-icon-media');
+      holder.innerHTML=markup;
+      holder.setAttribute('aria-hidden','true');
+    });
     // Move the original buttons so their existing click handlers remain attached.
     ordered.forEach((card,index)=>{
       if(grid.children[index]!==card)grid.insertBefore(card,grid.children[index]||null);
