@@ -46,20 +46,7 @@
     }));
   }
 
-  async function fallbackSearch(query){
-    try{
-      const response=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=tr&addressdetails=1&limit=6&q='+encodeURIComponent(query),{headers:{'Accept-Language':'tr'}});
-      const items=await response.json();
-      return items.map(item=>({
-        label:item.display_name,
-        point:{lat:+item.lat,lon:+item.lon,name:item.display_name},
-        source:'fallback'
-      }));
-    }catch(error){
-      console.warn('Yedek adres araması başarısız:',error);
-      return[];
-    }
-  }
+  async function fallbackSearch(){return[]}
 
   async function search(query){
     if(!query||query.trim().length<2)return[];
@@ -109,18 +96,12 @@
   async function reverse(lon,lat){
     try{
       const result=await new Promise((resolve,reject)=>geocoder.geocode(
-        {location:{lat,lng:lon}},
+        {location:{lat,lng:lon},region:'TR',language:'tr'},
         (items,status)=>status==='OK'&&items?.[0]?resolve(items[0]):reject(new Error(status))
       ));
       return result.formatted_address||lat.toFixed(5)+', '+lon.toFixed(5);
     }catch(error){
-      try{
-        const response=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lon)+'&zoom=18&addressdetails=1',{headers:{'Accept-Language':'tr'}});
-        const result=await response.json();
-        return result.display_name||lat.toFixed(5)+', '+lon.toFixed(5);
-      }catch(fallbackError){
-        return lat.toFixed(5)+', '+lon.toFixed(5);
-      }
+      return lat.toFixed(5)+', '+lon.toFixed(5);
     }
   }
 
@@ -678,22 +659,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       zoomControl:false,
       clickableIcons:false,
       gestureHandling:'greedy',
-      backgroundColor:'#eef0f2',
-      styles:[
-        {elementType:'geometry',stylers:[{color:'#eef0f2'}]},
-        {elementType:'labels.icon',stylers:[{visibility:'off'}]},
-        {elementType:'labels.text.fill',stylers:[{color:'#62666c'}]},
-        {elementType:'labels.text.stroke',stylers:[{color:'#f4f5f6'},{weight:4}]},
-        {featureType:'administrative',elementType:'geometry.stroke',stylers:[{color:'#d5d8db'}]},
-        {featureType:'landscape',elementType:'geometry',stylers:[{color:'#f0f1f2'}]},
-        {featureType:'poi',elementType:'geometry',stylers:[{color:'#e9ecee'}]},
-        {featureType:'poi.park',elementType:'geometry',stylers:[{color:'#e8efe9'}]},
-        {featureType:'road',elementType:'geometry',stylers:[{color:'#fafbfc'}]},
-        {featureType:'road',elementType:'geometry.stroke',stylers:[{color:'#e2e4e7'}]},
-        {featureType:'road.highway',elementType:'geometry',stylers:[{color:'#f7f8f9'}]},
-        {featureType:'transit',elementType:'geometry',stylers:[{color:'#e7eaed'}]},
-        {featureType:'water',elementType:'geometry',stylers:[{color:'#dce8ed'}]}
-      ]
+      mapTypeId:google.maps.MapTypeId.ROADMAP
     });
     map.addListener('click',event=>pickPoint(event.latLng.lat(),event.latLng.lng()));
 
