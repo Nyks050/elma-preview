@@ -2,16 +2,16 @@
   if(window.__elmaNearbyStopsMounted)return;
   window.__elmaNearbyStopsMounted=true;
 
-  const stopIcon='<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 27V6h10a5 5 0 0 1 5 5v6a5 5 0 0 1-5 5H9"/><path d="M9 12h15M13 27v-5"/><circle cx="13" cy="17" r="1.5"/><circle cx="21" cy="17" r="1.5"/></svg>';
+  const stopIcon='<svg viewBox="0 0 64 64" aria-hidden="true"><path fill="currentColor" d="M18 4h25c9 0 15 6 15 15v20c0 9-6 15-15 15H18Z"/><path fill="#fff" d="M25 13h18c4 0 7 3 7 7v8H25Zm2 22h7v7h-7Zm14 0h7v7h-7Z"/><path fill="currentColor" d="M13 4h8v56h-8Zm8 48h15v8H21Z"/></svg>';
 
   function addStyles(){
     if(document.getElementById('elmaNearbyStopsStyle'))return;
     const style=document.createElement('style');
     style.id='elmaNearbyStopsStyle';
     style.textContent=`
-      .eg-nearby-card .eg-service-icon{background-image:none!important;filter:none!important}
-      .eg-nearby-card .eg-service-icon>svg{display:block!important;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-      .eg-nearby-intro{margin:0 0 14px;color:#62656a;font-size:13px;line-height:1.5}
+      .eg-nearby-card .eg-service-icon{background-image:none!important;filter:drop-shadow(0 5px 7px rgba(0,0,0,.2))!important;color:#000!important}
+      .eg-nearby-card .eg-service-icon>svg,.eg-nearby-head-icon>svg{display:block!important;width:100%;height:100%}
+      .eg-nearby-head-icon{width:54px;height:54px;color:#000;filter:drop-shadow(0 5px 7px rgba(0,0,0,.18))}\n      .eg-nearby-intro{margin:0 0 14px;color:#62656a;font-size:13px;line-height:1.5}
       .eg-nearby-locate{width:100%;min-height:48px;border:0;border-radius:15px;background:#09090a;color:#fff;font-weight:800;padding:12px 16px}
       .eg-nearby-locate:disabled{opacity:.55}
       .eg-nearby-status{margin:12px 2px;color:#62656a;font-size:12px;line-height:1.4}
@@ -137,7 +137,7 @@
     const panel=document.createElement('div');
     panel.className='eg-panel';
     panel.dataset.panel='nearby-stops';
-    panel.innerHTML='<button class="eg-service-back" type="button">‹ Hizmetler</button><div class="eg-card"><div class="eg-head"><div><div class="eg-title">Yakındaki Duraklar</div><div class="eg-muted">Konumuna en yakın duraklar</div></div><div class="eg-weather-icon">'+stopIcon+'</div></div><p class="eg-nearby-intro">Hat 1 ve Hat 6 üzerindeki durakları bulunduğun konuma göre mesafeleriyle gösterir.</p><button id="egNearbyLocate" class="eg-nearby-locate" type="button">Konumumu kullan</button><div id="egNearbyStatus" class="eg-nearby-status" aria-live="polite">Yakındaki durakları görmek için konumunu kullan.</div><div id="egNearbyResults" class="eg-nearby-results"></div></div>';
+    panel.innerHTML='<button class="eg-service-back" type="button">‹ Hizmetler</button><div class="eg-card"><div class="eg-head"><div><div class="eg-title">Yakındaki Duraklar</div><div class="eg-muted">Konumuna en yakın duraklar</div></div><div class="eg-nearby-head-icon">'+stopIcon+'</div></div><p class="eg-nearby-intro">Hat 1 ve Hat 6 üzerindeki durakları bulunduğun konuma göre mesafeleriyle gösterir.</p><button id="egNearbyLocate" class="eg-nearby-locate" type="button">Konumumu kullan</button><div id="egNearbyStatus" class="eg-nearby-status" aria-live="polite">Yakındaki durakları görmek için konumunu kullan.</div><div id="egNearbyResults" class="eg-nearby-results"></div></div>';
     const weather=grid.querySelector('[data-service-target="weather"]');
     grid.insertBefore(card,weather||null);
     widgets.insertBefore(panel,widgets.querySelector('.eg-panel[data-panel="account"]'));
