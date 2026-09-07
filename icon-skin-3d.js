@@ -133,7 +133,7 @@
     /* Strict black/white, symmetrical services composition. */
     #elmaHomeWidgets [data-panel="services"]{--service-ink:#fff;--service-surface:#000;--service-border:#fff;--service-icon:#000}
     html[data-theme="light"] #elmaHomeWidgets [data-panel="services"]{--service-ink:#000;--service-surface:#fff;--service-border:#000;--service-icon:#fff}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-head{text-align:center}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-head{text-align:left}
     #elmaHomeWidgets [data-panel="services"] .eg-screen-title,#elmaHomeWidgets [data-panel="services"] .eg-screen-subtitle{color:var(--service-ink)}
     #elmaHomeWidgets .eg-services-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
     #elmaHomeWidgets .eg-services-grid .eg-service-card{grid-column:auto!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:12px!important;min-height:154px!important;padding:18px 12px!important;text-align:center!important;border:2px solid var(--service-border)!important;border-radius:22px!important;background:var(--service-surface)!important;color:var(--service-ink)!important;box-shadow:none!important}
@@ -150,7 +150,7 @@
 
     #elmaHomeWidgets .eg-services-grid .eg-service-icon.eg-icon-media{background-image:none!important;overflow:visible}
     #elmaHomeWidgets .eg-services-grid .eg-service-icon.eg-icon-media>img{display:block!important;width:100%;height:100%;object-fit:contain}
-    #elmaHomeWidgets .eg-services-grid .eg-pharmacy-card .eg-service-icon.eg-icon-media>svg{display:block!important;width:100%;height:100%;overflow:visible}
+    #elmaHomeWidgets .eg-services-grid .eg-pharmacy-card .eg-service-icon.eg-icon-media{filter:none!important}\n    #elmaHomeWidgets .eg-services-grid .eg-pharmacy-card .eg-service-icon.eg-icon-media>img{display:block!important;width:100%;height:100%;object-fit:contain;border-radius:7px}
   `;
   document.head.appendChild(servicesStyle);
 
@@ -201,7 +201,7 @@
     if(pharmacy&&!pharmacy.dataset.trPharmacy){
       pharmacy.dataset.trPharmacy='true';
       pharmacy.classList.add('eg-icon-media');
-      pharmacy.innerHTML='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8Z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M20 18v28h19M20 32h15M20 18h19" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M47 37v14M40 44h14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>';
+      pharmacy.innerHTML='<img src="assets/turkiye-eczane-logo.jpg?v=20260907" alt="" width="62" height="62" decoding="async">';
     }
     // Move the original buttons so their existing click handlers remain attached.
     ordered.forEach((card,index)=>{
