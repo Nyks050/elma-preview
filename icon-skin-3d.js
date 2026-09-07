@@ -129,6 +129,24 @@
     html[data-large-text="true"] #elmaHomeWidgets .eg-services-grid .eg-service-description{font-size:1rem}
     @media(prefers-reduced-motion:reduce){#elmaHomeWidgets .eg-services-grid .eg-service-card{transition:none;transform:none!important}}
     html[data-reduce-motion="true"] #elmaHomeWidgets .eg-services-grid .eg-service-card{transition:none;transform:none!important}
+
+    /* Strict black/white, symmetrical services composition. */
+    #elmaHomeWidgets [data-panel="services"]{--service-ink:#fff;--service-surface:#000;--service-border:#fff;--service-icon:#000}
+    html[data-theme="light"] #elmaHomeWidgets [data-panel="services"]{--service-ink:#000;--service-surface:#fff;--service-border:#000;--service-icon:#fff}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-head{text-align:center}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-title,#elmaHomeWidgets [data-panel="services"] .eg-screen-subtitle{color:var(--service-ink)}
+    #elmaHomeWidgets .eg-services-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+    #elmaHomeWidgets .eg-services-grid .eg-service-card{grid-column:auto!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:12px!important;min-height:154px!important;padding:18px 12px!important;text-align:center!important;border:2px solid var(--service-border)!important;border-radius:22px!important;background:var(--service-surface)!important;color:var(--service-ink)!important;box-shadow:none!important}
+    #elmaHomeWidgets .eg-services-grid .eg-service-card:nth-child(5){grid-column:1 / -1!important;width:calc(50% - 6px)!important;justify-self:center!important}
+    #elmaHomeWidgets .eg-services-grid .eg-service-card::after{display:none!important}
+    #elmaHomeWidgets .eg-services-grid .eg-service-copy{align-items:center!important;gap:0!important}
+    #elmaHomeWidgets .eg-services-grid .eg-service-name{color:var(--service-ink)!important;font-size:1rem!important;line-height:1.3!important}
+    #elmaHomeWidgets .eg-services-grid .eg-service-description{display:none!important}
+    #elmaHomeWidgets .eg-services-grid .eg-service-icon{width:62px!important;height:62px!important;background-color:transparent!important;filter:grayscale(1) contrast(3) brightness(0)!important}
+    html:not([data-theme="light"]) #elmaHomeWidgets .eg-services-grid .eg-service-icon{filter:grayscale(1) contrast(3) brightness(0) invert(1)!important}
+    #elmaHomeWidgets .eg-services-grid [data-service-target="lines"] .eg-service-icon{width:62px!important;height:62px!important}
+    @media(max-width:359px){#elmaHomeWidgets .eg-services-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}#elmaHomeWidgets .eg-services-grid .eg-service-card{min-height:140px!important;padding:14px 8px!important}#elmaHomeWidgets .eg-services-grid .eg-service-card:nth-child(5){width:calc(50% - 4px)!important}}
+    html[data-large-text="true"] #elmaHomeWidgets .eg-services-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   `;
   document.head.appendChild(servicesStyle);
 
