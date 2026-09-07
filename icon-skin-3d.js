@@ -112,6 +112,14 @@
     #elmaHomeWidgets .eg-services-grid [data-service-target="lines"],#elmaHomeWidgets .eg-services-grid [data-service-target="routes"]{grid-column:auto;grid-template-columns:minmax(0,1fr);align-content:start;gap:18px;min-height:176px;background:var(--service-icon)}
     #elmaHomeWidgets .eg-services-grid [data-service-target="lines"]::after,#elmaHomeWidgets .eg-services-grid [data-service-target="routes"]::after{display:none}
     #elmaHomeWidgets .eg-services-grid [data-service-target="lines"] .eg-service-icon,#elmaHomeWidgets .eg-services-grid [data-service-target="routes"] .eg-service-icon{background:var(--service-surface)!important}
+    #elmaHomeWidgets .eg-services-grid .eg-service-icon{width:54px!important;height:54px!important;border-radius:0!important;padding:0!important;background-color:transparent!important;background-repeat:no-repeat!important;background-position:center!important;background-size:contain!important;filter:drop-shadow(0 5px 7px rgba(0,0,0,.16))}
+    #elmaHomeWidgets .eg-services-grid .eg-service-icon>svg{display:none!important}
+    #elmaHomeWidgets .eg-services-grid [data-service-target="weather"] .eg-service-icon{background-image:url("assets/elma-service-weather-3d-mono.png?v=20260907-simple3d")!important}
+    #elmaHomeWidgets .eg-services-grid [data-service-target="lines"] .eg-service-icon{background-image:url("assets/elma-service-lines-3d-mono.png?v=20260907-simple3d")!important}
+    #elmaHomeWidgets .eg-services-grid [data-service-target="routes"] .eg-service-icon{background-image:url("assets/elma-service-routes-3d-mono.png?v=20260907-simple3d")!important}
+    #elmaHomeWidgets .eg-services-grid .eg-lost-card .eg-service-icon{background-image:url("assets/elma-service-lost-3d-mono.png?v=20260907-simple3d")!important}
+    #elmaHomeWidgets .eg-services-grid .eg-pharmacy-card .eg-service-icon{background-image:url("assets/elma-service-pharmacy-3d-mono.png?v=20260907-simple3d")!important}
+    #elmaHomeWidgets .eg-services-grid [data-service-target="lines"] .eg-service-icon,#elmaHomeWidgets .eg-services-grid [data-service-target="routes"] .eg-service-icon{background-color:transparent!important}
     #elmaHomeWidgets .eg-services-grid .eg-service-card:focus-visible{outline:2px solid var(--service-ink);outline-offset:4px}
     #elmaHomeWidgets .eg-services-grid .eg-service-card:active{transform:scale(.985)}
     @media(hover:hover){#elmaHomeWidgets .eg-services-grid .eg-service-card:hover{border-color:var(--service-muted);transform:translateY(-2px)}}
