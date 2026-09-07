@@ -91,6 +91,75 @@
   `;
   document.head.appendChild(style);
 
+
+  // Services use the existing SVG icon set with a consistent, accessible layout.
+  const servicesStyle=document.createElement('style');
+  servicesStyle.id='elmaServicesLayout';
+  servicesStyle.textContent=`
+    #elmaHomeWidgets [data-panel="services"]{--service-ink:#f4f4f5;--service-muted:#a8abb2;--service-surface:#151517;--service-border:#303036;--service-icon:#242429}
+    html[data-theme="light"] #elmaHomeWidgets [data-panel="services"]{--service-ink:#18191d;--service-muted:#606570;--service-surface:#fff;--service-border:#e4e6eb;--service-icon:#f0f2f5}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-head{padding:8px 0 0}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-title{font-size:2rem;line-height:1.15;letter-spacing:-.8px;color:var(--service-ink)}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-subtitle{margin-top:10px;font-size:1rem;line-height:1.5;font-weight:500;color:var(--service-muted)}
+    #elmaHomeWidgets .eg-services-grid{gap:12px;margin-top:24px}
+    #elmaHomeWidgets .eg-services-grid .eg-service-card{grid-column:1 / -1;display:grid;grid-template-columns:48px minmax(0,1fr) 16px;gap:14px;align-items:center;justify-content:initial;min-height:96px;padding:18px;text-align:left;border:1px solid var(--service-border);border-radius:20px;background:var(--service-surface);color:var(--service-ink);box-shadow:0 2px 6px rgba(0,0,0,.025);cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
+    #elmaHomeWidgets .eg-services-grid .eg-service-card::after{content:"";width:7px;height:7px;border-top:1.7px solid currentColor;border-right:1.7px solid currentColor;transform:rotate(45deg);color:var(--service-muted);justify-self:center}
+    #elmaHomeWidgets .eg-services-grid .eg-service-icon{display:grid;place-items:center;width:48px!important;height:48px!important;background:var(--service-icon)!important;color:var(--service-ink)!important;border-radius:14px;padding:11px!important}
+    #elmaHomeWidgets .eg-services-grid .eg-service-icon>svg{display:block!important;width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+    #elmaHomeWidgets .eg-services-grid .eg-service-copy{display:flex;flex-direction:column;gap:5px;min-width:0}
+    #elmaHomeWidgets .eg-services-grid .eg-service-name{font-size:1rem;font-weight:700;letter-spacing:-.2px;line-height:1.35;overflow-wrap:anywhere}
+    #elmaHomeWidgets .eg-services-grid .eg-service-description{font-size:.875rem;line-height:1.45;font-weight:400;color:var(--service-muted)}
+    #elmaHomeWidgets .eg-services-grid [data-service-target="lines"],#elmaHomeWidgets .eg-services-grid [data-service-target="routes"]{grid-column:auto;grid-template-columns:minmax(0,1fr);align-content:start;gap:18px;min-height:176px;background:var(--service-icon)}
+    #elmaHomeWidgets .eg-services-grid [data-service-target="lines"]::after,#elmaHomeWidgets .eg-services-grid [data-service-target="routes"]::after{display:none}
+    #elmaHomeWidgets .eg-services-grid [data-service-target="lines"] .eg-service-icon,#elmaHomeWidgets .eg-services-grid [data-service-target="routes"] .eg-service-icon{background:var(--service-surface)!important}
+    #elmaHomeWidgets .eg-services-grid .eg-service-card:focus-visible{outline:2px solid var(--service-ink);outline-offset:4px}
+    #elmaHomeWidgets .eg-services-grid .eg-service-card:active{transform:scale(.985)}
+    @media(hover:hover){#elmaHomeWidgets .eg-services-grid .eg-service-card:hover{border-color:var(--service-muted);transform:translateY(-2px)}}
+    @media(max-width:359px){#elmaHomeWidgets .eg-services-grid{grid-template-columns:minmax(0,1fr)}#elmaHomeWidgets .eg-services-grid [data-service-target]{grid-column:1 / -1;min-height:96px}}
+    html[data-large-text="true"] #elmaHomeWidgets .eg-services-grid{grid-template-columns:minmax(0,1fr)}
+    html[data-large-text="true"] #elmaHomeWidgets .eg-services-grid .eg-service-name{font-size:1.2rem}
+    html[data-large-text="true"] #elmaHomeWidgets .eg-services-grid .eg-service-description{font-size:1rem}
+    @media(prefers-reduced-motion:reduce){#elmaHomeWidgets .eg-services-grid .eg-service-card{transition:none;transform:none!important}}
+    html[data-reduce-motion="true"] #elmaHomeWidgets .eg-services-grid .eg-service-card{transition:none;transform:none!important}
+  `;
+  document.head.appendChild(servicesStyle);
+
+  function refineServices(){
+    const grid=document.querySelector('#elmaHomeWidgets .eg-services-grid');
+    if(!grid)return;
+    const definitions=[
+      ['[data-service-target="lines"]','Hatlar','Hat ve sefer bilgileri'],
+      ['[data-service-target="routes"]','Güzergâhlar','Duraklar ve hat rotaları'],
+      ['[data-service-target="weather"]','Hava Durumu','Güncel hava ve tahminler'],
+      ['.eg-lost-card','Kayıp Eşya','Kayıp ve bulunan eşyalar'],
+      ['.eg-pharmacy-card','Nöbetçi Eczane','Nöbetçi eczaneler ve konumları']
+    ];
+    const ordered=[];
+    definitions.forEach(([selector,title,description])=>{
+      const card=grid.querySelector(selector);
+      if(!card)return;
+      ordered.push(card);
+      if(card.dataset.servicesRefined)return;
+      const name=card.querySelector('.eg-service-name');
+      if(!name)return;
+      card.dataset.servicesRefined='true';
+      name.textContent=title;
+      const copy=document.createElement('span');
+      copy.className='eg-service-copy';
+      name.before(copy);
+      copy.appendChild(name);
+      const detail=document.createElement('span');
+      detail.className='eg-service-description';
+      detail.textContent=description;
+      copy.appendChild(detail);
+      card.querySelector('.eg-service-icon')?.setAttribute('aria-hidden','true');
+    });
+    // Move the original buttons so their existing click handlers remain attached.
+    ordered.forEach((card,index)=>{
+      if(grid.children[index]!==card)grid.insertBefore(card,grid.children[index]||null);
+    });
+  }
+
   function weatherKind(text=''){
     const value=text.toLocaleLowerCase('tr-TR');
     if(value.includes('fırtına'))return'storm';
@@ -118,10 +187,11 @@
       if(++tries<=80)setTimeout(mount,100);
       return;
     }
+    refineServices();
     applyWeatherIcons();
     observer=new MutationObserver(()=>{
       clearTimeout(timer);
-      timer=setTimeout(applyWeatherIcons,20);
+      timer=setTimeout(()=>{refineServices();applyWeatherIcons()},20);
     });
     observer.observe(widgets,{subtree:true,childList:true,characterData:true});
   }
