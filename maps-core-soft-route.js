@@ -821,7 +821,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line6Route.dataset.elmaLine6Route='1';
   document.head.appendChild(line6Route);
   const nearbyStops=document.createElement('script');
-  nearbyStops.src='nearby-stops-service.js?v=20260907-001';
+  nearbyStops.src='nearby-stops-service.js?v=20260907-icon';
   nearbyStops.defer=true;
   nearbyStops.dataset.elmaNearbyStops='1';
   document.head.appendChild(nearbyStops);
