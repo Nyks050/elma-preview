@@ -79,13 +79,15 @@
     if(status)status.textContent=text;
   }
 
+  let dataWaits=0;
   function render(position,isDefault=false){
     const origin={lat:position.coords.latitude,lng:position.coords.longitude};
     const results=document.getElementById('egNearbyResults');
     const stops=collectStops().map(stop=>({...stop,distance:distanceMetres(origin,stop)})).sort((a,b)=>a.distance-b.distance).slice(0,8);
     if(!results)return;
     results.replaceChildren();
-    if(!stops.length){setStatus('Durak verileri henüz hazır değil. Birkaç saniye sonra tekrar dene.');return false}
+    if(!stops.length){if(dataWaits++<20){setStatus('Durak verileri hazırlanıyor…');setTimeout(()=>render(position,isDefault),150);return false}setStatus('Amasya durak verileri henüz hazır değil.');return false}
+    dataWaits=0;
     stops.forEach((stop,index)=>{
       const link=document.createElement('a');
       link.className='eg-nearby-stop';
