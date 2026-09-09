@@ -4,125 +4,62 @@
     {label:'Amasya Üniversitesi Eğitim Fakültesi, Muhsin Yazıcıoğlu Caddesi, Akbilek, Amasya',aliases:'amasya universitesi egitim fakultesi milli hakimiyet yerleskesi',point:{lat:40.654339,lon:35.80468,name:'Amasya Üniversitesi Eğitim Fakültesi'}}
   ];
   let map,origin,destination,originMarker,destinationMarker,directionsRenderer,fallbackRouteLine,routeBaseLine,routeAnimationFrame,step=0,timers={},manualOriginEditing=false,selectedTravelMode='TRANSIT';
-  let geocoder,placesLibrary,legacyAutocomplete;
+  let leafletReady;
   const $=selector=>document.querySelector(selector);
   const normalizeSearch=value=>String(value||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9çğıöşü]+/g,' ').trim();
   function localSearch(query){const terms=normalizeSearch(query).split(' ').filter(Boolean);if(!terms.length)return[];return LOCAL_PLACES.filter(place=>{const haystack=normalizeSearch(place.label+' '+place.aliases);return terms.every(term=>haystack.includes(term))}).map(place=>({label:place.label,point:{...place.point},source:'local'}))}
   function mergeSearchResults(local,remote){const seen=new Set();return [...local,...remote].filter(item=>{const key=normalizeSearch(item.label);if(seen.has(key))return false;seen.add(key);return true}).slice(0,6)}
 
-  function loadGoogleMaps(){
-    if(window.google?.maps)return Promise.resolve(window.google.maps);
-    if(window.__elmaGoogleMapsPromise)return window.__elmaGoogleMapsPromise;
-    window.__elmaGoogleMapsPromise=new Promise((resolve,reject)=>{
-      const key=window.GOOGLE_MAPS_API_KEY;
-      if(!key){reject(new Error('Google Maps API anahtarı bulunamadı'));return}
-      const callback='__elmaGoogleMapsReady';
-      window[callback]=()=>{delete window[callback];resolve(window.google.maps)};
+  function loadLeaflet(){
+    if(window.L)return Promise.resolve(window.L);
+    if(leafletReady)return leafletReady;
+    leafletReady=new Promise((resolve,reject)=>{
+      if(!document.querySelector('link[data-elma-leaflet]')){
+        const css=document.createElement('link');
+        css.rel='stylesheet';css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';css.dataset.elmaLeaflet='1';
+        document.head.appendChild(css);
+      }
       const script=document.createElement('script');
-      script.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(key)+'&libraries=places&language=tr&region=TR&v=weekly&loading=async&callback='+callback;
-      script.async=true;
-      script.onerror=()=>reject(new Error('Google Maps yüklenemedi'));
+      script.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';script.dataset.elmaLeaflet='1';
+      script.onload=()=>resolve(window.L);script.onerror=()=>reject(new Error('OpenStreetMap haritası yüklenemedi'));
       document.head.appendChild(script);
     });
-    return window.__elmaGoogleMapsPromise;
+    return leafletReady;
   }
 
-  async function googleGeocodeSearch(query){
-    const request={
-      address:query,
-      componentRestrictions:{country:'TR'},
-      region:'TR'
-    };
-    const bounds=map?.getBounds?.();
-    if(bounds)request.bounds=bounds;
-    const results=await new Promise((resolve,reject)=>geocoder.geocode(
-      request,
-      (items,status)=>status==='OK'?resolve((items||[]).slice(0,6)):reject(new Error(status))
-    ));
-    return results.map(item=>({
-      label:item.formatted_address,
-      point:{lat:item.geometry.location.lat(),lon:item.geometry.location.lng(),name:item.formatted_address},
-      source:'google'
-    }));
-  }
-
-  async function fallbackSearch(){return[]}
-
-  async function legacyPlacesSearch(query){
-    if(!legacyAutocomplete)return[];
-    return new Promise(resolve=>{
-      const request={input:query,componentRestrictions:{country:'tr'}};
-      const bounds=map?.getBounds?.();
-      if(bounds)request.bounds=bounds;
-      legacyAutocomplete.getPlacePredictions(request,(items,status)=>{
-        if(status!==google.maps.places.PlacesServiceStatus.OK||!Array.isArray(items)){resolve([]);return}
-        resolve(items.slice(0,6).map(item=>({label:item.description||query,placeId:item.place_id,source:'google'})));
-      });
-    });
+  async function osmSearch(query){
+    const params=new URLSearchParams({format:'jsonv2',q:query,countrycodes:'tr',addressdetails:'1',limit:'6','accept-language':'tr'});
+    const center=map?.getCenter?.();
+    if(center){params.set('viewbox',`${center.lng-1},${center.lat+1},${center.lng+1},${center.lat-1}`);params.set('bounded','0')}
+    const response=await fetch('https://nominatim.openstreetmap.org/search?'+params,{headers:{Accept:'application/json'}});
+    if(!response.ok)throw new Error('Adres araması başarısız: '+response.status);
+    const items=await response.json();
+    return items.map(item=>({label:item.display_name,point:{lat:Number(item.lat),lon:Number(item.lon),name:item.display_name},source:'osm'}));
   }
 
   async function search(query){
     if(!query||query.trim().length<2)return[];
     const localResults=localSearch(query);
-    if(placesLibrary?.AutocompleteSuggestion){
-      try{
-        const request={
-          input:query,
-          includedRegionCodes:['tr'],
-          language:'tr',
-          region:'tr'
-        };
-        const center=map?.getCenter?.();
-        if(center)request.locationBias={center:{lat:center.lat(),lng:center.lng()},radius:50000};
-        const response=await placesLibrary.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
-        const suggestions=(response.suggestions||[]).slice(0,6).map(suggestion=>{
-          const prediction=suggestion.placePrediction;
-          const label=prediction?.text?.toString?.()||prediction?.mainText?.toString?.()||query;
-          return {label,prediction,source:'google'};
-        });
-        if(suggestions.length)return mergeSearchResults(localResults,suggestions);
-      }catch(error){
-        console.warn('Google Places araması kullanılamıyor, Google Geocoder deneniyor:',error);
-      }
-    }
     try{
-      const legacyResults=await legacyPlacesSearch(query);
-      if(legacyResults.length)return mergeSearchResults(localResults,legacyResults);
+      return mergeSearchResults(localResults,await osmSearch(query));
     }catch(error){
-      console.warn('Google Places otomatik tamamlama kullanılamıyor:',error);
+      console.warn('OpenStreetMap adres araması kullanılamıyor:',error);
     }
-    try{
-      const googleResults=await googleGeocodeSearch(query);
-      if(googleResults.length)return mergeSearchResults(localResults,googleResults);
-    }catch(error){
-      console.warn('Google Geocoder araması kullanılamıyor:',error);
-    }
-    return mergeSearchResults(localResults,await fallbackSearch(query));
+    return localResults;
   }
 
   async function resolveSearchItem(item){
     if(item.point)return item.point;
-    if(item.placeId){
-      const result=await new Promise((resolve,reject)=>geocoder.geocode({placeId:item.placeId,region:'TR',language:'tr'},(items,status)=>status==='OK'&&items?.[0]?resolve(items[0]):reject(new Error(status))));
-      return {lat:result.geometry.location.lat(),lon:result.geometry.location.lng(),name:result.formatted_address||item.label};
-    }
-    const place=item.prediction.toPlace();
-    await place.fetchFields({fields:['displayName','formattedAddress','location']});
-    if(!place.location)throw new Error('Konum bulunamadı');
-    return {
-      lat:place.location.lat(),
-      lon:place.location.lng(),
-      name:place.formattedAddress||place.displayName||item.label
-    };
+    throw new Error('Konum bulunamadı');
   }
 
   async function reverse(lon,lat){
     try{
-      const result=await new Promise((resolve,reject)=>geocoder.geocode(
-        {location:{lat,lng:lon},region:'TR',language:'tr'},
-        (items,status)=>status==='OK'&&items?.[0]?resolve(items[0]):reject(new Error(status))
-      ));
-      return result.formatted_address||lat.toFixed(5)+', '+lon.toFixed(5);
+      const params=new URLSearchParams({format:'jsonv2',lat:String(lat),lon:String(lon),zoom:'18',addressdetails:'1','accept-language':'tr'});
+      const response=await fetch('https://nominatim.openstreetmap.org/reverse?'+params,{headers:{Accept:'application/json'}});
+      if(!response.ok)throw new Error(String(response.status));
+      const result=await response.json();
+      return result.display_name||lat.toFixed(5)+', '+lon.toFixed(5);
     }catch(error){
       return lat.toFixed(5)+', '+lon.toFixed(5);
     }
@@ -130,28 +67,14 @@
 
   function marker(kind,point){
     const previous=kind==='origin'?originMarker:destinationMarker;
-    previous?.setMap(null);
+    if(previous)map.removeLayer(previous);
     const isOrigin=kind==='origin';
-    const next=new google.maps.Marker({
-      map,
-      position:{lat:point.lat,lng:point.lon},
-      title:isOrigin?'Başlangıç':'Varış',
-      icon:{
-        path:google.maps.SymbolPath.CIRCLE,
-        scale:8,
-        fillColor:isOrigin?'#09090a':'#ffffff',
-        fillOpacity:1,
-        strokeColor:isOrigin?'#ffffff':'#09090a',
-        strokeWeight:4
-      },
-      zIndex:isOrigin?20:21
-    });
+    const next=L.circleMarker([point.lat,point.lon],{radius:9,fillColor:isOrigin?'#09090a':'#fff',fillOpacity:1,color:isOrigin?'#fff':'#09090a',weight:4}).addTo(map).bindTooltip(isOrigin?'Başlangıç':'Varış');
     if(isOrigin)originMarker=next;else destinationMarker=next;
   }
 
   function flyTo(point,zoom=16){
-    map.panTo({lat:point.lat,lng:point.lon});
-    map.setZoom(zoom);
+    map.setView([point.lat,point.lon],zoom);
   }
 
   function mode(next){
@@ -168,34 +91,28 @@
     document.getElementById('elmaDirectTrip')?.remove();
     if(routeAnimationFrame)cancelAnimationFrame(routeAnimationFrame);
     routeAnimationFrame=null;
-    directionsRenderer?.setMap(null);
+    if(directionsRenderer)map.removeLayer(directionsRenderer);
     directionsRenderer=null;
-    fallbackRouteLine?.setMap(null);
+    if(fallbackRouteLine)map.removeLayer(fallbackRouteLine);
     fallbackRouteLine=null;
-    routeBaseLine?.setMap(null);
+    if(routeBaseLine)map.removeLayer(routeBaseLine);
     routeBaseLine=null;
   }
 
   function animateRoute(path,duration=5200){
     if(!path?.length)return Promise.resolve();
     if(routeAnimationFrame)cancelAnimationFrame(routeAnimationFrame);
-    fallbackRouteLine?.setMap(null);
-    routeBaseLine?.setMap(null);
+    if(fallbackRouteLine)map.removeLayer(fallbackRouteLine);
+    if(routeBaseLine)map.removeLayer(routeBaseLine);
 
     const points=path.map(position=>({
       lat:typeof position.lat==='function'?position.lat():position.lat,
       lng:typeof position.lng==='function'?position.lng():position.lng
     }));
-    routeBaseLine=new google.maps.Polyline({
-      map,path:points,strokeColor:'#050505',strokeWeight:5,strokeOpacity:.07,
-      clickable:false,zIndex:3
-    });
-    fallbackRouteLine=new google.maps.Polyline({
-      map,path:[points[0]],strokeColor:'#050505',strokeWeight:6,strokeOpacity:1,
-      clickable:false,zIndex:4
-    });
+    routeBaseLine=L.polyline(points.map(point=>[point.lat,point.lng]),{color:'#050505',weight:5,opacity:.07,interactive:false}).addTo(map);
+    fallbackRouteLine=L.polyline([[points[0].lat,points[0].lng]],{color:'#050505',weight:6,opacity:1,interactive:false}).addTo(map);
     if(points.length===1||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
-      fallbackRouteLine.setPath(points);
+      fallbackRouteLine.setLatLngs(points.map(point=>[point.lat,point.lng]));
       return Promise.resolve();
     }
 
@@ -225,11 +142,11 @@
           lat:a.lat+(b.lat-a.lat)*mix,
           lng:a.lng+(b.lng-a.lng)*mix
         };
-        fallbackRouteLine.setPath(points.slice(0,segment+1).concat(head));
+        fallbackRouteLine.setLatLngs(points.slice(0,segment+1).concat(head).map(point=>[point.lat,point.lng]));
 
         if(progress<1)routeAnimationFrame=requestAnimationFrame(draw);
         else{
-          fallbackRouteLine.setPath(points);
+          fallbackRouteLine.setLatLngs(points.map(point=>[point.lat,point.lng]));
           routeAnimationFrame=null;
           resolve();
         }
@@ -250,13 +167,10 @@
 
   function showWalkingRoute(path){
     if(!path?.length)return;
-    fallbackRouteLine?.setMap(null);
-    routeBaseLine?.setMap(null);
+    if(fallbackRouteLine)map.removeLayer(fallbackRouteLine);
+    if(routeBaseLine)map.removeLayer(routeBaseLine);
     const points=path.map(position=>({lat:typeof position.lat==='function'?position.lat():position.lat,lng:typeof position.lng==='function'?position.lng():position.lng}));
-    fallbackRouteLine=new google.maps.Polyline({
-      map,path:points,strokeOpacity:0,strokeWeight:0,clickable:false,zIndex:5,
-      icons:[{icon:{path:'M 0,-1 0,1',strokeColor:'#050505',strokeOpacity:1,strokeWeight:4,scale:2.2},offset:'0',repeat:'13px'}]
-    });
+    fallbackRouteLine=L.polyline(points.map(point=>[point.lat,point.lng]),{color:'#050505',weight:5,opacity:1,dashArray:'3 12',lineCap:'round',interactive:false}).addTo(map);
   }
 
   function dragSheet(){
@@ -486,7 +400,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       document.getElementById('elmaFlowBootGuard')?.remove();
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
         wrapper.classList.add('elma-map-open');
-        google.maps.event.trigger(map,'resize');
+        map.invalidateSize();
       }));
     }
     async function ensureOrigin(){
@@ -670,22 +584,13 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     fresh.id='map';
     old.replaceWith(fresh);
     setup();
-    await loadGoogleMaps();
-    geocoder=new google.maps.Geocoder();
-    try{placesLibrary=await google.maps.importLibrary('places');if(google.maps.places?.AutocompleteService)legacyAutocomplete=new google.maps.places.AutocompleteService()}catch(error){console.warn('Google Places kullanılamıyor, Geocoding ile devam ediliyor.',error)}
-
-    map=new google.maps.Map(fresh,{
-      center:DEFAULT_CENTER,
-      zoom:14,
-      mapTypeControl:false,
-      streetViewControl:false,
-      fullscreenControl:false,
-      zoomControl:false,
-      clickableIcons:false,
-      gestureHandling:'greedy',
-      mapTypeId:google.maps.MapTypeId.ROADMAP
-    });
-    map.addListener('click',event=>pickPoint(event.latLng.lat(),event.latLng.lng()));
+    await loadLeaflet();
+    map=L.map(fresh,{center:[DEFAULT_CENTER.lat,DEFAULT_CENTER.lng],zoom:14,zoomControl:false,attributionControl:true});
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      maxZoom:19,
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> katkıda bulunanlar'
+    }).addTo(map);
+    map.on('click',event=>pickPoint(event.latlng.lat,event.latlng.lng));
 
     window.requestLocation=()=>new Promise(resolve=>{
       const applyOrigin=async(lon,lat,fallbackName)=>{
@@ -716,48 +621,20 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
         return;
       }
       try{
-        const service=new google.maps.DirectionsService();
-        const result=await service.route({
-          origin:{lat:origin.lat,lng:origin.lon},
-          destination:{lat:destination.lat,lng:destination.lon},
-          travelMode:selectedTravelMode==='WALKING'?google.maps.TravelMode.WALKING:google.maps.TravelMode.DRIVING,
-          region:'TR',
-          language:'tr'
-        });
-        directionsRenderer=new google.maps.DirectionsRenderer({
-          map,
-          directions:result,
-          suppressMarkers:true,
-          preserveViewport:false,
-          polylineOptions:{strokeOpacity:0,strokeWeight:0}
-        });
-        const routeResult=result.routes?.[0];
-        const detailedWalkingPath=routeResult?.legs?.flatMap(leg=>leg.steps?.flatMap(routeStep=>routeStep.path||[])||[])||[];
-        const animatedPath=selectedTravelMode==='WALKING'&&detailedWalkingPath.length?detailedWalkingPath:routeResult?.overview_path||[];
-        if(selectedTravelMode==='WALKING')showWalkingRoute(animatedPath);
-        else await animateRoute(animatedPath);
-        showDirectTrip(selectedTravelMode,result.routes?.[0]?.legs?.[0]);
+        const service=selectedTravelMode==='WALKING'?'routed-foot':'routed-car';
+        const url=`https://routing.openstreetmap.de/${service}/route/v1/driving/${origin.lon},${origin.lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson&steps=true`;
+        const response=await fetch(url,{headers:{Accept:'application/json'}});
+        if(!response.ok)throw new Error('Rota servisi: '+response.status);
+        const data=await response.json(),route=data.routes?.[0];
+        if(!route?.geometry?.coordinates?.length)throw new Error('Rota bulunamadı');
+        const path=route.geometry.coordinates.map(coordinate=>({lat:coordinate[1],lng:coordinate[0]}));
+        map.fitBounds(L.latLngBounds(path.map(point=>[point.lat,point.lng])),{padding:[48,48],maxZoom:16});
+        if(selectedTravelMode==='WALKING')showWalkingRoute(path);else await animateRoute(path);
+        showDirectTrip(selectedTravelMode,{duration:{text:Math.max(1,Math.round(route.duration/60))+' dk.'},distance:{text:route.distance<1000?Math.round(route.distance)+' m':(route.distance/1000).toFixed(1)+' km'}});
         step=1;
       }catch(error){
-        console.warn('Google rota servisi kullanılamıyor, yedek rota açılıyor:',error);
-        try{
-          if(selectedTravelMode==='WALKING')throw error;
-          const url='https://router.project-osrm.org/route/v1/driving/'+origin.lon+','+origin.lat+';'+destination.lon+','+destination.lat+'?overview=full&geometries=geojson';
-          const response=await fetch(url);
-          const data=await response.json();
-          if(!data.routes?.[0])throw new Error('Yedek rota bulunamadı');
-          directionsRenderer?.setMap(null);
-          directionsRenderer=null;
-          const path=data.routes[0].geometry.coordinates.map(coordinate=>({lat:coordinate[1],lng:coordinate[0]}));
-          const bounds=new google.maps.LatLngBounds();
-          path.forEach(point=>bounds.extend(point));
-          map.fitBounds(bounds,48);
-          await animateRoute(path);
-          step=1;
-        }catch(fallbackError){
-          console.error('Yedek rota hatası:',fallbackError);
-          alert('Rota şu anda gösterilemiyor. Biraz sonra tekrar dene.');
-        }
+        console.error('OpenStreetMap rota hatası:',error);
+        alert('Rota şu anda gösterilemiyor. Biraz sonra tekrar dene.');
       }
     };
   }
@@ -765,7 +642,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   init().catch(error=>{
     console.error(error);
     const mapElement=$('#map');
-    if(mapElement)mapElement.innerHTML='<div style="display:grid;place-items:center;height:100%;padding:24px;text-align:center;color:#171717;background:#f7f7f8">Google Maps yüklenemedi.<br>API anahtarı ve etkin API ayarlarını kontrol et.</div>';
+    if(mapElement)mapElement.innerHTML='<div style="display:grid;place-items:center;height:100%;padding:24px;text-align:center;color:#171717;background:#f7f7f8">OpenStreetMap yüklenemedi.<br>İnternet bağlantısını kontrol edip tekrar dene.</div>';
   });
 })();
 
