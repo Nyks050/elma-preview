@@ -14,31 +14,42 @@
   const style=document.createElement('style');
   style.id='elmaServicesLayout';
   style.textContent=`
-    #elmaHomeWidgets [data-panel="services"]{--svc-ink:#f7f7f5;--svc-muted:#9a9da4;--svc-card:#151518;--svc-line:#292a2f;--svc-accent:#d8ff46;--svc-accent-ink:#0a0b08;--svc-soft:#222329;padding-bottom:14px}
-    html[data-theme="light"] #elmaHomeWidgets [data-panel="services"]{--svc-ink:#111216;--svc-muted:#696d75;--svc-card:#fff;--svc-line:#e5e6e9;--svc-accent:#c9f33d;--svc-accent-ink:#111407;--svc-soft:#f1f2f4}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-head{padding:9px 1px 0}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-head:before{content:"ELMA GO / ŞEHİR";display:block;margin-bottom:12px;color:var(--svc-muted);font-size:.72rem;font-weight:820;letter-spacing:.13em}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-title{margin:0;color:var(--svc-ink);font-size:2.55rem;line-height:.94;letter-spacing:-.075em}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-subtitle{max-width:330px;margin:13px 0 0;color:var(--svc-muted);font-size:.98rem;font-weight:540;line-height:1.42}
-    #elmaHomeWidgets [data-panel="services"] .eg-services-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin-top:26px!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card{position:relative;isolation:isolate;min-width:0!important;min-height:158px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px!important;padding:16px!important;overflow:hidden;text-align:left!important;border:1px solid var(--svc-line)!important;border-radius:20px!important;background:var(--svc-card)!important;color:var(--svc-ink)!important;box-shadow:none!important;cursor:pointer;transition:transform .18s ease,border-color .18s ease}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:before{content:attr(data-service-index);position:absolute;right:13px;top:12px;color:var(--svc-muted);font-size:.65rem;font-weight:850;letter-spacing:.08em}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:after{content:"";position:absolute;right:-32px;bottom:-48px;width:104px;height:104px;border:1px solid color-mix(in srgb,var(--svc-muted) 18%,transparent);border-radius:50%;box-shadow:0 0 0 18px color-mix(in srgb,var(--svc-muted) 5%,transparent);z-index:-1}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-icon{width:48px!important;height:48px!important;display:grid!important;place-items:center!important;flex:0 0 48px;padding:11px!important;border:0!important;border-radius:15px!important;background:var(--svc-soft)!important;background-image:none!important;color:var(--svc-ink)!important;filter:none!important;box-shadow:none!important}
+    #elmaHomeWidgets [data-panel="services"]{--svc-ink:#f7f7fa;--svc-muted:#9699a4;--svc-card:#14151a;--svc-line:#282a32;--svc-soft:#20222a;padding-bottom:18px}
+    html[data-theme="light"] #elmaHomeWidgets [data-panel="services"]{--svc-ink:#101116;--svc-muted:#717580;--svc-card:#fff;--svc-line:#e7e8ec;--svc-soft:#f0f1f4}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-head{position:relative;padding:8px 2px 2px}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-head:before{content:"ŞEHRİN CEBİNDE";display:inline-flex;align-items:center;min-height:27px;margin-bottom:15px;padding:0 10px;border:1px solid var(--svc-line);border-radius:99px;color:var(--svc-muted);font-size:.65rem;font-weight:850;letter-spacing:.12em}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-title{margin:0;color:var(--svc-ink);font-size:2.8rem;line-height:.9;letter-spacing:-.085em}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-subtitle{max-width:350px;margin:15px 0 0;color:var(--svc-muted);font-size:1rem;font-weight:560;line-height:1.42}
+    #elmaHomeWidgets [data-panel="services"] .eg-services-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:11px!important;margin-top:28px!important}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card{--tone:#8b90a0;--tone-soft:#22242c;position:relative;isolation:isolate;min-width:0!important;min-height:164px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:space-between!important;gap:18px!important;padding:17px!important;overflow:hidden;text-align:left!important;border:1px solid var(--svc-line)!important;border-radius:24px!important;background:linear-gradient(155deg,color-mix(in srgb,var(--tone) 7%,var(--svc-card)),var(--svc-card) 56%)!important;color:var(--svc-ink)!important;box-shadow:0 14px 32px rgba(0,0,0,.08)!important;cursor:pointer;transition:transform .22s cubic-bezier(.2,.8,.2,1),border-color .18s ease,box-shadow .22s ease}
+    html[data-theme="light"] #elmaHomeWidgets [data-panel="services"] .eg-service-card{--tone-soft:color-mix(in srgb,var(--tone) 13%,#fff);box-shadow:0 12px 34px rgba(26,29,38,.055)!important}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card:before{content:attr(data-service-index);position:absolute;right:15px;top:15px;color:var(--svc-muted);font-size:.62rem;font-weight:880;letter-spacing:.1em}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card:after{content:"↗";position:absolute;right:14px;bottom:14px;width:29px;height:29px;display:grid;place-items:center;border:1px solid var(--svc-line);border-radius:50%;color:var(--svc-muted);font-size:.95rem;font-weight:700}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-icon{width:50px!important;height:50px!important;display:grid!important;place-items:center!important;flex:0 0 50px;padding:12px!important;border:1px solid color-mix(in srgb,var(--tone) 20%,transparent)!important;border-radius:17px!important;background:var(--tone-soft)!important;background-image:none!important;color:var(--tone)!important;filter:none!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important}
     #elmaHomeWidgets [data-panel="services"] .eg-service-icon>svg{display:block!important;width:100%!important;height:100%!important;fill:none!important;stroke:currentColor!important;stroke-width:1.65!important;stroke-linecap:round!important;stroke-linejoin:round!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-copy{display:flex;min-width:0;flex-direction:column;gap:5px;align-items:flex-start}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-name{color:var(--svc-ink)!important;font-size:1rem!important;font-weight:780!important;line-height:1.12!important;letter-spacing:-.025em!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-description{display:block!important;max-width:145px;color:var(--svc-muted)!important;font-size:.75rem!important;font-weight:520!important;line-height:1.35!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"]{grid-column:1/-1!important;min-height:168px!important;padding:20px!important;background:var(--svc-accent)!important;color:var(--svc-accent-ink)!important;border-color:transparent!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"]:before{color:color-mix(in srgb,var(--svc-accent-ink) 58%,transparent)}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"]:after{right:-15px;bottom:-60px;width:150px;height:150px;border-color:color-mix(in srgb,var(--svc-accent-ink) 14%,transparent);box-shadow:0 0 0 24px color-mix(in srgb,var(--svc-accent-ink) 5%,transparent)}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"] .eg-service-icon{background:var(--svc-accent-ink)!important;color:var(--svc-accent)!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"] .eg-service-name{color:var(--svc-accent-ink)!important;font-size:1.35rem!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"] .eg-service-description{max-width:220px;color:color-mix(in srgb,var(--svc-accent-ink) 72%,transparent)!important;font-size:.82rem!important}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-copy{display:flex;min-width:0;padding-right:28px;flex-direction:column;gap:6px;align-items:flex-start}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-name{color:var(--svc-ink)!important;font-size:1.03rem!important;font-weight:790!important;line-height:1.12!important;letter-spacing:-.035em!important}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-description{display:block!important;max-width:150px;color:var(--svc-muted)!important;font-size:.74rem!important;font-weight:520!important;line-height:1.38!important}
+    #elmaHomeWidgets [data-panel="services"] [data-service-key="lines"]{--tone:#5d8cff}
+    #elmaHomeWidgets [data-panel="services"] [data-service-key="routes"]{--tone:#ff765f}
+    #elmaHomeWidgets [data-panel="services"] [data-service-key="weather"]{--tone:#3ec6e0}
+    #elmaHomeWidgets [data-panel="services"] [data-service-key="lost"]{--tone:#a883ff}
+    #elmaHomeWidgets [data-panel="services"] [data-service-key="pharmacy"]{--tone:#ff5e78}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"]{--tone:#86a7ff;grid-column:1/-1!important;min-height:190px!important;padding:22px!important;background:radial-gradient(circle at 82% 12%,rgba(75,117,255,.44),transparent 34%),radial-gradient(circle at 72% 100%,rgba(117,79,255,.28),transparent 38%),linear-gradient(145deg,#151823,#07080c 72%)!important;color:#fff!important;border-color:#292e40!important;box-shadow:0 22px 48px rgba(5,8,18,.24)!important}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"]:before{content:"CANLI • 01";color:#aebbdc}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"]:after{content:"→";right:20px;bottom:20px;width:42px;height:42px;border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.1);color:#fff;font-size:1.25rem;backdrop-filter:blur(10px)}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"] .eg-service-icon{width:56px!important;height:56px!important;background:rgba(255,255,255,.12)!important;color:#b9c8ff!important;border-color:rgba(255,255,255,.16)!important;backdrop-filter:blur(12px)}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"] .eg-service-name{color:#fff!important;font-size:1.55rem!important;letter-spacing:-.055em!important}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"] .eg-service-description{max-width:250px;color:#aeb3c1!important;font-size:.82rem!important}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="weather"]{grid-column:1/-1!important;min-height:112px!important;display:grid!important;grid-template-columns:50px minmax(0,1fr) 30px!important;align-items:center!important;gap:14px!important}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="weather"]:before{display:none}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="weather"]:after{position:static;grid-column:3;grid-row:1;width:29px;height:29px}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="weather"] .eg-service-copy{grid-column:2;grid-row:1;padding-right:0}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="weather"] .eg-service-description{max-width:none}
     #elmaHomeWidgets [data-panel="services"] .eg-service-card:focus-visible{outline:2px solid var(--svc-ink);outline-offset:3px}
     #elmaHomeWidgets [data-panel="services"] .eg-service-card:active{transform:scale(.975)!important}
-    @media(hover:hover){#elmaHomeWidgets [data-panel="services"] .eg-service-card:hover{transform:translateY(-3px);border-color:var(--svc-muted)!important}}
-    @media(max-width:359px){#elmaHomeWidgets [data-panel="services"] .eg-services-grid{gap:8px!important}#elmaHomeWidgets [data-panel="services"] .eg-service-card{min-height:148px!important;padding:14px!important}#elmaHomeWidgets [data-panel="services"] .eg-service-description{font-size:.7rem!important}}
+    @media(hover:hover){#elmaHomeWidgets [data-panel="services"] .eg-service-card:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--tone) 44%,var(--svc-line))!important;box-shadow:0 18px 42px rgba(0,0,0,.12)!important}}
+    @media(max-width:359px){#elmaHomeWidgets [data-panel="services"] .eg-services-grid{gap:8px!important}#elmaHomeWidgets [data-panel="services"] .eg-service-card{min-height:154px!important;padding:14px!important;border-radius:21px!important}#elmaHomeWidgets [data-panel="services"] .eg-service-description{font-size:.7rem!important}}
     html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-services-grid{grid-template-columns:1fr!important}
     html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-card{grid-column:1!important}
     @media(prefers-reduced-motion:reduce){#elmaHomeWidgets [data-panel="services"] .eg-service-card{transition:none!important}}
@@ -47,6 +58,8 @@
 
   function refineServices(){
     const grid=document.querySelector('#elmaHomeWidgets .eg-services-grid');if(!grid)return;
+    const subtitle=grid.closest('[data-panel="services"]')?.querySelector('.eg-screen-subtitle');
+    if(subtitle)subtitle.textContent='Ulaşım, hava ve şehir araçları tek yerde.';
     const definitions=[
       ['[data-service-target="nearby-stops"]','nearby','Yakındaki Duraklar','En yakın durağı ve geçen hatları bul'],
       ['[data-service-target="lines"]','lines','Hatlar','Sefer saatleri ve hat bilgileri'],
