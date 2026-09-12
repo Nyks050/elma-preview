@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Şehir seninle\ndaha kolay",
+    "description": "Tarihiyle, doğasıyla, her yolculuk sana daha yakın.",
+    "image": "assets/amasya-photo-1.webp",
+    "alt": "Amasya Yalıboyu evleri, Yeşilırmak ve kayalık yamaçlar",
+    "position": "center 57%",
+    "source": "https://commons.wikimedia.org/wiki/File:Amasya_evleri_ve_Ye%C5%9Fil%C4%B1rmak.jpg",
+    "author": "Cobija"
+  },
+  {
+    "title": "Amasya'yı\nyeniden keşfet",
+    "description": "Yeşilırmak kıyısından şehrin sokaklarına.",
+    "image": "assets/amasya-photo-2.webp",
+    "alt": "Yeşilırmak'a yansıyan Amasya evleri ve saat kulesi",
+    "position": "center 52%",
+    "source": "https://commons.wikimedia.org/wiki/File:Amasya_evleri_ve_Ye%C5%9Fil%C4%B1rmak_(2).jpg",
+    "author": "Cobija"
+  }
+]
