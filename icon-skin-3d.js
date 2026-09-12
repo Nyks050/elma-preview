@@ -50,10 +50,10 @@ body.eg-reference-services #elmaHomeWidgets{width:100%;max-width:520px;padding:e
 #elmaHomeWidgets [data-panel="services"] .eg-service-card:active{background:#f7f7f7;transform:scale(.985)}
 #elmaHomeWidgets [data-panel="services"] .eg-reference-notice{margin:10px 6%;padding:14px;border:1px solid #e6e6e6;border-radius:16px;font-size:14px;line-height:1.5;color:#555;background:#fafafa}
 .eg-reference-notice[hidden]{display:none}
-body.eg-reference-services .elma-main-nav{left:4%;right:4%;bottom:calc(12px + env(safe-area-inset-bottom));height:66px;max-width:480px;padding:4px 8px;border:1px solid #f8f8f8;border-radius:40px;box-shadow:0 6px 20px #00000012;background:#ffffffed;backdrop-filter:blur(18px)}
-body.eg-reference-services .elma-main-tab{font-family:inherit;border-radius:32px;font-size:11px;line-height:1.2;gap:4px;font-weight:600;color:#737373}
-body.eg-reference-services .elma-main-tab svg{width:23px;height:23px;stroke-width:1.9}
-body.eg-reference-services .elma-main-tab.active{background:#f4f4f4;color:#080808;font-weight:700}
+body .elma-main-nav{left:0;right:0;bottom:0;width:100%;height:calc(72px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;padding:5px max(10px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(10px,env(safe-area-inset-left));box-sizing:border-box;border:0;border-top:1px solid #e8e8ea;border-radius:0;box-shadow:0 -4px 18px #0000000a;background:#fffffff5;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+body .elma-main-tab{font-family:inherit;border-radius:14px;font-size:11px;line-height:1.2;gap:4px;font-weight:600;color:#737373}
+body .elma-main-tab svg{width:23px;height:23px;stroke-width:1.9}
+body .elma-main-tab.active{background:#f3f3f4;color:#080808;font-weight:700}
 @media(min-width:480px){#elmaHomeWidgets [data-panel="services"] .eg-service-card{min-height:106px;grid-template-columns:48px minmax(0,1fr) 24px;gap:12px}#elmaHomeWidgets [data-panel="services"] .eg-service-icon{width:48px!important;height:48px!important;padding:11px!important}}
 @media(max-width:359px){#elmaHomeWidgets [data-panel="services"] .eg-service-card{grid-template-columns:30px minmax(0,1fr) 16px;gap:5px;padding:12px 4px}#elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(even){padding-left:8px}#elmaHomeWidgets [data-panel="services"] .eg-service-icon{width:30px!important;height:30px!important;padding:6px!important}}
 html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-name{font-size:15px}
