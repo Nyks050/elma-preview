@@ -37,6 +37,7 @@ body.eg-reference-services #elmaHomeWidgets{width:100%;max-width:520px;padding:e
 #elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(odd){border-right:1px solid #f4f4f4;padding-right:10px}
 #elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(even){padding-left:14px}
 #elmaHomeWidgets [data-panel="services"] .eg-service-card:last-child{border-bottom:0}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-last-child(2):nth-child(odd){border-bottom:0}
 #elmaHomeWidgets [data-panel="services"] .eg-service-card:last-child:nth-child(odd){grid-column:1/-1;border-right:0}
 #elmaHomeWidgets [data-panel="services"] .eg-service-card:before{content:none}
 #elmaHomeWidgets [data-panel="services"] .eg-service-card:after{content:"›";display:grid;place-items:center;width:19px;height:19px;background:#f2f2f2;border-radius:50%;font-size:20px;line-height:1;font-weight:600;position:static}
@@ -79,18 +80,22 @@ const schedule=make('schedule','Sefer Saatleri','Güncel sefer saatlerini incele
 const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>message('Duyuru kaynağı henüz bağlanmadı. Güncel duyurular burada gösterilecek.'));
 const card=make('card','Kart İşlemleri','Ulaşım kartı işlemlerinizi kolayca yönetin.',()=>message('Ulaşım kartı yönetimi henüz Elma Go’ya bağlanmadı.'));
 grid.append(schedule,news,card);
+// Keep the original lines action available to Sefer Saatleri, outside the visible grid.
+const internalActions=document.createElement('div');internalActions.hidden=true;internalActions.style.display='none';root.appendChild(internalActions);
 function refresh(){
 observer?.disconnect();
+const linesAction=root.querySelector('[data-service-target="lines"]');
+if(linesAction&&linesAction.parentElement!==internalActions)internalActions.appendChild(linesAction);
+// Estimated everyday use, not measured analytics.
 const defs=[
 [schedule,'schedule','Sefer Saatleri','Güncel sefer saatlerini inceleyin.'],
-[root.querySelector('[data-service-target="lines"]'),'lines','Hatlar','Tüm hat bilgilerini görüntüleyin.'],
-[root.querySelector('.eg-lost-card'),'lost','Kayıp Eşya','Kayıp ve bulunan eşya ilanları.'],
+[card,'card','Kart İşlemleri','Ulaşım kartı işlemlerinizi kolayca yönetin.'],
 [root.querySelector('.eg-nearby-card'),'nearby','Yakındaki Duraklar','Size en yakın durakları bulun.'],
-[root.querySelector('.eg-pharmacy-card'),'pharmacy','Nöbetçi Eczane','Nöbetçi eczanelere ulaşın.'],
 [root.querySelector('[data-service-target="routes"]'),'routes','Güzergâh','Hatların güzergâhlarını inceleyin.'],
+[root.querySelector('.eg-pharmacy-card'),'pharmacy','Nöbetçi Eczane','Nöbetçi eczanelere ulaşın.'],
 [root.querySelector('[data-service-target="weather"]'),'weather','Hava Durumu','Güncel hava durumu bilgileri.'],
-[news,'news','Duyurular','Güncel duyuruları ve haberleri takip edin.'],
-[card,'card','Kart İşlemleri','Ulaşım kartı işlemlerinizi kolayca yönetin.']];
+[root.querySelector('.eg-lost-card'),'lost','Kayıp Eşya','Kayıp ve bulunan eşya ilanları.'],
+[news,'news','Duyurular','Güncel duyuruları ve haberleri takip edin.']];
 const ordered=[];
 defs.forEach(([b,key,title,desc])=>{if(!b)return;ordered.push(b);if(b.dataset.referenceStyled)return;b.dataset.referenceStyled='1';b.innerHTML='<span class="eg-service-icon" aria-hidden="true">'+icons[key]+'</span><span class="eg-service-copy"><span class="eg-service-name">'+title+'</span><span class="eg-service-description">'+desc+'</span></span>';});
 
