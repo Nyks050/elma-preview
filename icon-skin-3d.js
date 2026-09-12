@@ -14,59 +14,60 @@
   const style=document.createElement('style');
   style.id='elmaServicesLayout';
   style.textContent=`
-    #elmaHomeWidgets [data-panel="services"]{--svc-ink:#f7f7fa;--svc-muted:#9699a4;--svc-card:#14151a;--svc-line:#282a32;--svc-soft:#20222a;padding-bottom:18px}
-    html[data-theme="light"] #elmaHomeWidgets [data-panel="services"]{--svc-ink:#101116;--svc-muted:#717580;--svc-card:#fff;--svc-line:#e7e8ec;--svc-soft:#f0f1f4}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-head{position:relative;padding:8px 2px 2px}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-head:before{content:"ŞEHRİN CEBİNDE";display:inline-flex;align-items:center;min-height:27px;margin-bottom:15px;padding:0 10px;border:1px solid var(--svc-line);border-radius:99px;color:var(--svc-muted);font-size:.65rem;font-weight:850;letter-spacing:.12em}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-title{margin:0;color:var(--svc-ink);font-size:2.8rem;line-height:.9;letter-spacing:-.085em}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-subtitle{max-width:350px;margin:15px 0 0;color:var(--svc-muted);font-size:1rem;font-weight:560;line-height:1.42}
-    #elmaHomeWidgets [data-panel="services"] .eg-services-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:11px!important;margin-top:28px!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card{--tone:#8b90a0;--tone-soft:#22242c;position:relative;isolation:isolate;min-width:0!important;min-height:164px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:space-between!important;gap:18px!important;padding:17px!important;overflow:hidden;text-align:left!important;border:1px solid var(--svc-line)!important;border-radius:24px!important;background:linear-gradient(155deg,color-mix(in srgb,var(--tone) 7%,var(--svc-card)),var(--svc-card) 56%)!important;color:var(--svc-ink)!important;box-shadow:0 14px 32px rgba(0,0,0,.08)!important;cursor:pointer;transition:transform .22s cubic-bezier(.2,.8,.2,1),border-color .18s ease,box-shadow .22s ease}
-    html[data-theme="light"] #elmaHomeWidgets [data-panel="services"] .eg-service-card{--tone-soft:color-mix(in srgb,var(--tone) 13%,#fff);box-shadow:0 12px 34px rgba(26,29,38,.055)!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:before{content:attr(data-service-index);position:absolute;right:15px;top:15px;color:var(--svc-muted);font-size:.62rem;font-weight:880;letter-spacing:.1em}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:after{content:"↗";position:absolute;right:14px;bottom:14px;width:29px;height:29px;display:grid;place-items:center;border:1px solid var(--svc-line);border-radius:50%;color:var(--svc-muted);font-size:.95rem;font-weight:700}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-icon{width:50px!important;height:50px!important;display:grid!important;place-items:center!important;flex:0 0 50px;padding:12px!important;border:1px solid color-mix(in srgb,var(--tone) 20%,transparent)!important;border-radius:17px!important;background:var(--tone-soft)!important;background-image:none!important;color:var(--tone)!important;filter:none!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-icon>svg{display:block!important;width:100%!important;height:100%!important;fill:none!important;stroke:currentColor!important;stroke-width:1.65!important;stroke-linecap:round!important;stroke-linejoin:round!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-copy{display:flex;min-width:0;padding-right:28px;flex-direction:column;gap:6px;align-items:flex-start}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-name{color:var(--svc-ink)!important;font-size:1.03rem!important;font-weight:790!important;line-height:1.12!important;letter-spacing:-.035em!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-description{display:block!important;max-width:150px;color:var(--svc-muted)!important;font-size:.74rem!important;font-weight:520!important;line-height:1.38!important}
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="lines"]{--tone:#5d8cff}
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="routes"]{--tone:#ff765f}
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="weather"]{--tone:#3ec6e0}
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="lost"]{--tone:#a883ff}
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="pharmacy"]{--tone:#ff5e78}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"]{--tone:#86a7ff;grid-column:1/-1!important;min-height:190px!important;padding:22px!important;background:radial-gradient(circle at 82% 12%,rgba(75,117,255,.44),transparent 34%),radial-gradient(circle at 72% 100%,rgba(117,79,255,.28),transparent 38%),linear-gradient(145deg,#151823,#07080c 72%)!important;color:#fff!important;border-color:#292e40!important;box-shadow:0 22px 48px rgba(5,8,18,.24)!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"]:before{content:"CANLI • 01";color:#aebbdc}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"]:after{content:"→";right:20px;bottom:20px;width:42px;height:42px;border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.1);color:#fff;font-size:1.25rem;backdrop-filter:blur(10px)}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"] .eg-service-icon{width:56px!important;height:56px!important;background:rgba(255,255,255,.12)!important;color:#b9c8ff!important;border-color:rgba(255,255,255,.16)!important;backdrop-filter:blur(12px)}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"] .eg-service-name{color:#fff!important;font-size:1.55rem!important;letter-spacing:-.055em!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="nearby"] .eg-service-description{max-width:250px;color:#aeb3c1!important;font-size:.82rem!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="weather"]{grid-column:1/-1!important;min-height:112px!important;display:grid!important;grid-template-columns:50px minmax(0,1fr) 30px!important;align-items:center!important;gap:14px!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="weather"]:before{display:none}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="weather"]:after{position:static;grid-column:3;grid-row:1;width:29px;height:29px}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="weather"] .eg-service-copy{grid-column:2;grid-row:1;padding-right:0}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card[data-service-key="weather"] .eg-service-description{max-width:none}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:focus-visible{outline:2px solid var(--svc-ink);outline-offset:3px}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:active{transform:scale(.975)!important}
-    @media(hover:hover){#elmaHomeWidgets [data-panel="services"] .eg-service-card:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--tone) 44%,var(--svc-line))!important;box-shadow:0 18px 42px rgba(0,0,0,.12)!important}}
-    @media(max-width:359px){#elmaHomeWidgets [data-panel="services"] .eg-services-grid{gap:8px!important}#elmaHomeWidgets [data-panel="services"] .eg-service-card{min-height:154px!important;padding:14px!important;border-radius:21px!important}#elmaHomeWidgets [data-panel="services"] .eg-service-description{font-size:.7rem!important}}
-    html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-services-grid{grid-template-columns:1fr!important}
-    html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-card{grid-column:1!important}
-    @media(prefers-reduced-motion:reduce){#elmaHomeWidgets [data-panel="services"] .eg-service-card{transition:none!important}}
+    #elmaHomeWidgets [data-panel="services"] {
+      --service-text:#151518;--service-secondary:#666970;--service-fill:#f4f4f6;
+      color:var(--service-text);padding-bottom:24px;
+    }
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-head{padding:12px 2px 0}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-title{margin:0;font-size:2.125rem;line-height:1.2;font-weight:750;letter-spacing:-.045em}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-subtitle{margin:8px 0 0;font-size:1rem;line-height:1.5;font-weight:400;color:var(--service-secondary)}
+    #elmaHomeWidgets [data-panel="services"] .eg-services-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:12px;margin-top:28px}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card{
+      grid-column:auto;min-width:0;min-height:186px;padding:22px 12px 20px;
+      display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+      gap:18px;background:var(--service-fill);color:var(--service-text);
+      border:1px solid transparent;border-radius:24px;box-shadow:none;
+      text-align:center;cursor:pointer;touch-action:manipulation;
+      -webkit-tap-highlight-color:transparent;transition:background .16s ease,transform .16s ease;
+    }
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card::before,
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card::after{content:none}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-icon{
+      display:grid!important;place-items:center;width:52px!important;height:52px!important;
+      flex:0 0 52px;padding:6px!important;background:none!important;
+      border:0!important;border-radius:0;box-shadow:none!important;
+      color:var(--service-text)!important;filter:none!important;
+    }
+    #elmaHomeWidgets [data-panel="services"] .eg-service-icon>svg{
+      display:block!important;width:100%!important;height:100%!important;
+      fill:none!important;stroke:currentColor!important;stroke-width:1.7;
+      stroke-linecap:round;stroke-linejoin:round;
+    }
+    #elmaHomeWidgets [data-panel="services"] .eg-service-copy{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;width:100%}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-name{font-size:1rem;line-height:1.3;font-weight:650;letter-spacing:-.025em;color:var(--service-text)}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-description{display:block;max-width:175px;font-size:.875rem;line-height:1.4;font-weight:400;color:var(--service-secondary);text-wrap:balance}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card:focus-visible{outline:2px solid var(--service-text);outline-offset:3px}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card:active{transform:scale(.97);background:#e7e7eb}
+    @media(hover:hover){#elmaHomeWidgets [data-panel="services"] .eg-service-card:hover{background:#eaeaee}}
+    @media(max-width:359px){#elmaHomeWidgets [data-panel="services"] .eg-services-grid{gap:10px}#elmaHomeWidgets [data-panel="services"] .eg-service-card{padding:20px 10px;min-height:186px;border-radius:20px}}
+    html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-name{font-size:1.125rem}
+    html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-description{font-size:1rem}
+    @media(prefers-reduced-motion:reduce){#elmaHomeWidgets [data-panel="services"] .eg-service-card{transition:none;transform:none}}
+    html[data-reduce-motion="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-card{transition:none;transform:none}
   `;
   document.head.appendChild(style);
 
   function refineServices(){
     const grid=document.querySelector('#elmaHomeWidgets .eg-services-grid');if(!grid)return;
     const subtitle=grid.closest('[data-panel="services"]')?.querySelector('.eg-screen-subtitle');
-    if(subtitle)subtitle.textContent='Ulaşım, hava ve şehir araçları tek yerde.';
+    if(subtitle&&subtitle.textContent!=='Günlük hayatını kolaylaştıran hizmetler.')subtitle.textContent='Günlük hayatını kolaylaştıran hizmetler.';
     const definitions=[
-      ['[data-service-target="nearby-stops"]','nearby','Yakındaki Duraklar','En yakın durağı ve geçen hatları bul'],
-      ['[data-service-target="lines"]','lines','Hatlar','Sefer saatleri ve hat bilgileri'],
-      ['[data-service-target="routes"]','routes','Güzergâhlar','Durakları harita üzerinde incele'],
-      ['[data-service-target="weather"]','weather','Hava Durumu','Güncel durum ve üç günlük tahmin'],
-      ['.eg-lost-card','lost','Kayıp & Buluntu','Kayıp ilanlarına göz at veya ilan ver'],
-      ['.eg-pharmacy-card','pharmacy','Nöbetçi Eczane','Bugün açık eczaneleri yakında bul']
+      ['[data-service-target="nearby-stops"]','nearby','Yakındaki Duraklar','Sana en yakın duraklar'],
+      ['[data-service-target="lines"]','lines','Hatlar','Hatlar ve sefer saatleri'],
+      ['[data-service-target="routes"]','routes','Güzergâhlar','Duraklar ve hat rotaları'],
+      ['[data-service-target="weather"]','weather','Hava Durumu','Güncel hava ve tahminler'],
+      ['.eg-lost-card','lost','Kayıp & Buluntu','Kayıp ve bulunan eşyalar'],
+      ['.eg-pharmacy-card','pharmacy','Nöbetçi Eczane','Nöbetçi eczanelerin konumları']
     ],ordered=[];
     definitions.forEach(([selector,key,title,description],index)=>{
       const card=grid.querySelector(selector);if(!card)return;ordered.push(card);
@@ -74,12 +75,12 @@
       card.setAttribute('aria-label',title+'. '+description);
       const holder=card.querySelector('.eg-service-icon'),name=card.querySelector('.eg-service-name');
       if(holder&&holder.dataset.serviceIcon!==key){holder.dataset.serviceIcon=key;holder.innerHTML=icons[key];holder.setAttribute('aria-hidden','true')}
-      if(!name)return;name.textContent=title;
+      if(!name)return;if(name.textContent!==title)name.textContent=title;
       let copy=card.querySelector('.eg-service-copy');
       if(!copy){copy=document.createElement('span');copy.className='eg-service-copy';name.before(copy);copy.appendChild(name)}
       let detail=copy.querySelector('.eg-service-description');
       if(!detail){detail=document.createElement('span');detail.className='eg-service-description';copy.appendChild(detail)}
-      detail.textContent=description;
+      if(detail.textContent!==description)detail.textContent=description;
     });
     ordered.forEach((card,index)=>{if(grid.children[index]!==card)grid.insertBefore(card,grid.children[index]||null)});
   }
