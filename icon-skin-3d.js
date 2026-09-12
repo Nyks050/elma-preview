@@ -3,64 +3,67 @@
   window.__elma3dIconSkin=true;
 
   const icons={
-    nearby:'<svg viewBox="0 0 32 32"><circle cx="16" cy="14" r="4"/><path d="M16 29s9-8.3 9-17a9 9 0 1 0-18 0c0 8.7 9 17 9 17Z"/><path d="M3 26h6m14 0h6"/></svg>',
-    lines:'<svg viewBox="0 0 32 32"><rect x="6" y="3" width="20" height="23" rx="6"/><path d="M10 9h12M9 16h14M11 26v3m10-3v3"/><circle cx="11" cy="21" r="1.5"/><circle cx="21" cy="21" r="1.5"/></svg>',
-    routes:'<svg viewBox="0 0 32 32"><circle cx="7" cy="24" r="3"/><circle cx="25" cy="8" r="3"/><path d="M10 23c2-7 8-2 11-8 1.2-2.4 2.1-3.2 2.7-3.8"/><path d="m20.5 7.8 4.5.2-.6 4.4"/></svg>',
-    weather:'<svg viewBox="0 0 32 32"><path d="M10 24h13a5 5 0 0 0 .6-10A8 8 0 0 0 8.8 12.5 5.8 5.8 0 0 0 10 24Z"/><path d="M8 7 6 5m10 0V2M5 15H2"/></svg>',
-    lost:'<svg viewBox="0 0 32 32"><path d="M8 10h16v17H8z"/><path d="M12 10V8a4 4 0 0 1 8 0v2m-4 5v5"/><circle cx="16" cy="24" r="1"/></svg>',
-    pharmacy:'<svg viewBox="0 0 32 32"><path d="M12 4h8v8h8v8h-8v8h-8v-8H4v-8h8z"/></svg>'
+    nearby:'<svg viewBox="0 0 48 48"><path fill="currentColor" fill-rule="evenodd" d="M24 3C14.6 3 8 9.9 8 19c0 11 16 26 16 26s16-15 16-26C40 9.9 33.4 3 24 3Zm0 9a7 7 0 1 1 0 14 7 7 0 0 1 0-14Z"/></svg>',
+    lines:'<svg viewBox="0 0 48 48"><path fill="currentColor" fill-rule="evenodd" d="M16 4h16a8 8 0 0 1 8 8v24a5 5 0 0 1-4 5v3h-6v-3H18v3h-6v-3a5 5 0 0 1-4-5V12a8 8 0 0 1 8-8Zm1 8a2 2 0 0 0-2 2v10h18V14a2 2 0 0 0-2-2H17Zm0 18a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm14 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/></svg>',
+    routes:'<svg viewBox="0 0 48 48"><path d="M13 36V21a9 9 0 0 1 9-9h13M27 4l9 8-9 8" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="37" r="6" fill="currentColor"/></svg>',
+    weather:'<svg viewBox="0 0 48 48"><circle cx="32" cy="15" r="10" fill="currentColor" opacity=".4"/><path fill="currentColor" d="M14 40a10 10 0 0 1-1-20 12 12 0 0 1 23-1 10.5 10.5 0 0 1 0 21Z"/></svg>',
+    lost:'<svg viewBox="0 0 48 48"><path fill="currentColor" fill-rule="evenodd" d="M18 4h12a5 5 0 0 1 5 5v5h3a5 5 0 0 1 5 5v19a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5V19a5 5 0 0 1 5-5h3V9a5 5 0 0 1 5-5Zm1 6v4h10v-4H19Zm-3 13v4h16v-4H16Zm6 8v6h4v-6h-4Z"/></svg>',
+    pharmacy:'<svg viewBox="0 0 48 48"><path fill="currentColor" d="M19 4h10a3 3 0 0 1 3 3v9h9a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-9v9a3 3 0 0 1-3 3H19a3 3 0 0 1-3-3v-9H7a3 3 0 0 1-3-3V19a3 3 0 0 1 3-3h9V7a3 3 0 0 1 3-3Z"/></svg>'
   };
 
   const style=document.createElement('style');
   style.id='elmaServicesLayout';
   style.textContent=`
-    #elmaHomeWidgets [data-panel="services"] {
-      --service-text:#151518;--service-secondary:#666970;--service-fill:#f4f4f6;
-      color:var(--service-text);padding-bottom:24px;
-    }
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-head{padding:12px 2px 0}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-title{margin:0;font-size:2.125rem;line-height:1.2;font-weight:750;letter-spacing:-.045em}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-subtitle{margin:8px 0 0;font-size:1rem;line-height:1.5;font-weight:400;color:var(--service-secondary)}
-    #elmaHomeWidgets [data-panel="services"] .eg-services-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:12px;margin-top:28px}
+    #elmaHomeWidgets [data-panel="services"]{--svc-ink:#101114;--svc-muted:#64676e;--svc-rule:#e4e5e8;color:var(--svc-ink);padding-bottom:24px}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-head{padding:8px 0 22px;border-bottom:1px solid var(--svc-rule)}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-title{margin:0;font-size:2.5rem;font-weight:780;letter-spacing:-.055em;line-height:1.15}
+    #elmaHomeWidgets [data-panel="services"] .eg-screen-subtitle{margin:8px 0 0;font-size:1rem;font-weight:400;line-height:1.45;color:var(--svc-muted)}
+    #elmaHomeWidgets [data-panel="services"] .eg-services-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:16px 12px;margin-top:24px}
     #elmaHomeWidgets [data-panel="services"] .eg-service-card{
-      grid-column:auto;min-width:0;min-height:186px;padding:22px 12px 20px;
-      display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-      gap:18px;background:var(--service-fill);color:var(--service-text);
-      border:1px solid transparent;border-radius:24px;box-shadow:none;
-      text-align:center;cursor:pointer;touch-action:manipulation;
-      -webkit-tap-highlight-color:transparent;transition:background .16s ease,transform .16s ease;
+      grid-column:auto;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
+      gap:0;min-width:0;min-height:0;padding:0;overflow:hidden;text-align:left;
+      border:1px solid #e1e2e6;border-radius:25px;background:#fff;color:var(--svc-ink);
+      box-shadow:0 3px 8px #10111406;cursor:pointer;touch-action:manipulation;
+      -webkit-tap-highlight-color:transparent;transition:transform .18s ease,box-shadow .18s ease;
     }
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card::before,
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card::after{content:none}
     #elmaHomeWidgets [data-panel="services"] .eg-service-icon{
-      display:grid!important;place-items:center;width:52px!important;height:52px!important;
-      flex:0 0 52px;padding:6px!important;background:none!important;
-      border:0!important;border-radius:0;box-shadow:none!important;
-      color:var(--service-text)!important;filter:none!important;
+      position:relative;isolation:isolate;display:grid!important;place-items:center;
+      width:100%!important;height:126px!important;flex:0 0 126px;padding:0!important;
+      border:0!important;border-radius:0!important;filter:none!important;
+      background:radial-gradient(ellipse at 50% -60%,#686b72 0,#25272c 46%,#111215 80%)!important;
+      color:#fff!important;box-shadow:inset 0 1px 0 #ffffff26!important;
+    }
+    #elmaHomeWidgets [data-panel="services"] .eg-service-icon:before{
+      content:"";position:absolute;inset:10px;border:1px solid #ffffff12;border-radius:17px;pointer-events:none;
     }
     #elmaHomeWidgets [data-panel="services"] .eg-service-icon>svg{
-      display:block!important;width:100%!important;height:100%!important;
-      fill:none!important;stroke:currentColor!important;stroke-width:1.7;
-      stroke-linecap:round;stroke-linejoin:round;
+      display:block!important;width:57px!important;height:57px!important;
+      fill:none!important;stroke:none!important;overflow:visible;
+      filter:drop-shadow(0 5px 4px #0005);transition:transform .2s ease;
     }
-    #elmaHomeWidgets [data-panel="services"] .eg-service-copy{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;width:100%}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-name{font-size:1rem;line-height:1.3;font-weight:650;letter-spacing:-.025em;color:var(--service-text)}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-description{display:block;max-width:175px;font-size:.875rem;line-height:1.4;font-weight:400;color:var(--service-secondary);text-wrap:balance}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:focus-visible{outline:2px solid var(--service-text);outline-offset:3px}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:active{transform:scale(.97);background:#e7e7eb}
-    @media(hover:hover){#elmaHomeWidgets [data-panel="services"] .eg-service-card:hover{background:#eaeaee}}
-    @media(max-width:359px){#elmaHomeWidgets [data-panel="services"] .eg-services-grid{gap:10px}#elmaHomeWidgets [data-panel="services"] .eg-service-card{padding:20px 10px;min-height:186px;border-radius:20px}}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-copy{
+      position:relative;display:flex;flex-direction:column;align-items:flex-start;
+      flex:1;min-width:0;gap:5px;padding:15px 13px 16px;
+    }
+    #elmaHomeWidgets [data-panel="services"] .eg-service-name{display:flex;align-items:center;min-height:2.6em;width:100%;margin:0;font-size:1rem;line-height:1.3;font-weight:730;letter-spacing:-.03em;color:var(--svc-ink)}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-description{display:block;width:100%;font-size:.875rem;line-height:1.4;font-weight:400;color:var(--svc-muted);text-wrap:balance}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card:before,
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card:after{content:none}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card:focus-visible{outline:3px solid var(--svc-ink);outline-offset:4px}
+    #elmaHomeWidgets [data-panel="services"] .eg-service-card:active{transform:scale(.965)}
+    @media(hover:hover){#elmaHomeWidgets [data-panel="services"] .eg-service-card:hover{box-shadow:0 9px 24px #10111416;transform:translateY(-2px)}#elmaHomeWidgets [data-panel="services"] .eg-service-card:hover .eg-service-icon>svg{transform:translateY(-3px)}}
+    @media(max-width:359px){#elmaHomeWidgets [data-panel="services"] .eg-services-grid{gap:12px 10px}#elmaHomeWidgets [data-panel="services"] .eg-service-copy{padding:13px 11px 15px}}
     html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-name{font-size:1.125rem}
     html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-description{font-size:1rem}
-    @media(prefers-reduced-motion:reduce){#elmaHomeWidgets [data-panel="services"] .eg-service-card{transition:none;transform:none}}
-    html[data-reduce-motion="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-card{transition:none;transform:none}
+    @media(prefers-reduced-motion:reduce){#elmaHomeWidgets [data-panel="services"] .eg-service-card,#elmaHomeWidgets [data-panel="services"] .eg-service-icon>svg{transition:none!important;transform:none!important}}
+    html[data-reduce-motion="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-card,html[data-reduce-motion="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-icon>svg{transition:none!important;transform:none!important}
   `;
   document.head.appendChild(style);
 
   function refineServices(){
     const grid=document.querySelector('#elmaHomeWidgets .eg-services-grid');if(!grid)return;
     const subtitle=grid.closest('[data-panel="services"]')?.querySelector('.eg-screen-subtitle');
-    if(subtitle&&subtitle.textContent!=='Günlük hayatını kolaylaştıran hizmetler.')subtitle.textContent='Günlük hayatını kolaylaştıran hizmetler.';
+    if(subtitle&&subtitle.textContent!=='Şehirde ihtiyacın olan, tek dokunuşta.')subtitle.textContent='Şehirde ihtiyacın olan, tek dokunuşta.';
     const definitions=[
       ['[data-service-target="nearby-stops"]','nearby','Yakındaki Duraklar','Sana en yakın duraklar'],
       ['[data-service-target="lines"]','lines','Hatlar','Hatlar ve sefer saatleri'],
@@ -74,7 +77,7 @@
       card.dataset.serviceKey=key;card.dataset.serviceIndex=String(index+1).padStart(2,'0');
       card.setAttribute('aria-label',title+'. '+description);
       const holder=card.querySelector('.eg-service-icon'),name=card.querySelector('.eg-service-name');
-      if(holder&&holder.dataset.serviceIcon!==key){holder.dataset.serviceIcon=key;holder.innerHTML=icons[key];holder.setAttribute('aria-hidden','true')}
+      if(holder&&holder.dataset.serviceIcon!==key+'-solid4'){holder.dataset.serviceIcon=key+'-solid4';holder.innerHTML=icons[key];holder.setAttribute('aria-hidden','true')}
       if(!name)return;if(name.textContent!==title)name.textContent=title;
       let copy=card.querySelector('.eg-service-copy');
       if(!copy){copy=document.createElement('span');copy.className='eg-service-copy';name.before(copy);copy.appendChild(name)}
