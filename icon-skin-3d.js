@@ -73,7 +73,7 @@ function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<header class="eg-reference-heading"><h2>Hizmetler</h2><p>Şehir araçları, tek merkezde.</p></header><div class="eg-bus-banner"><img src="assets/amasya-services-hero.webp" width="1100" height="1100" alt="Siyah-beyaz şehir manzarası önünde kırmızı otobüs" decoding="async"><div class="eg-reference-story"><h3>Şehir seninle<br>daha kolay</h3><p>Tarihiyle, doğasıyla, her yolculuk sana daha yakın.</p></div></div>';
+hero.innerHTML='<header class="eg-reference-heading"><h2>Hizmetler</h2><p>Şehir araçları, tek merkezde.</p></header><div class="eg-bus-banner"><img src="assets/amasya-services-hero.webp" width="1100" height="1100" alt="Siyah-beyaz şehir manzarası önünde kırmızı otobüs" decoding="async"><div class="eg-reference-story"><h3>Şehir seninle<br>daha kolay</h3><p>Amasya’nın her noktasına, tek dokunuşla ulaş.</p></div></div>';
 root.prepend(hero);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
 const schedule=make('schedule','Sefer Saatleri','Güncel sefer saatlerini inceleyin.',()=>{const b=root.querySelector('[data-service-target="lines"]');if(b)b.click();else message('Hat bilgileri henüz yüklenmedi. Lütfen tekrar deneyin.')});
