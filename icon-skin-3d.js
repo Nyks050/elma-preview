@@ -68,6 +68,16 @@ const b=document.createElement('button');b.type='button';b.className='eg-service
 b.innerHTML='<span class="eg-service-icon" aria-hidden="true">'+icons[key]+'</span><span class="eg-service-copy"><span class="eg-service-name">'+title+'</span><span class="eg-service-description">'+description+'</span></span>';
 b.onclick=handler;return b;
 }
+let scheduleLoad;
+function loadScheduleCards(){
+ if(scheduleLoad)return scheduleLoad;
+ const sources=[['line-1-ui.js?v=20260830-past-contrast','1'],['line-2-ui.js?v=20260830-past-contrast','2'],['line-6-ui.js?v=20260830-line6','6']];
+ scheduleLoad=Promise.all(sources.map(([src,line])=>new Promise(resolve=>{
+  const existing=document.querySelector('script[data-elma-schedule-line="'+line+'"]');if(existing){resolve();return}
+  const script=document.createElement('script');script.src=src;script.defer=true;script.dataset.elmaScheduleLine=line;script.onload=resolve;script.onerror=resolve;document.head.appendChild(script);
+ })));
+ return scheduleLoad;
+}
 
 function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
@@ -82,6 +92,7 @@ const card=make('card','Kart İşlemleri','Ulaşım kartı işlemlerinizi kolayc
 grid.append(schedule,news,card);
 // Keep the original lines action available to Sefer Saatleri, outside the visible grid.
 const internalActions=document.createElement('div');internalActions.hidden=true;internalActions.style.display='none';root.appendChild(internalActions);
+loadScheduleCards();
 function refresh(){
 observer?.disconnect();
 const linesAction=root.querySelector('[data-service-target="lines"]');
