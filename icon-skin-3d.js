@@ -98,6 +98,11 @@ const card=make('card','Kart İşlemleri','Kart özellikleri yakında Elma Go’
 grid.append(schedule,news,card);
 // Keep the original lines action available to Sefer Saatleri, outside the visible grid.
 const internalActions=document.createElement('div');internalActions.hidden=true;internalActions.style.display='none';root.appendChild(internalActions);
+const linesPanel=document.querySelector('.eg-panel[data-panel="lines"]');
+if(linesPanel&&!linesPanel.querySelector('.eg-list')){
+ const heading=document.createElement('div');heading.className='eg-screen-head';heading.innerHTML='<h2 class="eg-screen-title">Sefer Saatleri</h2><p class="eg-screen-subtitle">Hat seçerek güncel kalkış saatlerini görüntüle.</p>';
+ const list=document.createElement('div');list.className='eg-list';linesPanel.append(heading,list);
+}
 loadScheduleCards();loadCardService();
 function refresh(){
 observer?.disconnect();

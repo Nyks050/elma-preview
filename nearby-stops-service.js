@@ -132,14 +132,13 @@
     const panel=document.createElement('div');
     panel.className='eg-panel';
     panel.dataset.panel='nearby-stops';
-    panel.innerHTML='<button class="eg-service-back" type="button">‹ Hizmetler</button><div class="eg-card"><div class="eg-head"><div><div class="eg-title">Yakındaki Duraklar</div><div class="eg-muted">Konumuna en yakın duraklar</div></div><div class="eg-nearby-head-icon">'+stopIcon+'</div></div><p class="eg-nearby-intro">Hat 1 ve Hat 6 üzerindeki durakları bulunduğun konuma göre mesafeleriyle gösterir.</p><button id="egNearbyLocate" class="eg-nearby-locate" type="button" hidden>Konumumu kullan</button><div id="egNearbyStatus" class="eg-nearby-status" aria-live="polite">Yakındaki durakları görmek için konumunu kullan.</div><div id="egNearbyResults" class="eg-nearby-results"></div></div>';
+    panel.innerHTML='<button class="eg-service-back" type="button">‹ Hizmetler</button><div class="eg-card"><div class="eg-head"><div><div class="eg-title">Yakındaki Duraklar</div></div><div class="eg-nearby-head-icon">'+stopIcon+'</div></div></div>';
     const weather=grid.querySelector('[data-service-target="weather"]');
     grid.insertBefore(card,weather||null);
     widgets.insertBefore(panel,widgets.querySelector('.eg-panel[data-panel="account"]'));
-    card.onclick=()=>{showPanel(panel);requestLocation()};
+    card.onclick=()=>showPanel(panel);
     panel.querySelector('.eg-service-back').onclick=goServices;
-    panel.querySelector('#egNearbyLocate').onclick=requestLocation;
-    return true;
+        return true;
   }
 
   let attempts=0;
