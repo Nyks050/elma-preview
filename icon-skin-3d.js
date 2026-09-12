@@ -1,116 +1,104 @@
 (()=>{
-  if(window.__elma3dIconSkin)return;
-  window.__elma3dIconSkin=true;
-
-  const icons={
-    nearby:'<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 35s10-9.1 10-19a10 10 0 1 0-20 0c0 9.9 10 19 10 19Z"/><circle cx="20" cy="16" r="3.5"/><path d="M8 34h7m10 0h7"/></svg>',
-    lines:'<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="9" y="5" width="22" height="28" rx="6"/><path d="M13 10h14v11H13zM13 33v3m14-3v3"/><circle cx="14.5" cy="27" r="1.5"/><circle cx="25.5" cy="27" r="1.5"/></svg>',
-    routes:'<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="9" cy="30" r="3.5"/><circle cx="31" cy="10" r="3.5"/><path d="M12.5 29c2.2-8.8 9.4-3.7 13.1-10.4 1.7-3.1 2.5-4.6 3.5-5.8"/></svg>',
-    weather:'<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="27" cy="12" r="6"/><path d="M27 3v3m0 12v3M18 12h3m12 0h3M20.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1"/><path d="M10 33h17a5.5 5.5 0 0 0 .5-11 8.5 8.5 0 0 0-16.3 1.9A4.7 4.7 0 0 0 10 33Z"/></svg>',
-    lost:'<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M9 13h22v21H9zM14 13v-3a6 6 0 0 1 12 0v3"/><circle cx="25" cy="26" r="5"/><path d="m28.8 29.8 4.2 4.2"/></svg>',
-    pharmacy:'<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M15 4h10v11h11v10H25v11H15V25H4V15h11z"/></svg>'
-  };
-
-  const style=document.createElement('style');
-  style.id='elmaServicesLayout';
-  style.textContent=`
-    #elmaHomeWidgets [data-panel="services"]{--hub-ink:#111214;--hub-muted:#72757b;--hub-line:#dedfe3;--hub-panel:#f6f6f7;--hub-red:#ff2d2d;color:var(--hub-ink);font-family:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;padding-bottom:22px}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-head{position:relative;padding:9px 2px 20px}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-head:before{content:"";display:block;width:28px;height:5px;margin-bottom:15px;border-radius:99px;background:var(--hub-red)}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-title{margin:0;color:var(--hub-ink);font-size:2.15rem;line-height:1.08;font-weight:750;letter-spacing:-.055em}
-    #elmaHomeWidgets [data-panel="services"] .eg-screen-subtitle{margin:8px 0 0;color:var(--hub-muted);font-size:.875rem;line-height:1.45;font-weight:420}
-    #elmaHomeWidgets [data-panel="services"] .eg-services-grid{
-      position:relative;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
-      grid-auto-rows:128px;gap:0!important;margin-top:8px!important;overflow:hidden;
-      border:1px solid var(--hub-line);border-radius:26px;background:var(--hub-panel);
-      box-shadow:0 12px 30px rgba(17,18,20,.055),inset 0 1px 0 #fff;
-    }
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card{
-      position:relative;grid-column:auto!important;width:100%;height:128px!important;min-height:128px!important;
-      display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
-      gap:8px!important;padding:14px!important;overflow:hidden;text-align:center!important;
-      border:0!important;border-right:1px solid var(--hub-line)!important;border-bottom:1px solid var(--hub-line)!important;
-      border-radius:0!important;background:transparent!important;color:var(--hub-ink)!important;box-shadow:none!important;
-      cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-      transition:background .18s ease,color .18s ease,transform .14s ease;
-    }
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(even){border-right:0!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-last-child(-n+2){border-bottom:0!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:before{
-      content:attr(data-service-index);position:absolute;top:12px;right:13px;color:#a4a6ab;
-      z-index:2;font-size:.56rem;line-height:1;font-weight:700;letter-spacing:.08em;
-    }
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:after{
-      content:""!important;position:absolute;inset:0;z-index:0;pointer-events:none;
-      background-image:var(--service-art);background-position:center;background-repeat:no-repeat;background-size:98px 98px;
-      opacity:.085;filter:grayscale(1) contrast(1.2);transform:scale(1.08);
-    }
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="weather"]{--service-art:url("assets/elma-service-weather-3d-mono.png?v=20260901-services1")}
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="lines"]{--service-art:url("assets/elma-service-lines-3d-mono.png?v=20260901-services1")}
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="routes"]{--service-art:url("assets/elma-service-routes-3d-mono.png?v=20260901-services1")}
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="lost"]{--service-art:url("assets/elma-service-lost-3d-mono.png?v=20260901-services1")}
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="pharmacy"]{--service-art:url("assets/elma-service-pharmacy-3d-mono.png?v=20260901-services1")}
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="nearby"]{--service-art:url("assets/elma-3d-icons.webp?v=20260830-fast2")}
-    #elmaHomeWidgets [data-panel="services"] [data-service-key="nearby"]:after{background-size:400% 400%;background-position:66.667% 33.333%;transform:scale(.78)}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:active:after{opacity:.14;filter:grayscale(1) invert(1)}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-icon{
-      position:relative;z-index:1;display:grid!important;place-items:center!important;width:44px!important;height:44px!important;
-      flex:0 0 44px!important;padding:4px!important;border:0!important;border-radius:0!important;
-      background:none!important;background-image:none!important;color:var(--hub-ink)!important;
-      box-shadow:none!important;filter:none!important;transition:transform .2s cubic-bezier(.2,.8,.2,1);
-    }
-    #elmaHomeWidgets [data-panel="services"] .eg-service-icon>svg{
-      display:block!important;width:100%!important;height:100%!important;fill:none!important;
-      stroke:currentColor!important;stroke-width:1.7!important;stroke-linecap:round!important;
-      stroke-linejoin:round!important;vector-effect:non-scaling-stroke;
-    }
-    #elmaHomeWidgets [data-panel="services"] .eg-service-copy{position:relative;z-index:1;display:block!important;width:100%;min-width:0;padding:0!important;text-align:center!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-name{display:block!important;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:inherit!important;font-size:.8125rem!important;line-height:1.25!important;font-weight:650!important;letter-spacing:-.018em!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-description{display:none!important}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:focus-visible{z-index:2;outline:2px solid var(--hub-ink);outline-offset:-3px}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:active{background:var(--hub-ink)!important;color:#fff!important;transform:scale(.975)}
-    #elmaHomeWidgets [data-panel="services"] .eg-service-card:active:before{color:#ffffff80}
-    @media(hover:hover){#elmaHomeWidgets [data-panel="services"] .eg-service-card:hover{background:#fff!important}#elmaHomeWidgets [data-panel="services"] .eg-service-card:hover .eg-service-icon{transform:translateY(-2px)}}
-    @media(max-width:359px){#elmaHomeWidgets [data-panel="services"] .eg-services-grid{grid-auto-rows:120px;border-radius:22px}#elmaHomeWidgets [data-panel="services"] .eg-service-card{height:120px!important;min-height:120px!important;padding:15px!important}}
-    html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-name{font-size:.9375rem!important}
-    @media(prefers-reduced-motion:reduce){#elmaHomeWidgets [data-panel="services"] .eg-service-card,#elmaHomeWidgets [data-panel="services"] .eg-service-icon{transition:none!important;transform:none!important}}
-    html[data-reduce-motion="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-card,html[data-reduce-motion="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-icon{transition:none!important;transform:none!important}
-  `;
-  document.head.appendChild(style);
-
-  function refineServices(){
-    const grid=document.querySelector('#elmaHomeWidgets .eg-services-grid');if(!grid)return;
-    const subtitle=grid.closest('[data-panel="services"]')?.querySelector('.eg-screen-subtitle');
-    if(subtitle&&subtitle.textContent!=='Şehir araçları, tek merkezde.')subtitle.textContent='Şehir araçları, tek merkezde.';
-    const definitions=[
-      ['[data-service-target="nearby-stops"]','nearby','Yakındaki Duraklar','Sana en yakın duraklar'],
-      ['[data-service-target="lines"]','lines','Hatlar','Hatlar ve sefer saatleri'],
-      ['[data-service-target="routes"]','routes','Güzergâhlar','Duraklar ve hat rotaları'],
-      ['[data-service-target="weather"]','weather','Hava Durumu','Güncel hava ve tahminler'],
-      ['.eg-lost-card','lost','Kayıp & Buluntu','Kayıp ve bulunan eşyalar'],
-      ['.eg-pharmacy-card','pharmacy','Nöbetçi Eczane','Nöbetçi eczanelerin konumları']
-    ],ordered=[];
-    definitions.forEach(([selector,key,title,description],index)=>{
-      const card=grid.querySelector(selector);if(!card)return;ordered.push(card);
-      card.dataset.serviceKey=key;card.dataset.serviceIndex=String(index+1).padStart(2,'0');
-      card.setAttribute('aria-label',title+'. '+description);
-      const holder=card.querySelector('.eg-service-icon'),name=card.querySelector('.eg-service-name');
-      if(holder&&holder.dataset.serviceIcon!==key+'-hub6'){holder.dataset.serviceIcon=key+'-hub6';holder.innerHTML=icons[key];holder.setAttribute('aria-hidden','true')}
-      if(!name)return;if(name.textContent!==title)name.textContent=title;
-      let copy=card.querySelector('.eg-service-copy');
-      if(!copy){copy=document.createElement('span');copy.className='eg-service-copy';name.before(copy);copy.appendChild(name)}
-      let detail=copy.querySelector('.eg-service-description');
-      if(!detail){detail=document.createElement('span');detail.className='eg-service-description';copy.appendChild(detail)}
-      if(detail.textContent!==description)detail.textContent=description;
-    });
-    ordered.forEach((card,index)=>{if(grid.children[index]!==card)grid.insertBefore(card,grid.children[index]||null)});
-  }
-  let timer=0,tries=0;
-  function mount(){
-    const widgets=document.getElementById('elmaHomeWidgets');
-    if(!widgets){if(++tries<80)setTimeout(mount,100);return}
-    refineServices();
-    new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(refineServices,20)}).observe(widgets,{subtree:true,childList:true});
-  }
-  mount();
+'use strict';
+if(window.__elmaReferenceServices)return;
+window.__elmaReferenceServices=true;
+const svg=body=>'<svg viewBox="0 0 32 32" aria-hidden="true">'+body+'</svg>';
+const icons={
+schedule:svg('<circle cx="16" cy="16" r="12"/><path d="m16 9 0 7 5-5M16 4v2"/>'),
+lines:svg('<rect x="7" y="4" width="18" height="22" rx="4"/><path d="M10 9h12v8H10zM10 26v3m12-3v3M11 22h1m8 0h1"/>'),
+ticket:svg('<path d="m5 20 15-15 4 4a3 3 0 0 0 4 4l-15 15-4-4a3 3 0 0 0-4-4Z"/><path d="m14 12 6 6"/>'),
+nearby:svg('<path d="M14 4v3m0 7v4m0 7v4M6 7h17l5 4-5 4H6v-8Zm18 11H7l-4 4 4 4h17v-8"/>'),
+routes:svg('<path d="m4 7 8-3 8 3 8-3v21l-8 3-8-3-8 3V7Zm8-3v21m8-18v21"/>'),
+weather:svg('<circle cx="22" cy="11" r="5"/><path d="M22 2v2m7 7h2m-9 7v2M15 4l2 2m10 10 2 2m0-14-2 2M8 27h15a5 5 0 0 0 0-10 7 7 0 0 0-13-2 6 6 0 0 0-2 12Z"/>'),
+news:svg('<path d="M7 23h18l-3-5v-6a6 6 0 0 0-12 0v6l-3 5Zm6 4a3 3 0 0 0 6 0"/><circle cx="24" cy="7" r="4" fill="#e51d2a" stroke="#111"/>'),
+card:svg('<rect x="3" y="7" width="26" height="19" rx="3"/><path d="M3 13h26M8 20h6"/>')
+};
+const style=document.createElement('style');
+style.id='elmaReferenceServices';
+style.textContent=`
+body.eg-reference-services{background:#fff!important}
+body.eg-reference-services #elmaHomeWidgets{width:100%;max-width:520px;padding:env(safe-area-inset-top) 0 calc(110px + env(safe-area-inset-bottom));margin:0 auto;background:#fff}
+#elmaHomeWidgets [data-panel="services"]{color:#09090a;font-family:-apple-system,BlinkMacSystemFont,"Inter",Arial,sans-serif}
+#elmaHomeWidgets [data-panel="services"] .eg-screen-head{display:none}
+.eg-reference-hero{position:relative;width:100%;aspect-ratio:1/1.04;isolation:isolate;overflow:hidden;background:#fff}
+.eg-reference-hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:-1}
+.eg-reference-heading{padding:30px 6% 0}
+.eg-reference-heading h2{margin:0;font-size:clamp(32px,8.8vw,46px);font-weight:780;letter-spacing:-.055em;line-height:1.1}
+.eg-reference-heading p{margin:5px 0 0;font-size:clamp(14px,3.7vw,19px);color:#626262;letter-spacing:.005em;line-height:1.4}
+.eg-reference-story{position:absolute;top:35%;left:6.5%;width:45%}
+.eg-reference-story h3{font-size:clamp(23px,6.1vw,32px);font-weight:750;letter-spacing:-.055em;line-height:1.03;margin:0 0 9px}
+.eg-reference-story p{margin:0;color:#595959;font-size:clamp(13px,3.25vw,17px);line-height:1.4;letter-spacing:-.025em}
+#elmaHomeWidgets [data-panel="services"] .eg-services-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0 5%;border:0;border-radius:0;box-shadow:none;background:#fff}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card{position:relative;grid-column:auto;width:100%;min-width:0;min-height:78px;height:auto;display:grid;grid-template-columns:38px minmax(0,1fr) 19px;align-items:center;gap:9px;padding:14px 7px;border:0;border-radius:0;border-bottom:1px solid #f0f0f0;background:#fff;color:#09090a;text-align:left;box-shadow:none;font-family:inherit;cursor:pointer;touch-action:manipulation}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(odd){border-right:1px solid #f4f4f4;padding-right:10px}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(even){padding-left:14px}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(n+7){border-bottom:0}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:before{content:none}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:after{content:"›";display:grid;place-items:center;width:19px;height:19px;background:#f2f2f2;border-radius:50%;font-size:20px;line-height:1;font-weight:600;position:static}
+#elmaHomeWidgets [data-panel="services"] .eg-service-icon{display:grid!important;place-items:center!important;width:38px!important;height:38px!important;padding:9px!important;border:0!important;border-radius:50%!important;background:#f3f3f3!important;color:#080808!important;filter:none!important;box-shadow:none!important}
+#elmaHomeWidgets [data-panel="services"] .eg-service-icon svg{display:block!important;width:100%!important;height:100%!important;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+#elmaHomeWidgets [data-panel="services"] .eg-service-copy{display:block;min-width:0}
+#elmaHomeWidgets [data-panel="services"] .eg-service-name{display:block;font-size:clamp(10px,2.55vw,14px);font-weight:730;line-height:1.25;letter-spacing:-.05em;white-space:normal}
+#elmaHomeWidgets [data-panel="services"] .eg-service-description{display:block;margin-top:3px;font-size:clamp(9px,2.2vw,12px);line-height:1.45;font-weight:400;letter-spacing:-.02em;color:#737373}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:focus-visible{outline:2px solid #111;outline-offset:-2px}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:active{background:#f7f7f7;transform:scale(.985)}
+.eg-reference-other{margin:12px 6%;color:#696969;font-size:12px}
+.eg-reference-other summary{padding:10px 0;cursor:pointer}
+.eg-reference-other-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+#elmaHomeWidgets [data-panel="services"] .eg-reference-other .eg-service-card{border:0;padding:10px 4px}
+.eg-reference-notice{margin:10px 6%;padding:14px;border:1px solid #e6e6e6;border-radius:16px;font-size:14px;line-height:1.5;color:#555;background:#fafafa}
+.eg-reference-notice[hidden]{display:none}
+body.eg-reference-services .elma-main-nav{left:4%;right:4%;bottom:calc(12px + env(safe-area-inset-bottom));height:66px;max-width:480px;padding:4px 8px;border:1px solid #f8f8f8;border-radius:40px;box-shadow:0 6px 20px #00000012;background:#ffffffed;backdrop-filter:blur(18px)}
+body.eg-reference-services .elma-main-tab{font-family:inherit;border-radius:32px;font-size:11px;line-height:1.2;gap:4px;font-weight:600;color:#737373}
+body.eg-reference-services .elma-main-tab svg{width:23px;height:23px;stroke-width:1.9}
+body.eg-reference-services .elma-main-tab.active{background:#f4f4f4;color:#080808;font-weight:700}
+@media(min-width:480px){#elmaHomeWidgets [data-panel="services"] .eg-service-card{min-height:96px;grid-template-columns:48px minmax(0,1fr) 24px;gap:12px}#elmaHomeWidgets [data-panel="services"] .eg-service-icon{width:48px!important;height:48px!important;padding:11px!important}}
+@media(max-width:359px){#elmaHomeWidgets [data-panel="services"] .eg-service-card{grid-template-columns:30px minmax(0,1fr) 16px;gap:5px;padding:12px 4px}#elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(even){padding-left:8px}#elmaHomeWidgets [data-panel="services"] .eg-service-icon{width:30px!important;height:30px!important;padding:6px!important}}
+html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-name{font-size:15px}
+html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-description{font-size:14px}
+@media(prefers-reduced-motion:reduce){#elmaHomeWidgets [data-panel="services"] .eg-service-card{transform:none!important}}
+`;
+document.head.appendChild(style);
+let notice,grid,other,root,observer,timer;
+function message(text){notice.textContent=text;notice.hidden=false;notice.scrollIntoView({block:'nearest',behavior:'smooth'})}
+function make(key,title,description,handler){
+const b=document.createElement('button');b.type='button';b.className='eg-service-card';b.dataset.referenceKey=key;
+b.innerHTML='<span class="eg-service-icon" aria-hidden="true">'+icons[key]+'</span><span class="eg-service-copy"><span class="eg-service-name">'+title+'</span><span class="eg-service-description">'+description+'</span></span>';
+b.onclick=handler;return b;
+}
+function mount(){
+root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
+grid=root.querySelector('.eg-services-grid');if(!grid)return;
+const hero=document.createElement('div');hero.className='eg-reference-hero';
+hero.innerHTML='<img src="assets/amasya-services-hero.webp" alt="" fetchpriority="high" width="1100" height="1100"><header class="eg-reference-heading"><h2>Hizmetler</h2><p>Şehir araçları, tek merkezde.</p></header><div class="eg-reference-story"><h3>Şehir seninle<br>daha kolay</h3><p>Tarihiyle, doğasıyla,<br>her yolculuk sana<br>daha yakın.</p></div>';
+root.prepend(hero);
+const extras=document.createElement('details');extras.className='eg-reference-other';extras.innerHTML='<summary>Diğer hizmetler</summary><div class="eg-reference-other-grid"></div>';root.appendChild(extras);other=extras.lastElementChild;
+notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
+const schedule=make('schedule','Sefer Saatleri','Güncel sefer saatlerini inceleyin.',()=>{const b=root.querySelector('[data-service-target="lines"]');if(b)b.click();else message('Hat bilgileri henüz yüklenmedi. Lütfen tekrar deneyin.')});
+const ticket=make('ticket','Bilet İşlemleri','Bilet al, yükleme yap, işlemlerini yönet.',()=>message('Bilet satın alma ve yükleme hizmeti henüz Elma Go’ya bağlanmadı.'));
+const routes=make('routes','Rota Planla','Gitmek istediğiniz yere en iyi rotayı bulun.',()=>{if(window.elmaOpenSearch)window.elmaOpenSearch();else message('Rota planlama henüz yüklenmedi. Lütfen tekrar deneyin.')});
+const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>message('Duyuru kaynağı henüz bağlanmadı. Güncel duyurular burada gösterilecek.'));
+const card=make('card','Kart İşlemleri','Ulaşım kartı işlemlerinizi kolayca yönetin.',()=>message('Ulaşım kartı yönetimi henüz Elma Go’ya bağlanmadı.'));
+grid.append(schedule,ticket,routes,news,card);
+function refresh(){
+observer?.disconnect();
+const defs=[
+[schedule,'schedule','Sefer Saatleri','Güncel sefer saatlerini inceleyin.'],
+[root.querySelector('[data-service-target="lines"]'),'lines','Hatlar','Tüm hat bilgilerini görüntüleyin.'],
+[ticket,'ticket','Bilet İşlemleri','Bilet al, yükleme yap, işlemlerini yönet.'],
+[root.querySelector('.eg-nearby-card'),'nearby','Yakındaki Duraklar','Size en yakın durakları bulun.'],
+[routes,'routes','Rota Planla','Gitmek istediğiniz yere en iyi rotayı bulun.'],
+[root.querySelector('[data-service-target="weather"]'),'weather','Hava Durumu','Güncel hava durumu bilgileri.'],
+[news,'news','Duyurular','Güncel duyuruları ve haberleri takip edin.'],
+[card,'card','Kart İşlemleri','Ulaşım kartı işlemlerinizi kolayca yönetin.']];
+const ordered=[];
+defs.forEach(([b,key,title,desc])=>{if(!b)return;ordered.push(b);if(b.dataset.referenceStyled)return;b.dataset.referenceStyled='1';b.innerHTML='<span class="eg-service-icon" aria-hidden="true">'+icons[key]+'</span><span class="eg-service-copy"><span class="eg-service-name">'+title+'</span><span class="eg-service-description">'+desc+'</span></span>';});
+[...grid.children].filter(b=>!ordered.includes(b)).forEach(b=>other.appendChild(b));
+ordered.forEach((b,i)=>{if(grid.children[i]!==b)grid.insertBefore(b,grid.children[i]||null)});
+document.body.classList.toggle('eg-reference-services',root.classList.contains('active'));
+observer.observe(document.getElementById('elmaHomeWidgets'),{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+}
+observer=new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(refresh,30)});refresh();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 })();
