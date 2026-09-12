@@ -68,7 +68,13 @@ const b=document.createElement('button');b.type='button';b.className='eg-service
 b.innerHTML='<span class="eg-service-icon" aria-hidden="true">'+icons[key]+'</span><span class="eg-service-copy"><span class="eg-service-name">'+title+'</span><span class="eg-service-description">'+description+'</span></span>';
 b.onclick=handler;return b;
 }
-let scheduleLoad;
+let cardServiceLoad,scheduleLoad;
+function loadCardService(){
+ if(window.elmaOpenCardService)return Promise.resolve();
+ if(cardServiceLoad)return cardServiceLoad;
+ cardServiceLoad=new Promise(resolve=>{const script=document.createElement('script');script.src='card-service.js?v=20260912-card-service1';script.defer=true;script.onload=resolve;script.onerror=resolve;document.head.appendChild(script)});
+ return cardServiceLoad;
+}
 function loadScheduleCards(){
  if(scheduleLoad)return scheduleLoad;
  const sources=[['line-1-ui.js?v=20260830-past-contrast','1'],['line-2-ui.js?v=20260830-past-contrast','2'],['line-6-ui.js?v=20260830-line6','6']];
@@ -88,11 +94,11 @@ root.prepend(hero);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
 const schedule=make('schedule','Sefer Saatleri','Güncel sefer saatlerini inceleyin.',()=>{const b=root.querySelector('[data-service-target="lines"]');if(b)b.click();else message('Hat bilgileri henüz yüklenmedi. Lütfen tekrar deneyin.')});
 const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>message('Duyuru kaynağı henüz bağlanmadı. Güncel duyurular burada gösterilecek.'));
-const card=make('card','Kart İşlemleri','Ulaşım kartı işlemlerinizi kolayca yönetin.',()=>message('Ulaşım kartı yönetimi henüz Elma Go’ya bağlanmadı.'));
+const card=make('card','Kart İşlemleri','Bakiye ve ulaşım kartını kolayca yönet.',()=>loadCardService().then(()=>{if(window.elmaOpenCardService)window.elmaOpenCardService();else message('Kart işlemleri yüklenemedi. Lütfen tekrar deneyin.')}));
 grid.append(schedule,news,card);
 // Keep the original lines action available to Sefer Saatleri, outside the visible grid.
 const internalActions=document.createElement('div');internalActions.hidden=true;internalActions.style.display='none';root.appendChild(internalActions);
-loadScheduleCards();
+loadScheduleCards();loadCardService();
 function refresh(){
 observer?.disconnect();
 const linesAction=root.querySelector('[data-service-target="lines"]');
@@ -100,7 +106,7 @@ if(linesAction&&linesAction.parentElement!==internalActions)internalActions.appe
 // Estimated everyday use, not measured analytics.
 const defs=[
 [schedule,'schedule','Sefer Saatleri','Güncel sefer saatlerini inceleyin.'],
-[card,'card','Kart İşlemleri','Ulaşım kartı işlemlerinizi kolayca yönetin.'],
+[card,'card','Kart İşlemleri','Bakiye ve ulaşım kartını kolayca yönet.'],
 [root.querySelector('.eg-nearby-card'),'nearby','Yakındaki Duraklar','Size en yakın durakları bulun.'],
 [root.querySelector('[data-service-target="routes"]'),'routes','Güzergâh','Hatların güzergâhlarını inceleyin.'],
 [root.querySelector('.eg-pharmacy-card'),'pharmacy','Nöbetçi Eczane','Nöbetçi eczanelere ulaşın.'],

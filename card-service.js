@@ -1,0 +1,52 @@
+(()=>{
+'use strict';
+if(window.__elmaCardService)return;
+window.__elmaCardService=true;
+const STORAGE_KEY='elma_transit_card_v1';
+let panel,state;
+const money=value=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(value);
+const escape=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+function initial(){return{card:null,balance:0,transactions:[]}}
+function read(){
+ try{
+  const value=JSON.parse(localStorage.getItem(STORAGE_KEY));
+  if(!value||typeof value!=='object')return initial();
+  return{card:value.card&&typeof value.card.number==='string'?value.card:null,balance:Number.isFinite(Number(value.balance))?Math.max(0,Number(value.balance)):0,transactions:Array.isArray(value.transactions)?value.transactions.slice(0,20):[]};
+ }catch(e){return initial()}
+}
+function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));return true}catch(e){return false}}
+function notify(text,error=false){const box=panel.querySelector('.eg-card-status');if(!box)return;box.textContent=text;box.dataset.error=String(error);box.hidden=false}
+function back(){if(window.elmaSelectMainTab)window.elmaSelectMainTab('services')}
+function open(){document.querySelectorAll('.eg-panel').forEach(item=>item.classList.toggle('active',item===panel));document.querySelectorAll('.elma-main-tab').forEach(item=>item.classList.toggle('active',item.dataset.elmaTab==='services'));render();panel.scrollIntoView({block:'start'})}
+function emptyView(){
+ return `<div class="eg-card-empty"><div class="eg-card-empty-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="3" y="7" width="26" height="19" rx="3"/><path d="M3 13h26M8 20h6"/></svg></div><h3>Ulaşım kartını ekle</h3><p>Bakiyeni ve yükleme geçmişini tek yerden takip et.</p></div><form class="eg-card-add"><label>Kart numarası<input name="number" inputmode="numeric" autocomplete="off" maxlength="16" placeholder="Kart üzerindeki numara" required></label><label>Kart adı<input name="name" maxlength="28" autocomplete="off" placeholder="Örn. Benim kartım" required></label><button type="submit">Kartı ekle</button></form>`;
+}
+function cardView(){
+ const number=state.card.number,masked='•••• '+number.slice(-4),history=state.transactions.length?state.transactions.map(item=>`<li><span><b>Bakiye yükleme</b><small>${escape(new Intl.DateTimeFormat('tr-TR',{dateStyle:'medium',timeStyle:'short'}).format(new Date(item.date)))}</small></span><strong>+${escape(money(item.amount))}</strong></li>`).join(''):'<li class="eg-card-no-history">Henüz işlem bulunmuyor.</li>';
+ return `<div class="eg-transit-card"><div class="eg-transit-brand">ELMA GO</div><div class="eg-transit-balance"><small>Kullanılabilir bakiye</small><strong>${escape(money(state.balance))}</strong></div><div class="eg-transit-meta"><span>${escape(state.card.name)}</span><span>${masked}</span></div></div><section class="eg-card-section"><h3>Bakiye yükle</h3><div class="eg-card-quick"><button type="button" data-amount="50">50 ₺</button><button type="button" data-amount="100">100 ₺</button><button type="button" data-amount="200">200 ₺</button></div><form class="eg-card-topup"><label class="sr-only" for="egCardAmount">Yüklenecek tutar</label><input id="egCardAmount" name="amount" type="number" inputmode="decimal" min="10" max="1000" step="1" placeholder="Başka tutar"><button type="submit">Yükle</button></form><p class="eg-card-demo-note">Ödeme altyapısı bağlanana kadar yüklemeler yalnızca bu cihazda demo olarak kaydedilir.</p></section><section class="eg-card-section"><div class="eg-card-section-head"><h3>Son işlemler</h3><button class="eg-card-remove" type="button">Kartı kaldır</button></div><ul class="eg-card-history">${history}</ul></section>`;
+}
+function topup(amount){
+ amount=Math.round(Number(amount));if(!Number.isFinite(amount)||amount<10||amount>1000){notify('10 ₺ ile 1.000 ₺ arasında bir tutar gir.',true);return}
+ state.balance=Math.round((state.balance+amount)*100)/100;state.transactions.unshift({amount,date:new Date().toISOString()});state.transactions=state.transactions.slice(0,20);
+ if(!save()){notify('İşlem cihazda kaydedilemedi.',true);return}render();notify(money(amount)+' bakiyene eklendi.');
+}
+function bind(){
+ const add=panel.querySelector('.eg-card-add');if(add)add.onsubmit=event=>{event.preventDefault();const data=new FormData(add),number=String(data.get('number')||'').replace(/\D/g,''),name=String(data.get('name')||'').trim();if(number.length<8){notify('Geçerli bir ulaşım kartı numarası gir.',true);return}if(name.length<2){notify('Kartına kısa bir ad ver.',true);return}state={card:{number,name},balance:0,transactions:[]};if(!save()){notify('Kart cihazda kaydedilemedi.',true);return}render();notify('Kartın eklendi.')};
+ panel.querySelectorAll('[data-amount]').forEach(button=>button.onclick=()=>topup(button.dataset.amount));
+ const topupForm=panel.querySelector('.eg-card-topup');if(topupForm)topupForm.onsubmit=event=>{event.preventDefault();topup(new FormData(topupForm).get('amount'))};
+ const remove=panel.querySelector('.eg-card-remove');if(remove)remove.onclick=()=>{if(!confirm('Bu kart ve cihazdaki işlem geçmişi kaldırılsın mı?'))return;state=initial();save();render();notify('Kart kaldırıldı.')};
+}
+function render(){const content=panel.querySelector('.eg-card-content');content.innerHTML=state.card?cardView():emptyView();panel.querySelector('.eg-card-status').hidden=true;bind()}
+function mount(){
+ const widgets=document.getElementById('elmaHomeWidgets');if(!widgets){setTimeout(mount,80);return}
+ const style=document.createElement('style');style.id='elmaCardServiceStyle';style.textContent=`
+#elmaHomeWidgets [data-panel="card-service"]{min-height:100vh;padding:calc(18px + env(safe-area-inset-top)) 6% calc(92px + env(safe-area-inset-bottom));background:#fff;color:#09090a;font-family:-apple-system,BlinkMacSystemFont,"Inter",Arial,sans-serif}
+.eg-card-page-head{display:grid;grid-template-columns:42px 1fr 42px;align-items:center;margin-bottom:22px}.eg-card-page-head button{width:42px;height:42px;border:0;border-radius:50%;background:#f3f3f3;color:#111;font-size:27px}.eg-card-page-head h2{margin:0;text-align:center;font-size:23px;letter-spacing:-.04em}.eg-card-status{margin:0 0 14px;padding:12px 14px;border-radius:14px;background:#eef8f0;color:#176328;font-size:13px}.eg-card-status[data-error="true"]{background:#fff0f0;color:#a01d28}.eg-card-status[hidden]{display:none}.eg-transit-card{position:relative;overflow:hidden;aspect-ratio:1.58;border-radius:28px;padding:22px;color:#fff;background:radial-gradient(circle at 85% 15%,#444 0,transparent 31%),linear-gradient(145deg,#202020,#070707);box-shadow:0 15px 32px #0003}.eg-transit-card:after{content:"";position:absolute;width:230px;height:230px;border:1px solid #ffffff1f;border-radius:50%;right:-85px;bottom:-130px}.eg-transit-brand{font-size:13px;font-weight:800;letter-spacing:.12em}.eg-transit-balance{margin-top:32px}.eg-transit-balance small,.eg-transit-balance strong{display:block}.eg-transit-balance small{color:#bbb;font-size:12px}.eg-transit-balance strong{margin-top:5px;font-size:clamp(28px,8vw,40px);letter-spacing:-.05em}.eg-transit-meta{position:absolute;left:22px;right:22px;bottom:20px;display:flex;justify-content:space-between;color:#d0d0d0;font-size:12px;font-weight:650}.eg-card-section{margin-top:24px}.eg-card-section h3{margin:0 0 13px;font-size:18px;letter-spacing:-.03em}.eg-card-quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.eg-card-quick button{height:48px;border:1px solid #e3e3e3;border-radius:15px;background:#f7f7f7;color:#111;font-weight:750}.eg-card-topup{display:grid;grid-template-columns:1fr 96px;gap:8px;margin-top:8px}.eg-card-topup input,.eg-card-add input{width:100%;height:50px;border:1px solid #dedede;border-radius:15px;background:#fff;padding:0 14px;font:inherit;outline:none}.eg-card-topup input:focus,.eg-card-add input:focus{border-color:#111}.eg-card-topup button,.eg-card-add button{height:50px;border:0;border-radius:15px;background:#101010;color:#fff;font-weight:750}.eg-card-demo-note{margin:9px 2px 0;color:#777;font-size:11px;line-height:1.45}.eg-card-section-head{display:flex;align-items:center;justify-content:space-between}.eg-card-section-head h3{margin:0}.eg-card-remove{border:0;background:transparent;color:#a51e28;font-size:12px;font-weight:650}.eg-card-history{list-style:none;padding:0;margin:10px 0 0;border-top:1px solid #ececec}.eg-card-history li{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;border-bottom:1px solid #ececec}.eg-card-history b,.eg-card-history small{display:block}.eg-card-history b{font-size:14px}.eg-card-history small{margin-top:4px;color:#777;font-size:11px}.eg-card-history strong{color:#176328;font-size:14px}.eg-card-history .eg-card-no-history{justify-content:center;color:#777;font-size:13px}.eg-card-empty{text-align:center;padding:24px 12px 18px}.eg-card-empty-icon{display:grid;place-items:center;width:66px;height:66px;margin:0 auto 15px;border-radius:22px;background:#f2f2f2;padding:17px}.eg-card-empty-icon svg{width:100%;height:100%;fill:none;stroke:#111;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.eg-card-empty h3{margin:0;font-size:21px}.eg-card-empty p{max-width:270px;margin:8px auto 0;color:#6d6d6d;font-size:14px;line-height:1.5}.eg-card-add{display:grid;gap:12px}.eg-card-add label{display:grid;gap:7px;color:#555;font-size:12px;font-weight:650}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:350px){.eg-transit-card{padding:18px}.eg-transit-balance{margin-top:23px}.eg-transit-meta{left:18px;right:18px;bottom:17px}}
+`;
+ document.head.appendChild(style);
+ panel=document.createElement('section');panel.className='eg-panel';panel.dataset.panel='card-service';panel.innerHTML='<header class="eg-card-page-head"><button type="button" aria-label="Hizmetlere dön">‹</button><h2>Kart İşlemleri</h2><span></span></header><div class="eg-card-status" role="status" aria-live="polite" hidden></div><div class="eg-card-content"></div>';
+ const account=widgets.querySelector('.eg-panel[data-panel="account"]');widgets.insertBefore(panel,account||null);panel.querySelector('.eg-card-page-head button').onclick=back;state=read();render();window.elmaOpenCardService=open;
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+})();
