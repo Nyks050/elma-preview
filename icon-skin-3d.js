@@ -26,22 +26,12 @@ body.eg-reference-services #elmaHomeWidgets{width:100%;max-width:520px;padding:e
 .eg-reference-heading{padding:22px 6% 12px}
 .eg-reference-heading h2{margin:0;font-size:clamp(32px,8.8vw,46px);font-weight:780;letter-spacing:-.055em;line-height:1.1}
 .eg-reference-heading p{margin:5px 0 0;font-size:clamp(14px,3.7vw,19px);color:#626262;line-height:1.4}
-.eg-city-track{display:flex;width:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
-.eg-city-track::-webkit-scrollbar{display:none}
-.eg-city-slide{position:relative;isolation:isolate;flex:0 0 100%;min-width:0;min-height:clamp(160px,42vw,200px);scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;background:#fff}
-.eg-city-slide>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1);z-index:-2}
-.eg-city-slide:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,.96) 27%,rgba(255,255,255,.82) 43%,rgba(255,255,255,0) 74%),linear-gradient(0deg,#fff,rgba(255,255,255,0) 25%)}
+.eg-bus-banner{position:relative;isolation:isolate;width:100%;min-height:clamp(160px,42vw,200px);overflow:hidden;background:#fff}
+.eg-bus-banner>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 88%;z-index:-2}
+.eg-bus-banner:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,.96) 27%,rgba(255,255,255,.82) 43%,rgba(255,255,255,0) 74%),linear-gradient(0deg,#fff,rgba(255,255,255,0) 25%)}
 .eg-reference-story{position:relative;max-width:60%;padding:22px 0 25px;margin-left:6%;color:#09090a}
 .eg-reference-story h3{white-space:pre-line;font-size:clamp(23px,6.1vw,30px);font-weight:750;letter-spacing:-.05em;line-height:1.05;margin:0 0 9px}
 .eg-reference-story p{max-width:185px;margin:0;color:#595959;font-size:14px;line-height:1.4}
-.eg-city-controls{display:flex;align-items:center;justify-content:center;gap:7px;min-height:38px;margin:0 6% 4px}
-.eg-city-controls[hidden]{display:none}
-.eg-city-controls button{border:0;display:grid;place-items:center;background:transparent;min-width:32px;min-height:32px;padding:6px;color:#181818;cursor:pointer;border-radius:50%}
-.eg-city-controls .eg-city-prev,.eg-city-controls .eg-city-next{font-size:22px;line-height:1}
-.eg-city-dot:before{content:"";width:6px;height:6px;background:#c6c6c6;border-radius:50%}
-.eg-city-dot[aria-pressed="true"]:before{width:18px;border-radius:4px;background:#181818}
-.eg-city-controls button:focus-visible,.eg-city-track:focus-visible{outline:2px solid #111;outline-offset:-2px}
-.eg-city-controls button:disabled{opacity:.25;cursor:default}
 #elmaHomeWidgets [data-panel="services"] .eg-services-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0 5%;border:0;border-radius:0;box-shadow:none;background:#fff}
 #elmaHomeWidgets [data-panel="services"] .eg-service-card{position:relative;grid-column:auto;width:100%;min-width:0;min-height:90px;height:auto;display:grid;grid-template-columns:42px minmax(0,1fr) 19px;align-items:center;gap:9px;padding:17px 7px;border:0;border-radius:0;border-bottom:1px solid #f0f0f0;background:#fff;color:#09090a;text-align:left;box-shadow:none;font-family:inherit;cursor:pointer;touch-action:manipulation}
 #elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(odd){border-right:1px solid #f4f4f4;padding-right:10px}
@@ -78,45 +68,11 @@ b.innerHTML='<span class="eg-service-icon" aria-hidden="true">'+icons[key]+'</sp
 b.onclick=handler;return b;
 }
 
-function setupCityBanner(hero){
- const defaults=[{"title":"Şehir seninle\ndaha kolay","description":"Tarihiyle, doğasıyla, her yolculuk sana daha yakın.","image":"assets/amasya-photo-1.webp","alt":"Amasya Yalıboyu evleri, Yeşilırmak ve kayalık yamaçlar","position":"center 57%","source":"https://commons.wikimedia.org/wiki/File:Amasya_evleri_ve_Ye%C5%9Fil%C4%B1rmak.jpg","author":"Cobija"},{"title":"Amasya'yı\nyeniden keşfet","description":"Yeşilırmak kıyısından şehrin sokaklarına.","image":"assets/amasya-photo-2.webp","alt":"Yeşilırmak'a yansıyan Amasya evleri ve saat kulesi","position":"center 52%","source":"https://commons.wikimedia.org/wiki/File:Amasya_evleri_ve_Ye%C5%9Fil%C4%B1rmak_(2).jpg","author":"Cobija"}];
- const track=hero.querySelector('.eg-city-track'),controls=hero.querySelector('.eg-city-controls');
- let current=0,buttons=[],prev,next,pages=[],scrollFrame=0;
- const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.reduceMotion==='true';
- function go(index){if(!pages.length)return;const bounded=Math.max(0,Math.min(index,pages.length-1));track.scrollTo({left:bounded*track.clientWidth,behavior:reduced()?'auto':'smooth'});}
- function sync(){if(!track.clientWidth)return;current=Math.max(0,Math.min(pages.length-1,Math.round(track.scrollLeft/track.clientWidth)));buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===current)));prev.disabled=current===0;next.disabled=current===pages.length-1;}
- function render(items){
-  pages=items;current=0;track.replaceChildren();controls.replaceChildren();
-  items.forEach((item,i)=>{
-   const slide=document.createElement('article');slide.className='eg-city-slide';slide.setAttribute('role','group');slide.setAttribute('aria-roledescription','slayt');slide.setAttribute('aria-label',(i+1)+' / '+items.length);
-   const image=document.createElement('img');image.src=item.image;image.alt=item.alt||'Amasya';image.width=1200;image.height=900;image.loading=i===0?'eager':'lazy';image.decoding='async';image.style.objectPosition=item.position||'center';
-   image.onerror=()=>{image.hidden=true;};
-   const text=document.createElement('div');text.className='eg-reference-story';const heading=document.createElement('h3');heading.textContent=item.title;const copy=document.createElement('p');copy.textContent=item.description;text.append(heading,copy);slide.append(image,text);track.appendChild(slide);
-  });
-  function control(label,text,handler){const b=document.createElement('button');b.type='button';b.setAttribute('aria-label',label);b.textContent=text;b.onclick=handler;return b;}
-  prev=control('Önceki görsel','‹',()=>go(current-1));prev.className='eg-city-prev';controls.appendChild(prev);
-  buttons=items.map((item,i)=>{const b=control((i+1)+'. görsel: '+item.title.replace(/\n/g,' '),'',()=>go(i));b.className='eg-city-dot';b.setAttribute('aria-pressed',String(i===0));controls.appendChild(b);return b});
-  next=control('Sonraki görsel','›',()=>go(current+1));next.className='eg-city-next';controls.appendChild(next);controls.hidden=items.length<2;
-  track.scrollLeft=0;prev.disabled=true;next.disabled=items.length<2;
- }
- track.addEventListener('scroll',()=>{cancelAnimationFrame(scrollFrame);scrollFrame=requestAnimationFrame(sync)},{passive:true});
- track.addEventListener('keydown',event=>{if(event.key==='ArrowRight'){event.preventDefault();go(current+1)}if(event.key==='ArrowLeft'){event.preventDefault();go(current-1)}});
- if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(track.clientWidth)track.scrollTo({left:current*track.clientWidth,behavior:'auto'})}).observe(track);
- render(defaults);
- const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),4000);
- fetch('services-banners.json',{cache:'no-cache',signal:controller.signal}).then(r=>{if(!r.ok)throw Error('Banner content unavailable');return r.json()}).then(items=>{
-  if(!Array.isArray(items)||!items.length)return;
-  const valid=items.filter(item=>item&&typeof item.title==='string'&&typeof item.description==='string'&&typeof item.image==='string'&&/^assets\/[\w./-]+$/.test(item.image)&&typeof item.source==='string'&&item.source.startsWith('https://commons.wikimedia.org/')&&typeof item.author==='string');
-  if(valid.length&&JSON.stringify(valid)!==JSON.stringify(defaults))render(valid);
- }).catch(()=>{}).finally(()=>clearTimeout(timeout));
-}
-
 function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<header class="eg-reference-heading"><h2>Hizmetler</h2><p>Şehir araçları, tek merkezde.</p></header><div class="eg-city-track" tabindex="0" role="region" aria-roledescription="karusel" aria-label="Amasya fotoğrafları"></div><div class="eg-city-controls" aria-label="Banner seçimi"></div>';
-setupCityBanner(hero);
+hero.innerHTML='<header class="eg-reference-heading"><h2>Hizmetler</h2><p>Şehir araçları, tek merkezde.</p></header><div class="eg-bus-banner"><img src="assets/amasya-services-hero.webp" width="1100" height="1100" alt="Siyah-beyaz şehir manzarası önünde kırmızı otobüs" decoding="async"><div class="eg-reference-story"><h3>Şehir seninle<br>daha kolay</h3><p>Tarihiyle, doğasıyla, her yolculuk sana daha yakın.</p></div></div>';
 root.prepend(hero);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
 const schedule=make('schedule','Sefer Saatleri','Güncel sefer saatlerini inceleyin.',()=>{const b=root.querySelector('[data-service-target="lines"]');if(b)b.click();else message('Hat bilgileri henüz yüklenmedi. Lütfen tekrar deneyin.')});
