@@ -69,6 +69,10 @@ b.innerHTML='<span class="eg-service-icon" aria-hidden="true">'+icons[key]+'</sp
 b.onclick=handler;return b;
 }
 let cardServiceLoad,scheduleLoad;
+function loadServicePageTheme(){
+ if(document.querySelector('script[data-elma-service-theme]'))return;
+ const script=document.createElement('script');script.src='service-page-theme.js?v=20260912-unified1';script.defer=true;script.dataset.elmaServiceTheme='1';document.head.appendChild(script);
+}
 function loadCardService(){
  if(window.elmaOpenCardService)return Promise.resolve();
  if(cardServiceLoad)return cardServiceLoad;
@@ -87,7 +91,7 @@ function loadScheduleCards(){
 
 function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
-grid=root.querySelector('.eg-services-grid');if(!grid)return;
+grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageTheme();
 const hero=document.createElement('div');hero.className='eg-reference-hero';
 hero.innerHTML='<header class="eg-reference-heading"><h2>Hizmetler</h2><p>Şehir araçları, tek merkezde.</p></header><div class="eg-bus-banner"><img src="assets/amasya-services-hero.webp" width="1100" height="1100" alt="Siyah-beyaz şehir manzarası önünde kırmızı otobüs" decoding="async"><div class="eg-reference-story"><h3>Şehir seninle<br>daha kolay</h3><p>Amasya’nın her noktasına, tek dokunuşla ulaş.</p></div></div>';
 root.prepend(hero);
