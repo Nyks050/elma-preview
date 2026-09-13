@@ -71,7 +71,7 @@ b.onclick=handler;return b;
 let cardServiceLoad,scheduleLoad;
 function loadServicePageTheme(){
  if(document.querySelector('script[data-elma-service-theme]'))return;
- const script=document.createElement('script');script.src='service-page-theme.js?v=20260912-unified1';script.defer=true;script.dataset.elmaServiceTheme='1';document.head.appendChild(script);
+ const script=document.createElement('script');script.src='service-page-theme.js?v=20260913-unified2';script.defer=true;script.dataset.elmaServiceTheme='1';document.head.appendChild(script);
 }
 function loadCardService(){
  if(window.elmaOpenCardService)return Promise.resolve();
