@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Amasya durağına yanaşıp bekleyen ve hareket eden otobüs">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#11141b"/><stop offset="1" stop-color="#252831"/></linearGradient>
+    <linearGradient id="street" x2="0" y2="1"><stop stop-color="#252830"/><stop offset="1" stop-color="#090b0f"/></linearGradient>
+    <linearGradient id="body" x2="0" y2="1"><stop stop-color="#ffffff"/><stop offset=".45" stop-color="#e8e9ec"/><stop offset=".84" stop-color="#b4b8c0"/><stop offset="1" stop-color="#777d86"/></linearGradient>
+    <linearGradient id="glass" x2="0" y2="1"><stop stop-color="#343b48"/><stop offset="1" stop-color="#0b1018"/></linearGradient>
+    <linearGradient id="front" x2="0" y2="1"><stop stop-color="#c4c9d1"/><stop offset=".64" stop-color="#8b929c"/><stop offset="1" stop-color="#525964"/></linearGradient>
+    <radialGradient id="lamp"><stop stop-color="#ffffff" stop-opacity=".72"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-100%" width="160%" height="300%"><feGaussianBlur stdDeviation="11"/></filter>
+    <style>
+      .bus{animation:ride 12s infinite;will-change:transform}
+      .wheel{transform-box:fill-box;transform-origin:center;animation:roll 12s linear infinite}
+      .wind{animation:gust 12s infinite}
+      .door{animation:openDoor 12s infinite}
+      .stoplight{animation:stopGlow 12s infinite}
+      @keyframes ride{0%{transform:translateX(-620px);animation-timing-function:cubic-bezier(.3,.45,.65,1)}42%,63%{transform:translateX(185px)}64%{animation-timing-function:cubic-bezier(.4,0,.55,1)}94%,100%{transform:translateX(900px)}}
+      @keyframes roll{0%{transform:rotate(0)}42%{transform:rotate(1260deg)}63%{transform:rotate(1260deg)}94%,100%{transform:rotate(2340deg)}}
+      @keyframes gust{0%,6%,40%,65%,93%,100%{opacity:0}10%,35%,70%,89%{opacity:.8}42%,63%{opacity:0}}
+      @keyframes openDoor{0%,44%,64%,100%{transform:translateX(0)}49%,59%{transform:translateX(-13px)}}
+      @keyframes stopGlow{0%,38%,64%,100%{opacity:.2}42%,60%{opacity:1}}
+      @media(prefers-reduced-motion:reduce){.bus,.wheel,.wind,.door,.stoplight{animation:none!important}.bus{transform:translateX(185px)}.wind{opacity:0}}
+    </style>
+  </defs>
+  <rect width="800" height="400" fill="url(#sky)"/>
+  <path d="M0 219 70 201 116 208 173 182 225 205 277 186 322 214 369 191 432 218 483 188 534 215 600 183 672 205 721 192 800 218V300H0Z" fill="#32353c" opacity=".34"/>
+  <path d="M0 255c105-39 157-29 263 1 99 29 158-29 260-9 83 16 156-31 277-17v77H0Z" fill="#15191e" opacity=".8"/>
+  <g opacity=".5" fill="#c1c6cd"><rect x="70" y="180" width="2" height="74"/><rect x="65" y="177" width="13" height="2"/><circle cx="71" cy="179" r="21" fill="url(#lamp)"/><rect x="292" y="168" width="2" height="92"/><rect x="287" y="165" width="13" height="2"/><circle cx="293" cy="167" r="21" fill="url(#lamp)"/></g>
+  <!-- The shelter stays behind the arriving vehicle. -->
+  <g transform="translate(608 119)">
+    <ellipse cx="89" cy="172" rx="104" ry="11" fill="#030408" opacity=".55"/>
+    <path d="M0 25 22 13h145l17 12v8H0Z" fill="#d9dde3"/><path d="M9 32h170" stroke="#f5f6f8" stroke-width="3"/>
+    <path d="M20 33v132m144-132v132" stroke="#b9bec6" stroke-width="7"/>
+    <path d="M26 38h133v111H26Z" fill="#b9c0ca" fill-opacity=".09" stroke="#737c89" stroke-width="2"/>
+    <path d="M69 38v111m46-111v111" stroke="#aeb5c0" stroke-opacity=".42" stroke-width="2"/>
+    <path d="m32 44 27 0-27 82m47-82 24 0-27 82" fill="#fff" opacity=".055"/>
+    <rect x="39" y="139" width="111" height="7" rx="3" fill="#bec3ca"/><path d="M51 146v16m87-16v16" stroke="#8b929b" stroke-width="5"/>
+    <rect x="174" y="23" width="5" height="142" fill="#c3c8d0"/>
+    <rect x="162" y="-2" width="29" height="28" rx="5" fill="#e6e9ed"/><circle cx="176" cy="12" r="6" fill="#242830"/><circle cx="176" cy="12" r="13" fill="url(#lamp)" opacity=".4"/>
+  </g>
+  <rect y="279" width="800" height="121" fill="url(#street)"/>
+  <path d="M0 286h800" stroke="#c9cbd0" stroke-opacity=".4" stroke-width="2"/>
+  <path d="M0 354h800" stroke="#f6f6f6" stroke-opacity=".2" stroke-width="2" stroke-dasharray="34 28"/>
+  <path d="M0 382h800" stroke="#fff" stroke-opacity=".1" stroke-width="1"/>
+  <g class="bus">
+    <ellipse cx="281" cy="298" rx="232" ry="17" fill="#000" opacity=".64" filter="url(#shadow)"/>
+    <g class="wind" fill="none" stroke="#d9dee7" stroke-linecap="round"><path d="M-73 185h93" stroke-width="3" opacity=".72"/><path d="M-105 207H5" stroke-width="2" opacity=".5"/><path d="M-83 232h105" stroke-width="2.5" opacity=".65"/><path d="M-55 249H5" stroke-width="1.4" opacity=".45"/></g>
+    <path d="M72 147q0-19 20-19h317q42 0 65 33l24 49q9 17 9 35v26q0 10-11 10H65q-12 0-12-11V170q0-19 19-23Z" fill="url(#body)" stroke="#f4f6f8" stroke-width="2"/>
+    <path d="M81 140h322q40 0 61 31l6 11H73v-22q0-19 8-20Z" fill="#f7f8fa" opacity=".82"/>
+    <path d="M75 172h357q29 0 45 28l9 19H68v-40q0-7 7-7Z" fill="url(#glass)" stroke="#565d68" stroke-width="3"/>
+    <path d="M130 175v42m86-42v42m86-42v42m87-42v42" stroke="#c4cbd3" stroke-width="5" opacity=".55"/>
+    <path d="m80 179 245 0-155 16-90 0Z" fill="#fff" opacity=".16"/>
+    <path d="m402 177 45 5 22 35h-66Z" fill="#d8e0e8" opacity=".17"/>
+    <path d="M68 227h419" stroke="#fafafa" stroke-width="5" opacity=".65"/>
+    <path d="M65 237h429v26H65Z" fill="#b8bdc5" opacity=".4"/>
+    <path d="M390 224v43m65-43v43" stroke="#737b85" stroke-width="2"/>
+    <g class="door"><path d="M390 226h65v41h-65Z" fill="#252c35" opacity=".7"/><path d="M420 226v41" stroke="#e6ebf0" stroke-width="3" opacity=".65"/><path d="M395 236h20" stroke="#b8c2cc" stroke-width="2" opacity=".5"/></g>
+    <path d="M474 174q31 15 32 47v33l-17 2-8-56Z" fill="url(#front)"/><path d="m475 187 23 30-20-2Z" fill="#0d141d" opacity=".85"/>
+    <path d="M485 188h20v8h-20Z" fill="#242c36"/><rect x="503" y="192" width="9" height="15" rx="4" fill="#aeb6bf"/>
+    <path d="M58 250h27l-4 14H58Zm420-1 27 1-1 11h-29Z" fill="#fbfcfd"/><path d="M478 251h26" stroke="#fff" stroke-width="4"/>
+    <path d="M64 267h432v12H66q-10 0-10-9Z" fill="#505760"/><path d="M64 269h432" stroke="#d6d9dd" stroke-width="2" opacity=".7"/>
+    <g transform="translate(117 278)"><g class="wheel"><circle r="36" fill="#0b0d10"/><circle r="28" fill="#292d33" stroke="#656b74" stroke-width="3"/><circle r="19" fill="#c0c5cc"/><circle r="15" fill="#676e78"/><path d="M-13 0h26M0-13v26M-9-9 9 9M9-9-9 9" stroke="#e3e6eb" stroke-width="4"/><circle r="5" fill="#30363e"/></g></g>
+    <g transform="translate(409 278)"><g class="wheel"><circle r="36" fill="#0b0d10"/><circle r="28" fill="#292d33" stroke="#656b74" stroke-width="3"/><circle r="19" fill="#c0c5cc"/><circle r="15" fill="#676e78"/><path d="M-13 0h26M0-13v26M-9-9 9 9M9-9-9 9" stroke="#e3e6eb" stroke-width="4"/><circle r="5" fill="#30363e"/></g></g>
+    <ellipse class="stoplight" cx="69" cy="245" rx="12" ry="9" fill="#fff" opacity=".2"/>
+  </g>
+</svg>
