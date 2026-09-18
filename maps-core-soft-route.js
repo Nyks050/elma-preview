@@ -536,10 +536,15 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       });
     }
     let lastMainTabTouch=0;
+    let pendingTabTimer;
+    let leavingTab;
     const tabAnimationTimers=new WeakMap();
+    function mainTabSurface(name){
+      return name==='home'?home:name==='event'?eventScreen:document.querySelector(`.eg-panel[data-panel="${name}"]`);
+    }
     function animateMainTab(name){
       if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.reduceMotion==='true')return;
-      const target=name==='home'?home:name==='event'?eventScreen:document.querySelector(`.eg-panel[data-panel="${name}"]`);
+      const target=mainTabSurface(name);
       if(!target)return;
       clearTimeout(tabAnimationTimers.get(target));
       target.classList.remove('elma-tab-enter');
@@ -547,17 +552,35 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       target.classList.add('elma-tab-enter');
       tabAnimationTimers.set(target,setTimeout(()=>target.classList.remove('elma-tab-enter'),280));
     }
-    function activateMainTab(button){
-      const name=button.dataset.elmaTab;
-      const switched=nav.querySelector('.elma-main-tab.active')?.dataset.elmaTab!==name;
-      if(name==='home'){showHome();if(switched)animateMainTab(name);return}
+    function showMainTab(name){
+      if(name==='home'){showHome();animateMainTab(name);return}
       document.body.classList.remove('elma-white-flow');
       hideWhiteScreens();
       setNavActive(name);
       wrapper.style.display='block';
-      if(name==='event'){eventScreen.classList.add('show');if(switched)animateMainTab(name);return}
+      if(name==='event'){eventScreen.classList.add('show');animateMainTab(name);return}
       openLegacyTab(name);
-      if(switched)animateMainTab(name);
+      animateMainTab(name);
+    }
+    function activateMainTab(button){
+      const name=button.dataset.elmaTab;
+      clearTimeout(pendingTabTimer);
+      leavingTab?.classList.remove('elma-tab-leave');
+      leavingTab=null;
+      const current=nav.querySelector('.elma-main-tab.active')?.dataset.elmaTab;
+      if(current===name)return;
+      const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.reduceMotion==='true';
+      const source=mainTabSurface(current);
+      if(reduced||!source){showMainTab(name);return}
+      clearTimeout(tabAnimationTimers.get(source));
+      source.classList.remove('elma-tab-enter');
+      leavingTab=source;
+      source.classList.add('elma-tab-leave');
+      pendingTabTimer=setTimeout(()=>{
+        source.classList.remove('elma-tab-leave');
+        leavingTab=null;
+        showMainTab(name);
+      },130);
     }
     nav.querySelectorAll('.elma-main-tab').forEach(button=>{
       button.addEventListener('touchend',event=>{
