@@ -39,7 +39,7 @@
     detail.querySelector('.eg-line-meta').textContent=`${schedule.departure} • ${schedule.times.length} sefer • ${data.stopCount} durak${today?` • ${elapsed?`${elapsed} sefer geçti`:'Bugün henüz geçen sefer yok'}`:''}`;
     detail.querySelector('.eg-line-times').innerHTML=schedule.times.map(time=>{
       const [hour,minute]=time.split(':').map(Number),past=today&&hour*60+minute<now.minute;
-      return `<div class="eg-line-time${past?' is-past':''}"${past?` aria-label="${time} geçti"`:''}>${time}</div>`;
+      return `<div class="eg-line-time${past?' is-past':''}"${past?` aria-label="${time} geçti"`:''}><span>${time}</span></div>`;
     }).join('');
     detail.querySelectorAll('.eg-line-tab').forEach(tab=>tab.classList.toggle('active',tab.dataset.day===key));
   }
