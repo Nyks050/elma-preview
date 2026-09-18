@@ -7,7 +7,7 @@
   const escapeHtml=value=>String(value??'').replace(/[&<>'"]/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
   const fmtTime=date=>new Intl.DateTimeFormat('tr-TR',{hour:'2-digit',minute:'2-digit'}).format(date);
   const fmtMeters=value=>value<1000?Math.max(10,Math.round(value/10)*10)+' m':(value/1000).toFixed(1).replace('.',',')+' km';
-  function mapsUrl(origin,destination,mode){const from=pt(origin),to=pt(destination),travel=mode==='WALKING'?'walking':mode==='TRANSIT'?'transit':'driving';return 'https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(from.lat+','+from.lng)+'&destination='+encodeURIComponent(to.lat+','+to.lng)+'&travelmode='+travel}
+  function mapsUrl(origin,destination,mode){const from=pt(origin),to=pt(destination),travel=mode==='WALKING'?'walking':mode==='TRANSIT'?'transit':'driving';return 'https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route='+encodeURIComponent(from.lat+','+from.lng+';'+to.lat+','+to.lng)}
   function distance(a,b){const r=Math.PI/180,p1=a.lat*r,p2=b.lat*r,dp=(b.lat-a.lat)*r,dl=(b.lng-a.lng)*r,h=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;return 12742000*Math.atan2(Math.sqrt(h),Math.sqrt(1-h))}
   function clearStopOverlays(){stopOverlays.forEach(item=>item.setMap(null));stopOverlays=[]}
   function clearOverlays(){if(routeAnimation)cancelAnimationFrame(routeAnimation);routeAnimation=0;overlays.forEach(item=>item.setMap(null));overlays=[];clearStopOverlays()}
@@ -23,12 +23,12 @@
   function addLine(map,path,kind='solid'){
     if(!path?.length)return;
     const options=kind==='walk'?{strokeOpacity:0,strokeWeight:0,icons:[{icon:{path:'M 0,-1 0,1',strokeColor:'#050505',strokeOpacity:1,strokeWeight:4,scale:2.1},offset:'0',repeat:'13px'}]}:{strokeColor:'#050505',strokeOpacity:1,strokeWeight:6};
-    const line=new google.maps.Polyline({map,path,clickable:false,zIndex:5,...options});overlays.push(line);
+    const line=new ElmaMaps.Polyline({map,path,clickable:false,zIndex:5,...options});overlays.push(line);
   }
   function lineOptions(kind){return kind==='walk'?{strokeOpacity:0,strokeWeight:0,icons:[{icon:{path:'M 0,-1 0,1',strokeColor:'#050505',strokeOpacity:1,strokeWeight:4,scale:2.1},offset:'0',repeat:'13px'}]}:{strokeColor:'#050505',strokeOpacity:1,strokeWeight:6}}
   function animateLines(map,segments){
     if(routeAnimation)cancelAnimationFrame(routeAnimation);routeAnimation=0;
-    const prepared=segments.filter(item=>item.path?.length>1).map(item=>{const lengths=[0];for(let i=1;i<item.path.length;i++)lengths.push(lengths[i-1]+distance(pt(item.path[i-1]),pt(item.path[i])));const line=new google.maps.Polyline({map,path:[],clickable:false,zIndex:5,...lineOptions(item.kind)});overlays.push(line);return {...item,lengths,total:lengths.at(-1),line}});
+    const prepared=segments.filter(item=>item.path?.length>1).map(item=>{const lengths=[0];for(let i=1;i<item.path.length;i++)lengths.push(lengths[i-1]+distance(pt(item.path[i-1]),pt(item.path[i])));const line=new ElmaMaps.Polyline({map,path:[],clickable:false,zIndex:5,...lineOptions(item.kind)});overlays.push(line);return {...item,lengths,total:lengths.at(-1),line}});
     const total=prepared.reduce((sum,item)=>sum+item.total,0)||1,start=performance.now(),duration=Math.min(5200,Math.max(2600,total/7));
     const frame=now=>{const target=Math.min(1,(now-start)/duration)*total;let passed=0;for(const item of prepared){const local=Math.max(0,Math.min(item.total,target-passed));passed+=item.total;if(local<=0){item.line.setPath([]);continue}if(local>=item.total){item.line.setPath(item.path);continue}let index=1;while(index<item.lengths.length&&item.lengths[index]<local)index++;const before=item.path[index-1],after=item.path[index],span=item.lengths[index]-item.lengths[index-1]||1,ratio=(local-item.lengths[index-1])/span;item.line.setPath([...item.path.slice(0,index),{lat:before.lat+(after.lat-before.lat)*ratio,lng:before.lng+(after.lng-before.lng)*ratio}])}if(target<total)routeAnimation=requestAnimationFrame(frame);else routeAnimation=0};
     routeAnimation=requestAnimationFrame(frame);
@@ -46,10 +46,10 @@
   }
   async function googleRoute(from,to,mode){
     try{
-      const result=await new google.maps.DirectionsService().route({origin:pt(from),destination:pt(to),travelMode:google.maps.TravelMode[mode],region:'TR',language:'tr'});
+      const result=await new ElmaMaps.DirectionsService().route({origin:pt(from),destination:pt(to),travelMode:ElmaMaps.TravelMode[mode],region:'TR',language:'tr'});
       const route=result.routes?.[0],leg=route?.legs?.[0];if(!route||!leg)return null;
-      return {mode,path:detailedPath(route),meters:leg.distance?.value||0,seconds:leg.duration?.value||0,summary:route.summary||'',leg,source:'google'};
-    }catch(error){console.warn(mode+' Google rotası alınamadı, OSM deneniyor:',error);return osmRoute(from,to,mode)}
+      return {mode,path:detailedPath(route),meters:leg.distance?.value||0,seconds:leg.duration?.value||0,summary:route.summary||'',leg,source:'osm'};
+    }catch(error){console.warn(mode+' OSM rotası alınamadı, OSM deneniyor:',error);return osmRoute(from,to,mode)}
   }
   function bestTransit(origin,destination,stops){
     let best=null,prefix=[0];
@@ -71,7 +71,7 @@
     const path=[];let seconds=0,meters=0;
     for(let start=0;start<positions.length-1;start+=7){
       const segment=positions.slice(start,Math.min(start+8,positions.length));
-      const result=await new google.maps.DirectionsService().route({origin:pt(segment[0]),destination:pt(segment.at(-1)),waypoints:segment.slice(1,-1).map(stop=>({location:pt(stop),stopover:true})),optimizeWaypoints:false,travelMode:google.maps.TravelMode.DRIVING,region:'TR',language:'tr'});
+      const result=await new ElmaMaps.DirectionsService().route({origin:pt(segment[0]),destination:pt(segment.at(-1)),waypoints:segment.slice(1,-1).map(stop=>({location:pt(stop),stopover:true})),optimizeWaypoints:false,travelMode:ElmaMaps.TravelMode.DRIVING,region:'TR',language:'tr'});
       const route=result.routes?.[0];if(!route)throw new Error('Otobüs yol parçası oluşturulamadı');
       const segmentPath=detailedPath(route);if(path.length&&segmentPath.length)segmentPath.shift();path.push(...segmentPath);
       route.legs?.forEach(leg=>{seconds+=leg.duration?.value||0;meters+=leg.distance?.value||0});
@@ -97,10 +97,10 @@
     clearStopOverlays();if(!transit?.stopPoints?.length)return;
     transit.stopPoints.forEach((position,offset)=>{
       const isBoard=offset===0,isAlight=offset===transit.stopPoints.length-1;if(!showAll&&!isBoard&&!isAlight)return;
-      const number=transit.board+offset+1,marker=new google.maps.Marker({map,position,clickable:false,zIndex:20+offset,title:'',label:{text:String(number),color:isBoard?'#fff':'#09090a',fontSize:'9px',fontWeight:'800'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:isBoard||isAlight?12:9,fillColor:isBoard?'#09090a':'#fff',fillOpacity:1,strokeColor:'#09090a',strokeOpacity:1,strokeWeight:2.5}});stopOverlays.push(marker);
+      const number=transit.board+offset+1,marker=new ElmaMaps.Marker({map,position,clickable:false,zIndex:20+offset,title:'',label:{text:String(number),color:isBoard?'#fff':'#09090a',fontSize:'9px',fontWeight:'800'},icon:{path:ElmaMaps.SymbolPath.CIRCLE,scale:isBoard||isAlight?12:9,fillColor:isBoard?'#09090a':'#fff',fillOpacity:1,strokeColor:'#09090a',strokeOpacity:1,strokeWeight:2.5}});stopOverlays.push(marker);
     });
   }
-  function fit(map,paths,maxZoom=14){const bounds=new google.maps.LatLngBounds();paths.flat().forEach(point=>bounds.extend(point));if(!bounds.isEmpty()){google.maps.event.addListenerOnce(map,'idle',()=>{if((map.getZoom?.()||0)>maxZoom)map.setZoom(maxZoom)});map.fitBounds(bounds,{top:64,right:44,bottom:82,left:44})}}
+  function fit(map,paths,maxZoom=14){const bounds=new ElmaMaps.LatLngBounds();paths.flat().forEach(point=>bounds.extend(point));if(!bounds.isEmpty()){ElmaMaps.event.addListenerOnce(map,'idle',()=>{if((map.getZoom?.()||0)>maxZoom)map.setZoom(maxZoom)});map.fitBounds(bounds,{top:64,right:44,bottom:82,left:44})}}
   function draw(mode){
     if(!current)return;clearOverlays();const {map,drive,walk,transit}=current;
     lockTransitMap(mode==='TRANSIT');

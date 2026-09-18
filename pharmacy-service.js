@@ -68,7 +68,7 @@
       directions.textContent='Yol tarifi';
       directions.target='_blank';
       directions.rel='noopener';
-      directions.href='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(item.latitude+','+item.longitude);
+      directions.href='https://www.openstreetmap.org/?mlat='+encodeURIComponent(item.latitude)+'&mlon='+encodeURIComponent(item.longitude)+'#map=17/'+encodeURIComponent(item.latitude)+'/'+encodeURIComponent(item.longitude);
       actions.append(phone,directions);
       card.append(title,distance,address,actions);
       results.appendChild(card);

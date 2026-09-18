@@ -21,17 +21,17 @@
   function drawFixedChunk(chunk){
     if(!Array.isArray(chunk.path)||chunk.path.length<2)return;
     const path=chunk.path.map(point);path.forEach(position=>routeBounds.extend(position));
-    routeLines.push(new google.maps.Polyline({map:routeMap,path,strokeColor:chunk.color,strokeOpacity:.96,strokeWeight:6,geodesic:false,zIndex:chunk.direction==='Dönüş'?6:5,clickable:false}));
+    routeLines.push(new ElmaMaps.Polyline({map:routeMap,path,strokeColor:chunk.color,strokeOpacity:.96,strokeWeight:6,geodesic:false,zIndex:chunk.direction==='Dönüş'?6:5,clickable:false}));
   }
   async function initMap(container){
-    if(routeMap)return routeMap;if(!window.google?.maps)return null;
-    routeBounds=new google.maps.LatLngBounds();routeMap=new google.maps.Map(container,{center:point(stops[0]),zoom:12,disableDefaultUI:true,clickableIcons:false,gestureHandling:'greedy',mapTypeId:'roadmap'});
-    routeMarkers=stops.map((position,index)=>{const isReturn=index>=25,number=isReturn?index-24:index+1,color=isReturn?'#0b8f9c':'#050506';routeBounds.extend(point(position));return new google.maps.Marker({map:routeMap,position:point(position),zIndex:100+index,title:`6 Nolu Hat • ${isReturn?'Dönüş':'Gidiş'} • ${isReturn?'D':'G'}${number}`,label:{text:(isReturn?'D':'G')+number,color,fontSize:'8px',fontWeight:'800'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:9,fillColor:'#fff',fillOpacity:1,strokeColor:color,strokeOpacity:1,strokeWeight:2}})});
+    if(routeMap)return routeMap;if(!window.ElmaMaps)return null;
+    routeBounds=new ElmaMaps.LatLngBounds();routeMap=new ElmaMaps.Map(container,{center:point(stops[0]),zoom:12,disableDefaultUI:true,clickableIcons:false,gestureHandling:'greedy',mapTypeId:'roadmap'});
+    routeMarkers=stops.map((position,index)=>{const isReturn=index>=25,number=isReturn?index-24:index+1,color=isReturn?'#0b8f9c':'#050506';routeBounds.extend(point(position));return new ElmaMaps.Marker({map:routeMap,position:point(position),zIndex:100+index,title:`6 Nolu Hat • ${isReturn?'Dönüş':'Gidiş'} • ${isReturn?'D':'G'}${number}`,label:{text:(isReturn?'D':'G')+number,color,fontSize:'8px',fontWeight:'800'},icon:{path:ElmaMaps.SymbolPath.CIRCLE,scale:9,fillColor:'#fff',fillOpacity:1,strokeColor:color,strokeOpacity:1,strokeWeight:2}})});
     if(routeChunks.length!==6)console.error('6 Nolu Hat sabit güzergâh parçaları yüklenemedi');
     routeChunks.forEach(drawFixedChunk);
     fitRoute();return routeMap;
   }
-  function refreshMap(container){if(!routeLoading)routeLoading=initMap(container).finally(()=>{routeLoading=null});requestAnimationFrame(()=>requestAnimationFrame(()=>{if(routeMap){google.maps.event.trigger(routeMap,'resize');fitRoute()}}))}
+  function refreshMap(container){if(!routeLoading)routeLoading=initMap(container).finally(()=>{routeLoading=null});requestAnimationFrame(()=>requestAnimationFrame(()=>{if(routeMap){ElmaMaps.event.trigger(routeMap,'resize');fitRoute()}}))}
   function mount(){
     const panel=document.querySelector('.eg-panel[data-panel="routes"] .eg-card');if(!panel)return false;if(panel.querySelector('.eg-route6'))return true;addStyles();
     const placeholder=panel.querySelector('.eg-route-empty'),card=document.createElement('div');card.className='eg-route6';
