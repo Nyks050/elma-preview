@@ -305,6 +305,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
 .elma-flow-arrow{font-size:17px!important}
 @media(max-width:390px){.elma-flow-result{min-height:43px!important;grid-template-columns:28px minmax(0,1fr) 10px!important;gap:6px!important}.elma-flow-icon{width:26px!important;height:26px!important}.elma-flow-copy b{font-size:13px!important}.elma-flow-copy small{font-size:11px!important}}
 .elma-home-brand .elma-home-wordmark{border-radius:0!important;filter:none!important;mix-blend-mode:normal!important;background:transparent!important;box-shadow:none!important}
+.elma-event-screen .eg-page-wordmark{display:block;width:126px;height:42px;margin:0 auto 28px;object-fit:contain;background:transparent;border:0;border-radius:0;box-shadow:none;filter:none}
 
 `;
     document.head.appendChild(style);
@@ -355,7 +356,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     const eventScreen=document.createElement('section');
     eventScreen.id='elmaEventScreen';
     eventScreen.className='elma-event-screen';
-    eventScreen.innerHTML='<h2>Etkinlik</h2><p>Yakındaki etkinlikler yakında burada.</p>';
+    eventScreen.innerHTML='<img class="eg-page-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="Elma Go" width="126" height="42"><h2>Etkinlik</h2><p>Yakındaki etkinlikler yakında burada.</p>';
     document.body.appendChild(eventScreen);
 
     const nav=document.createElement('nav');

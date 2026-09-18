@@ -69,6 +69,9 @@ html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-servic
 body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
 #elmaHomeWidgets [data-panel="services"]{padding-bottom:20px}
 .eg-reference-heading{padding:27px 6% 17px}
+.eg-reference-heading .eg-page-wordmark{margin:0 auto}
+.eg-page-wordmark{display:block;width:126px;height:42px;object-fit:contain;background:transparent;border:0;border-radius:0;box-shadow:none;filter:none;mix-blend-mode:normal}
+#elmaHomeWidgets [data-panel="account"] .eg-page-wordmark{margin:0 auto 24px}
 .eg-reference-heading h2{max-width:430px;font-size:clamp(32px,8.7vw,46px);font-weight:800;letter-spacing:-.065em;line-height:1.06}
 .eg-reference-heading p{margin-top:9px;font-size:14px;color:#73767c;font-weight:500}
 .eg-bus-banner{width:auto;min-height:190px;margin:0 6%;border-radius:0;background:#111216;box-shadow:0 18px 40px rgba(12,13,17,.14)}
@@ -130,7 +133,7 @@ function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageTheme();
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<header class="eg-reference-heading"><h2>Şehir, elinin altında.</h2><p>Günlük yolculuğun için ihtiyacın olan her şey.</p></header><div class="eg-bus-banner"><div class="eg-bus-scene" role="img" aria-label="Amasya’da soldan sağa ilerleyen otobüs animasyonu"><img src="assets/services-bus-stop.svg?v=20260918-citydoors1" alt="" width="800" height="400" decoding="async"></div></div>';
+hero.innerHTML='<header class="eg-reference-heading"><img class="eg-page-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="Elma Go" width="126" height="42"></header><div class="eg-bus-banner"><div class="eg-bus-scene" role="img" aria-label="Amasya’da soldan sağa ilerleyen otobüs animasyonu"><img src="assets/services-bus-stop.svg?v=20260918-citydoors1" alt="" width="800" height="400" decoding="async"></div></div>';
 root.prepend(hero);
 const sectionHead=document.createElement('div');sectionHead.className='eg-service-section-head';sectionHead.innerHTML='<h3>Keşfet</h3><span>ŞEHİR HİZMETLERİ</span>';grid.before(sectionHead);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
