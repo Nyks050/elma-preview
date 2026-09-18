@@ -65,6 +65,13 @@ body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
 .eg-reference-heading h2{max-width:430px;font-size:clamp(32px,8.7vw,46px);font-weight:800;letter-spacing:-.065em;line-height:1.06}
 .eg-reference-heading p{margin-top:9px;font-size:14px;color:#73767c;font-weight:500}
 .eg-bus-banner{width:auto;min-height:190px;margin:0 6%;border-radius:28px;background:#111216;box-shadow:0 18px 40px rgba(12,13,17,.14)}
+.eg-bus-banner{height:190px;background:#090a0c}
+.eg-bus-scene{position:relative;width:100%;height:190px;overflow:hidden}
+.eg-bus-scene:before{content:"";position:absolute;left:0;right:0;bottom:27px;height:1px;background:linear-gradient(90deg,transparent,#ffffff4d 12%,#ffffff4d 88%,transparent)}
+.eg-bus-scene:after{content:"";position:absolute;left:8%;right:8%;bottom:20px;height:2px;background:repeating-linear-gradient(90deg,#ffffff2a 0 17px,transparent 17px 35px)}
+.eg-bus-scene img{position:absolute;bottom:8px;left:-190px;width:185px;height:185px;object-fit:contain;filter:grayscale(1) contrast(1.16) drop-shadow(0 12px 12px #000a);animation:egBusTravel 7s linear infinite;will-change:left;z-index:1}
+@keyframes egBusTravel{from{left:-190px}to{left:calc(100% + 8px)}}
+@media(prefers-reduced-motion:reduce){.eg-bus-scene img{animation:none;left:calc(50% - 92px);will-change:auto}}
 .eg-reference-story{max-width:100%;margin-left:0;padding:25px 22px 24px;color:#fff;min-height:190px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .eg-reference-story .eg-feature-kicker{margin-bottom:15px;color:#bec1c7;font-size:10px;font-weight:800;letter-spacing:.14em}
 .eg-reference-story h3{max-width:235px;margin:0 0 12px;font-size:clamp(24px,6vw,31px);font-weight:800;line-height:1.08;letter-spacing:-.055em}
@@ -120,7 +127,7 @@ function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageTheme();
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<header class="eg-reference-heading"><span class="eg-reference-eyebrow">ELMA GO / ŞEHİR REHBERİ</span><h2>Şehir, elinin altında.</h2><p>Günlük yolculuğun için ihtiyacın olan her şey.</p></header><div class="eg-bus-banner"><div class="eg-reference-story"><span class="eg-feature-kicker">ŞEHRİN RİTMİNDE</span><h3>Her durakta<br>yanındayız.</h3><p>Hatlar, duraklar ve şehir hizmetleri tek yerde.</p></div></div>';
+hero.innerHTML='<header class="eg-reference-heading"><span class="eg-reference-eyebrow">ELMA GO / ŞEHİR REHBERİ</span><h2>Şehir, elinin altında.</h2><p>Günlük yolculuğun için ihtiyacın olan her şey.</p></header><div class="eg-bus-banner"><div class="eg-bus-scene" role="img" aria-label="Amasya’da soldan sağa ilerleyen otobüs animasyonu"><img src="assets/elma-mode-bus-3d-mono.png?v=20260901-mono2" alt="" width="256" height="256" decoding="async"></div></div>';
 root.prepend(hero);
 const sectionHead=document.createElement('div');sectionHead.className='eg-service-section-head';sectionHead.innerHTML='<h3>Keşfet</h3><span>ŞEHİR HİZMETLERİ</span>';grid.before(sectionHead);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
