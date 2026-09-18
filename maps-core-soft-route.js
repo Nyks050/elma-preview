@@ -358,6 +358,10 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     nav.setAttribute('aria-label','Ana menü');
     nav.innerHTML=`<button class="elma-main-tab active" data-elma-tab="home" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10.7 8.5-7 8.5 7v9.1a1.2 1.2 0 0 1-1.2 1.2H4.7a1.2 1.2 0 0 1-1.2-1.2z"/><path d="M9 21v-7h6v7"/></svg><span>Ana Sayfa</span></button><button class="elma-main-tab" data-elma-tab="services" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Hizmetler</span></button><button class="elma-main-tab" data-elma-tab="account" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.2 20v-1.5a6.8 6.8 0 0 1 13.6 0V20z"/></svg><span>Hesap</span></button>`;
     document.body.appendChild(nav);
+    const tabCurtain=document.createElement('div');
+    tabCurtain.className='elma-tab-curtain';
+    tabCurtain.setAttribute('aria-hidden','true');
+    document.body.appendChild(tabCurtain);
 
     const resultIcons={
       clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>',
@@ -526,8 +530,9 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       });
     }
     let lastMainTabTouch=0;
+    let tabTransitionLocked=false;
     let pendingTabTimer;
-    let leavingTab;
+    let tabUnlockTimer;
     const tabAnimationTimers=new WeakMap();
     function mainTabSurface(name){
       return name==='home'?home:document.querySelector(`.eg-panel[data-panel="${name}"]`);
@@ -553,23 +558,20 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     }
     function activateMainTab(button){
       const name=button.dataset.elmaTab;
-      clearTimeout(pendingTabTimer);
-      leavingTab?.classList.remove('elma-tab-leave');
-      leavingTab=null;
       const current=nav.querySelector('.elma-main-tab.active')?.dataset.elmaTab;
-      if(current===name)return;
+      if(current===name||tabTransitionLocked)return;
       const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.reduceMotion==='true';
-      const source=mainTabSurface(current);
-      if(reduced||!source){showMainTab(name);return}
-      clearTimeout(tabAnimationTimers.get(source));
-      source.classList.remove('elma-tab-enter');
-      leavingTab=source;
-      source.classList.add('elma-tab-leave');
+      if(reduced){showMainTab(name);return}
+      tabTransitionLocked=true;
+      setNavActive(name);
+      tabCurtain.classList.add('show');
+      clearTimeout(pendingTabTimer);
+      clearTimeout(tabUnlockTimer);
       pendingTabTimer=setTimeout(()=>{
-        source.classList.remove('elma-tab-leave');
-        leavingTab=null;
         showMainTab(name);
-      },240);
+        requestAnimationFrame(()=>requestAnimationFrame(()=>tabCurtain.classList.remove('show')));
+        tabUnlockTimer=setTimeout(()=>{tabTransitionLocked=false},760);
+      },480);
     }
     nav.querySelectorAll('.elma-main-tab').forEach(button=>{
       button.addEventListener('touchend',event=>{
