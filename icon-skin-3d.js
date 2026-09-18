@@ -59,6 +59,37 @@ body .elma-main-tab.active{background:#f3f3f4;color:#080808;font-weight:700}
 html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-name{font-size:15px}
 html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-service-description{font-size:14px}
 @media(prefers-reduced-motion:reduce){#elmaHomeWidgets [data-panel="services"] .eg-service-card{transform:none!important}}
+/* Elma Go services: spacious editorial header, dark city feature and tactile tiles. */
+body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
+#elmaHomeWidgets [data-panel="services"]{padding-bottom:20px}
+.eg-reference-heading{padding:27px 6% 17px}
+.eg-reference-eyebrow{display:block;margin-bottom:10px;color:#777a80;font-size:10px;font-weight:800;letter-spacing:.16em}
+.eg-reference-heading h2{max-width:430px;font-size:clamp(32px,8.7vw,46px);font-weight:800;letter-spacing:-.065em;line-height:1.06}
+.eg-reference-heading p{margin-top:9px;font-size:14px;color:#73767c;font-weight:500}
+.eg-bus-banner{width:auto;min-height:216px;margin:0 6%;border-radius:28px;background:#111216;box-shadow:0 18px 40px rgba(12,13,17,.14)}
+.eg-bus-banner>img{left:32%;width:68%;object-position:52% 75%;opacity:.85;filter:saturate(.75) contrast(1.08)}
+.eg-bus-banner:after{background:linear-gradient(90deg,#111216 2%,rgba(17,18,22,.97) 35%,rgba(17,18,22,.62) 67%,rgba(17,18,22,.08) 100%),linear-gradient(0deg,rgba(17,18,22,.4),transparent 50%)}
+.eg-reference-story{max-width:75%;margin-left:0;padding:25px 22px 24px;color:#fff;min-height:216px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+.eg-reference-story .eg-feature-kicker{margin-bottom:15px;color:#bec1c7;font-size:10px;font-weight:800;letter-spacing:.14em}
+.eg-reference-story h3{max-width:235px;margin:0 0 12px;font-size:clamp(24px,6vw,31px);font-weight:800;line-height:1.08;letter-spacing:-.055em}
+.eg-reference-story p{max-width:220px;color:#d1d3d8;font-size:12px;line-height:1.5}
+.eg-service-section-head{display:flex;justify-content:space-between;align-items:baseline;margin:31px 6% 14px}
+.eg-service-section-head h3{margin:0;color:#121316;font-size:22px;font-weight:800;letter-spacing:-.05em}
+.eg-service-section-head span{color:#858891;font-size:11px;font-weight:760;letter-spacing:.08em}
+#elmaHomeWidgets [data-panel="services"] .eg-services-grid{gap:11px;margin:0 6%;background:transparent}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card,#elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(odd),#elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(even),#elmaHomeWidgets [data-panel="services"] .eg-service-card:last-child:nth-child(odd){grid-column:auto;min-height:145px;grid-template-columns:1fr auto;grid-template-rows:46px 1fr;gap:5px 4px;padding:15px;border:1px solid #ececef;border-radius:21px;background:#f7f7f8;box-shadow:none;transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:after{grid-column:2;grid-row:1;width:25px;height:25px;background:#e9eaec;color:#32343a;font-size:21px}
+#elmaHomeWidgets [data-panel="services"] .eg-service-icon{grid-column:1;grid-row:1;width:43px!important;height:43px!important;padding:10px!important;border-radius:13px!important;background:#fff!important;color:#16171a!important}
+#elmaHomeWidgets [data-panel="services"] .eg-service-copy{grid-column:1/-1;grid-row:2;align-self:end}
+#elmaHomeWidgets [data-panel="services"] .eg-service-name{font-size:14px;font-weight:800;letter-spacing:-.035em}
+#elmaHomeWidgets [data-panel="services"] .eg-service-description{margin-top:5px;font-size:11px;line-height:1.35;color:#777a81}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:first-child{background:#1b1c20;border-color:#1b1c20;color:#fff}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:first-child .eg-service-icon{background:#383a40!important;color:#fff!important}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:first-child .eg-service-description{color:#bfc1c8}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:first-child:after{background:#383a40;color:#fff}
+#elmaHomeWidgets [data-panel="services"] .eg-service-card:active{transform:scale(.975);box-shadow:0 8px 20px #00000014}
+@media(max-width:359px){#elmaHomeWidgets [data-panel="services"] .eg-services-grid{gap:8px}#elmaHomeWidgets [data-panel="services"] .eg-service-card{min-height:138px!important;padding:12px!important}#elmaHomeWidgets [data-panel="services"] .eg-service-name{font-size:12px}#elmaHomeWidgets [data-panel="services"] .eg-service-description{font-size:10px}}
+@media(prefers-reduced-motion:reduce){#elmaHomeWidgets [data-panel="services"] .eg-service-card{transition:none}}
 `;
 document.head.appendChild(style);
 let notice,grid,root,observer,timer;
@@ -93,8 +124,9 @@ function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageTheme();
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<header class="eg-reference-heading"><h2>Hizmetler</h2><p>Şehir araçları, tek merkezde.</p></header><div class="eg-bus-banner"><img src="assets/amasya-services-hero.webp" width="1100" height="1100" alt="Siyah-beyaz şehir manzarası önünde kırmızı otobüs" decoding="async"><div class="eg-reference-story"><h3>Şehir seninle<br>daha kolay</h3><p>Amasya’nın her noktasına, tek dokunuşla ulaş.</p></div></div>';
+hero.innerHTML='<header class="eg-reference-heading"><span class="eg-reference-eyebrow">ELMA GO / ŞEHİR REHBERİ</span><h2>Şehir, elinin altında.</h2><p>Günlük yolculuğun için ihtiyacın olan her şey.</p></header><div class="eg-bus-banner"><img src="assets/amasya-services-hero.webp" width="1100" height="1100" alt="Amasya şehir manzarası ve otobüs" decoding="async"><div class="eg-reference-story"><span class="eg-feature-kicker">ŞEHRİN RİTMİNDE</span><h3>Her durakta<br>yanındayız.</h3><p>Hatlar, duraklar ve şehir hizmetleri tek yerde.</p></div></div>';
 root.prepend(hero);
+const sectionHead=document.createElement('div');sectionHead.className='eg-service-section-head';sectionHead.innerHTML='<h3>Keşfet</h3><span>ŞEHİR HİZMETLERİ</span>';grid.before(sectionHead);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
 const schedule=make('schedule','Sefer Saatleri','Güncel sefer saatlerini inceleyin.',()=>{const b=root.querySelector('[data-service-target="lines"]');if(b)b.click();else message('Hat bilgileri henüz yüklenmedi. Lütfen tekrar deneyin.')});
 const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>message('Duyuru kaynağı henüz bağlanmadı. Güncel duyurular burada gösterilecek.'));
