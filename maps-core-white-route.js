@@ -266,7 +266,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
 
 /* Gerçek ElmaGo ana yazı logosu */
 .elma-wordmark{display:none!important}
-.elma-home-wordmark{mix-blend-mode:multiply;display:block;width:126px;height:42px;object-fit:contain;border-radius:0;filter:none}
+.elma-home-wordmark{mix-blend-mode:multiply;filter:contrast(500%)!important;display:block;width:126px;height:42px;object-fit:contain;border-radius:0;filter:none}
 .elma-search-title{font-size:20px;line-height:25px;font-weight:850;letter-spacing:-.55px;color:#09090a}
 @media(max-width:390px){.elma-home-wordmark{width:116px;height:39px}.elma-search-title{font-size:19px}}
 
