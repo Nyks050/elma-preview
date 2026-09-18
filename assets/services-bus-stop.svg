@@ -11,14 +11,16 @@
       .bus{animation:ride 12s infinite;will-change:transform}
       .wheel{transform-box:fill-box;transform-origin:center;animation:roll 12s linear infinite}
       .wind{animation:gust 12s infinite}
-      .door{animation:openDoor 12s infinite}
+      .door-left{animation:openLeft 12s infinite}
+      .door-right{animation:openRight 12s infinite}
       .stoplight{animation:stopGlow 12s infinite}
       @keyframes ride{0%{transform:translateX(-620px);animation-timing-function:cubic-bezier(.3,.45,.65,1)}42%,63%{transform:translateX(185px)}64%{animation-timing-function:cubic-bezier(.4,0,.55,1)}94%,100%{transform:translateX(900px)}}
       @keyframes roll{0%{transform:rotate(0)}42%{transform:rotate(1260deg)}63%{transform:rotate(1260deg)}94%,100%{transform:rotate(2340deg)}}
       @keyframes gust{0%,6%,40%,65%,93%,100%{opacity:0}10%,35%,70%,89%{opacity:.8}42%,63%{opacity:0}}
-      @keyframes openDoor{0%,44%,64%,100%{transform:translateX(0)}49%,59%{transform:translateX(-13px)}}
+      @keyframes openLeft{0%,44%,63%,100%{transform:translateX(0)}49%,58%{transform:translateX(-14px)}}
+      @keyframes openRight{0%,44%,63%,100%{transform:translateX(0)}49%,58%{transform:translateX(14px)}}
       @keyframes stopGlow{0%,38%,64%,100%{opacity:.2}42%,60%{opacity:1}}
-      @media(prefers-reduced-motion:reduce){.bus,.wheel,.wind,.door,.stoplight{animation:none!important}.bus{transform:translateX(185px)}.wind{opacity:0}}
+      @media(prefers-reduced-motion:reduce){.bus,.wheel,.wind,.door-left,.door-right,.stoplight{animation:none!important}.bus{transform:translateX(185px)}.wind{opacity:0}}
     </style>
   </defs>
   <rect width="800" height="400" fill="url(#sky)"/>
@@ -44,22 +46,25 @@
   <g class="bus">
     <ellipse cx="281" cy="298" rx="232" ry="17" fill="#000" opacity=".64" filter="url(#shadow)"/>
     <g class="wind" fill="none" stroke="#d9dee7" stroke-linecap="round"><path d="M-73 185h93" stroke-width="3" opacity=".72"/><path d="M-105 207H5" stroke-width="2" opacity=".5"/><path d="M-83 232h105" stroke-width="2.5" opacity=".65"/><path d="M-55 249H5" stroke-width="1.4" opacity=".45"/></g>
-    <path d="M72 147q0-19 20-19h317q42 0 65 33l24 49q9 17 9 35v26q0 10-11 10H65q-12 0-12-11V170q0-19 19-23Z" fill="url(#body)" stroke="#f4f6f8" stroke-width="2"/>
-    <path d="M81 140h322q40 0 61 31l6 11H73v-22q0-19 8-20Z" fill="#f7f8fa" opacity=".82"/>
-    <path d="M75 172h357q29 0 45 28l9 19H68v-40q0-7 7-7Z" fill="url(#glass)" stroke="#565d68" stroke-width="3"/>
+    <path d="M68 136h384q24 0 37 20l16 32q4 8 4 17v66q0 10-10 10H64q-10 0-10-10V150q0-14 14-14Z" fill="url(#body)" stroke="#f4f6f8" stroke-width="2"/>
+    <path d="M68 139h384q23 0 34 21l9 18H56v-25q0-14 12-14Z" fill="#f7f8fa" opacity=".82"/>
+    <path d="M69 159h392q21 0 30 22l8 34H61v-47q0-9 8-9Z" fill="url(#glass)" stroke="#565d68" stroke-width="3"/>
     <path d="M130 175v42m86-42v42m86-42v42m87-42v42" stroke="#c4cbd3" stroke-width="5" opacity=".55"/>
     <path d="m80 179 245 0-155 16-90 0Z" fill="#fff" opacity=".16"/>
     <path d="m402 177 45 5 22 35h-66Z" fill="#d8e0e8" opacity=".17"/>
     <path d="M68 227h419" stroke="#fafafa" stroke-width="5" opacity=".65"/>
     <path d="M65 237h429v26H65Z" fill="#b8bdc5" opacity=".4"/>
-    <path d="M390 224v43m65-43v43" stroke="#737b85" stroke-width="2"/>
-    <g class="door"><path d="M390 226h65v41h-65Z" fill="#252c35" opacity=".7"/><path d="M420 226v41" stroke="#e6ebf0" stroke-width="3" opacity=".65"/><path d="M395 236h20" stroke="#b8c2cc" stroke-width="2" opacity=".5"/></g>
+    <!-- Two recessed double-leaf city doors: rear and front. Both open only at the stop. -->
+    <g fill="#151b23" stroke="#737d89" stroke-width="2"><rect x="174" y="171" width="66" height="99" rx="2"/><rect x="338" y="171" width="66" height="99" rx="2"/></g>
+    <path d="M179 260h56m108 0h56" stroke="#dce0e5" stroke-width="3"/>
+    <g class="door-left"><path d="M177 173h30v93h-30Z M341 173h30v93h-30Z" fill="url(#body)" stroke="#bfc5cc" stroke-width="2"/><path d="M180 177h24v48h-24Z M344 177h24v48h-24Z" fill="url(#glass)"/><path d="M203 231v23m164-23v23" stroke="#59616b" stroke-width="2"/></g>
+    <g class="door-right"><path d="M208 173h29v93h-29Z M372 173h29v93h-29Z" fill="url(#body)" stroke="#bfc5cc" stroke-width="2"/><path d="M211 177h23v48h-23Z M375 177h23v48h-23Z" fill="url(#glass)"/><path d="M211 231v23m164-23v23" stroke="#59616b" stroke-width="2"/></g>
     <path d="M474 174q31 15 32 47v33l-17 2-8-56Z" fill="url(#front)"/><path d="m475 187 23 30-20-2Z" fill="#0d141d" opacity=".85"/>
     <path d="M485 188h20v8h-20Z" fill="#242c36"/><rect x="503" y="192" width="9" height="15" rx="4" fill="#aeb6bf"/>
     <path d="M58 250h27l-4 14H58Zm420-1 27 1-1 11h-29Z" fill="#fbfcfd"/><path d="M478 251h26" stroke="#fff" stroke-width="4"/>
     <path d="M64 267h432v12H66q-10 0-10-9Z" fill="#505760"/><path d="M64 269h432" stroke="#d6d9dd" stroke-width="2" opacity=".7"/>
     <g transform="translate(117 278)"><g class="wheel"><circle r="36" fill="#0b0d10"/><circle r="28" fill="#292d33" stroke="#656b74" stroke-width="3"/><circle r="19" fill="#c0c5cc"/><circle r="15" fill="#676e78"/><path d="M-13 0h26M0-13v26M-9-9 9 9M9-9-9 9" stroke="#e3e6eb" stroke-width="4"/><circle r="5" fill="#30363e"/></g></g>
-    <g transform="translate(409 278)"><g class="wheel"><circle r="36" fill="#0b0d10"/><circle r="28" fill="#292d33" stroke="#656b74" stroke-width="3"/><circle r="19" fill="#c0c5cc"/><circle r="15" fill="#676e78"/><path d="M-13 0h26M0-13v26M-9-9 9 9M9-9-9 9" stroke="#e3e6eb" stroke-width="4"/><circle r="5" fill="#30363e"/></g></g>
+    <g transform="translate(440 278)"><g class="wheel"><circle r="36" fill="#0b0d10"/><circle r="28" fill="#292d33" stroke="#656b74" stroke-width="3"/><circle r="19" fill="#c0c5cc"/><circle r="15" fill="#676e78"/><path d="M-13 0h26M0-13v26M-9-9 9 9M9-9-9 9" stroke="#e3e6eb" stroke-width="4"/><circle r="5" fill="#30363e"/></g></g>
     <ellipse class="stoplight" cx="69" cy="245" rx="12" ry="9" fill="#fff" opacity=".2"/>
   </g>
 </svg>

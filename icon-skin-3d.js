@@ -128,7 +128,7 @@ function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageTheme();
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<header class="eg-reference-heading"><h2>Şehir, elinin altında.</h2><p>Günlük yolculuğun için ihtiyacın olan her şey.</p></header><div class="eg-bus-banner"><div class="eg-bus-scene" role="img" aria-label="Amasya’da soldan sağa ilerleyen otobüs animasyonu"><img src="assets/services-bus-stop.svg?v=20260918-scene1" alt="" width="800" height="400" decoding="async"></div></div>';
+hero.innerHTML='<header class="eg-reference-heading"><h2>Şehir, elinin altında.</h2><p>Günlük yolculuğun için ihtiyacın olan her şey.</p></header><div class="eg-bus-banner"><div class="eg-bus-scene" role="img" aria-label="Amasya’da soldan sağa ilerleyen otobüs animasyonu"><img src="assets/services-bus-stop.svg?v=20260918-citydoors1" alt="" width="800" height="400" decoding="async"></div></div>';
 root.prepend(hero);
 const sectionHead=document.createElement('div');sectionHead.className='eg-service-section-head';sectionHead.innerHTML='<h3>Keşfet</h3><span>ŞEHİR HİZMETLERİ</span>';grid.before(sectionHead);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
