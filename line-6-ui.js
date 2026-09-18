@@ -59,7 +59,7 @@
     panel.append(row,detail);
     row.onclick=()=>{detail.classList.toggle('show');row.querySelector('.eg-arrow').textContent=detail.classList.contains('show')?'⌄':'›'};
     detail.querySelectorAll('.eg-line-tab').forEach(button=>button.onclick=()=>renderTimes(detail,button.dataset.day));
-    renderTimes(detail,'weekday');
+    renderTimes(detail,amasyaNow().day==='saturday'?'saturday':'weekday');
     loaded=true;
     mounting=false;
     return true;

@@ -106,7 +106,7 @@ b.onclick=handler;return b;
 let cardServiceLoad,scheduleLoad;
 function loadServicePageTheme(){
  if(document.querySelector('script[data-elma-service-theme]'))return;
- const script=document.createElement('script');script.src='service-page-theme.js?v=20260918-line-icons1';script.defer=true;script.dataset.elmaServiceTheme='1';document.head.appendChild(script);
+ const script=document.createElement('script');script.src='service-page-theme.js?v=20260918-past-times1';script.defer=true;script.dataset.elmaServiceTheme='1';document.head.appendChild(script);
 }
 function loadCardService(){
  if(window.elmaOpenCardService)return Promise.resolve();
@@ -116,7 +116,7 @@ function loadCardService(){
 }
 function loadScheduleCards(){
  if(scheduleLoad)return scheduleLoad;
- const sources=[['line-1-ui.js?v=20260918-line-icons1','1'],['line-2-ui.js?v=20260918-line-icons1','2'],['line-6-ui.js?v=20260918-no-sunday-variants1','6']];
+ const sources=[['line-1-ui.js?v=20260918-past-times1','1'],['line-2-ui.js?v=20260918-past-times1','2'],['line-6-ui.js?v=20260918-past-times1','6']];
  scheduleLoad=Promise.all(sources.map(([src,line])=>new Promise(resolve=>{
   const existing=document.querySelector('script[data-elma-schedule-line="'+line+'"]');if(existing){resolve();return}
   const script=document.createElement('script');script.src=src;script.defer=true;script.dataset.elmaScheduleLine=line;script.onload=resolve;script.onerror=resolve;document.head.appendChild(script);
