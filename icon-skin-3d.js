@@ -69,7 +69,7 @@ body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
 .eg-reference-heading{padding:27px 6% 17px}
 .eg-reference-heading h2{max-width:430px;font-size:clamp(32px,8.7vw,46px);font-weight:800;letter-spacing:-.065em;line-height:1.06}
 .eg-reference-heading p{margin-top:9px;font-size:14px;color:#73767c;font-weight:500}
-.eg-bus-banner{width:auto;min-height:190px;margin:0 6%;border-radius:28px;background:#111216;box-shadow:0 18px 40px rgba(12,13,17,.14)}
+.eg-bus-banner{width:auto;min-height:190px;margin:0 6%;border-radius:0;background:#111216;box-shadow:0 18px 40px rgba(12,13,17,.14)}
 .eg-bus-banner{height:220px;background:#090b0f}
 .eg-bus-scene{width:100%;height:220px;overflow:hidden}
 .eg-bus-scene img{display:block;width:100%;height:100%;object-fit:cover;filter:none;animation:none}
@@ -106,7 +106,7 @@ b.onclick=handler;return b;
 let cardServiceLoad,scheduleLoad;
 function loadServicePageTheme(){
  if(document.querySelector('script[data-elma-service-theme]'))return;
- const script=document.createElement('script');script.src='service-page-theme.js?v=20260913-unified2';script.defer=true;script.dataset.elmaServiceTheme='1';document.head.appendChild(script);
+ const script=document.createElement('script');script.src='service-page-theme.js?v=20260918-schedule1';script.defer=true;script.dataset.elmaServiceTheme='1';document.head.appendChild(script);
 }
 function loadCardService(){
  if(window.elmaOpenCardService)return Promise.resolve();
@@ -140,8 +140,8 @@ grid.append(schedule,news,card);
 const internalActions=document.createElement('div');internalActions.hidden=true;internalActions.style.display='none';root.appendChild(internalActions);
 const linesPanel=document.querySelector('.eg-panel[data-panel="lines"]');
 if(linesPanel&&!linesPanel.querySelector('.eg-list')){
- const heading=document.createElement('div');heading.className='eg-screen-head';heading.innerHTML='<h2 class="eg-screen-title">Sefer Saatleri</h2><p class="eg-screen-subtitle">Hat seçerek güncel kalkış saatlerini görüntüle.</p>';
- const list=document.createElement('div');list.className='eg-list';linesPanel.append(heading,list);
+ const heading=document.createElement('div');heading.className='eg-screen-head';heading.innerHTML='<h2 class="eg-screen-title">Sefer Saatleri</h2><p class="eg-screen-subtitle">Hatları ve güncel kalkış saatlerini görüntüle.</p>';
+ const list=document.createElement('div');list.className='eg-list';const section=document.createElement('div');section.className='eg-schedule-section';section.innerHTML='<h3>Hatlar</h3><span>KALKIŞ LİSTESİ</span>';linesPanel.append(heading,section,list);
 }
 loadScheduleCards();loadCardService();
 function refresh(){

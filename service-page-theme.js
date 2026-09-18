@@ -36,6 +36,32 @@ body.eg-service-detail .eg-line-note{margin-top:10px!important;color:#777a80!imp
 body.eg-service-detail button,body.eg-service-detail input,body.eg-service-detail select,body.eg-service-detail textarea{font-family:-apple-system,BlinkMacSystemFont,"Inter",Arial,sans-serif!important}
 body.eg-service-detail .eg-lost-new,body.eg-service-detail .eg-pharmacy-locate,body.eg-service-detail .eg-nearby-locate{min-height:44px!important;border-radius:14px!important;font-size:12px!important}
 body.eg-service-detail .eg-lost-tab,body.eg-service-detail .eg-lost-select,body.eg-service-detail .eg-lost-input,body.eg-service-detail .eg-lost-textarea{font-size:11px!important}
+/* Sefer Saatleri: the same light cards and dark accents as the Services landing page. */
+body.eg-service-detail #elmaHomeWidgets>.eg-panel[data-panel="lines"]{padding-top:calc(30px + env(safe-area-inset-top))!important}
+body.eg-service-detail [data-panel="lines"] .eg-screen-head{padding:0 0 23px!important}
+body.eg-service-detail [data-panel="lines"] .eg-screen-title{font-size:clamp(32px,8.5vw,42px)!important;line-height:1.06!important;letter-spacing:-.06em!important}
+body.eg-service-detail [data-panel="lines"] .eg-screen-subtitle{margin-top:9px!important;font-size:14px!important;color:#73767c!important;font-weight:500!important}
+body.eg-service-detail [data-panel="lines"] .eg-schedule-section{display:flex;align-items:baseline;justify-content:space-between;margin:6px 0 14px}
+body.eg-service-detail [data-panel="lines"] .eg-schedule-section h3{margin:0;font-size:22px;font-weight:800;letter-spacing:-.05em}
+body.eg-service-detail [data-panel="lines"] .eg-schedule-section span{color:#858891;font-size:10px;font-weight:750;letter-spacing:.09em}
+body.eg-service-detail [data-panel="lines"] .eg-list{gap:11px}
+body.eg-service-detail [data-panel="lines"] .eg-line-row{min-height:84px!important;padding:16px!important;gap:14px!important;border:1px solid #ececef!important;border-radius:21px!important;background:#f7f7f8!important;box-shadow:none!important;transition:transform .18s ease,background .18s ease}
+body.eg-service-detail [data-panel="lines"] .eg-line-row:active{transform:scale(.985);background:#eeeff1!important}
+body.eg-service-detail [data-panel="lines"] .eg-line-row:focus-visible{outline:2px solid #17191d;outline-offset:2px}
+body.eg-service-detail [data-panel="lines"] .eg-line-bus-icon{width:48px!important;height:48px!important;flex-basis:48px!important;padding:11px!important;border-radius:15px!important;background:#17191d!important;color:#fff!important}
+body.eg-service-detail [data-panel="lines"] .eg-row-main b{font-size:16px!important;font-weight:800!important;letter-spacing:-.035em!important}
+body.eg-service-detail [data-panel="lines"] .eg-row-main small{font-size:11px!important;color:#74777e!important}
+body.eg-service-detail [data-panel="lines"] .eg-arrow{width:27px;height:27px;display:grid;place-items:center;border-radius:50%;background:#e9eaed;color:#34363a;font-size:21px;line-height:1}
+body.eg-service-detail [data-panel="lines"] .eg-line-detail.show{margin:-2px 0 12px!important;padding:16px!important;border:1px solid #e8e9eb!important;border-radius:20px!important;background:#fff!important;box-shadow:0 9px 25px #1113180d!important}
+body.eg-service-detail [data-panel="lines"] .eg-line-tabs{gap:5px!important;margin:0 0 16px!important;padding:4px!important;border-radius:15px!important;background:#f0f0f2!important}
+body.eg-service-detail [data-panel="lines"] .eg-line-tab{min-height:43px!important;border-radius:12px!important;color:#62656b!important;font-size:11px!important}
+body.eg-service-detail [data-panel="lines"] .eg-line-tab.active{background:#17191d!important;color:#fff!important;box-shadow:0 4px 10px #11131822!important}
+body.eg-service-detail [data-panel="lines"] .eg-line-meta{margin:0 0 12px!important;font-size:11px!important;font-weight:650!important;color:#63666c!important}
+body.eg-service-detail [data-panel="lines"] .eg-line-times{gap:8px!important;max-height:370px!important}
+body.eg-service-detail [data-panel="lines"] .eg-line-time{min-height:47px!important;border:1px solid #e9eaed!important;border-radius:13px!important;background:#f8f8f9!important;color:#17191d!important;font-size:14px!important;font-weight:800!important}
+body.eg-service-detail [data-panel="lines"] .eg-line-time.is-past{border-color:#eeeef0!important;background:#f3f3f4!important;color:#93969d!important;opacity:.65!important}
+body.eg-service-detail [data-panel="lines"] .eg-line-note{margin-top:13px!important;font-size:10px!important;color:#777a80!important}
+@media(prefers-reduced-motion:reduce){body.eg-service-detail [data-panel="lines"] .eg-line-row{transition:none}}
 @media(max-width:350px){body.eg-service-detail .eg-line-times{grid-template-columns:repeat(3,minmax(0,1fr))!important}body.eg-service-detail #elmaHomeWidgets>.eg-panel.active{padding-left:5%!important;padding-right:5%!important}}
 `;
 document.head.appendChild(style);
