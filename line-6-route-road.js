@@ -17,12 +17,14 @@
     if(document.getElementById('elmaLine6RouteStyle'))return;
     const style=document.createElement('style');style.id='elmaLine6RouteStyle';
     style.textContent=`
+.eg-panel[data-panel="routes"] .eg-route-list{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+.eg-route-screen-head{padding:4px 0 20px}.eg-route-screen-head h2{margin:0;color:#111216;font-size:31px;font-weight:850;letter-spacing:-.055em}.eg-route-screen-head p{margin:7px 0 0;color:#74777e;font-size:13px}
 .eg-route6{overflow:hidden;border:1px solid #e8e9ec;border-radius:20px;background:#fff}
 .eg-route6-head{display:flex;align-items:center;gap:13px;width:100%;padding:16px;border:0;background:#fff;text-align:left;cursor:pointer}
 .eg-route6-icon{width:44px;height:44px;border-radius:14px;background:#17191d;color:#fff;display:grid;place-items:center;flex:0 0 44px;font:850 22px/1 Inter,system-ui,sans-serif}
 .eg-route6-copy{flex:1;min-width:0}.eg-route6-copy b{display:block;color:#111216;font-size:16px;font-weight:800;margin-bottom:4px}.eg-route6-copy small{display:block;color:#74777e;font-size:11px}
 .eg-route6-toggle{width:30px;height:30px;border-radius:50%;background:#f0f0f2;color:#17191d;display:grid;place-items:center;flex:0 0 30px;transition:transform .2s}.eg-route6-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}.eg-route6-head[aria-expanded="true"] .eg-route6-toggle{transform:rotate(180deg)}
-.eg-route6-body[hidden]{display:none}.eg-route6-map{height:360px;border-top:1px solid #e6e7e9;border-bottom:1px solid #e6e7e9;background:#f7f7f8}
+.eg-route6-body[hidden]{display:none}.eg-route6-map{height:380px;border-top:1px solid #e6e7e9;border-bottom:1px solid #e6e7e9;background:#f7f7f8}
 .eg-route6-stops-head{display:flex;justify-content:space-between;align-items:baseline;padding:17px 16px 10px}.eg-route6-stops-head b{font-size:16px;letter-spacing:-.03em}.eg-route6-stops-head small{font-size:11px;color:#7c7f85}
 .eg-route6-stops{list-style:none;margin:0;padding:0 12px 14px;max-height:290px;overflow:auto}.eg-route6-stops li+li{border-top:1px solid #f0f0f2}.eg-route6-stop{display:flex;align-items:center;gap:11px;width:100%;min-height:53px;padding:8px 4px;border:0;background:transparent;color:#1b1c20;text-align:left;font:650 12px/1.3 Inter,system-ui,sans-serif;cursor:pointer}.eg-route6-stop:hover,.eg-route6-stop:focus-visible{background:#f7f7f8;outline:0}.eg-route6-stop-number{width:27px;height:27px;flex:0 0 27px;border-radius:50%;background:#17191d;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800}.eg-route6-stop-name{flex:1;min-width:0}.eg-route6-stop-arrow{color:#a0a3a9;font-size:19px}
 .eg-route6-footer{padding:12px 16px;border-top:1px solid #eeeef0;color:#74777e;font-size:11px}
@@ -50,14 +52,20 @@
     requestAnimationFrame(()=>requestAnimationFrame(()=>{if(routeMap){ElmaMaps.event.trigger(routeMap,'resize');fitRoute()}}));
   }
   function mount(){
-    const panel=document.querySelector('.eg-panel[data-panel="routes"] .eg-card');if(!panel)return false;
+    const routePanel=document.querySelector('.eg-panel[data-panel="routes"]');if(!routePanel)return false;
+    let panel=routePanel.querySelector('.eg-card');
+    if(!panel){
+      panel=document.createElement('div');panel.className='eg-card eg-route-list';
+      panel.innerHTML='<div class="eg-route-screen-head"><h2>Güzergâhlar</h2><p>Hatları harita üzerinde keşfet</p></div>';
+      routePanel.appendChild(panel);
+    }
     if(panel.querySelector('.eg-route6'))return true;
     addStyles();
     const placeholder=panel.querySelector('.eg-route-empty'),card=document.createElement('div');card.className='eg-route6';
     const stopItems=kml.stops.map((stop,index)=>`<li><button class="eg-route6-stop" type="button" data-stop="${index}" aria-label="${index+1}. durak: ${escapeHtml(stop.name)}"><span class="eg-route6-stop-number">${index+1}</span><span class="eg-route6-stop-name">${escapeHtml(stop.name)}</span><span class="eg-route6-stop-arrow" aria-hidden="true">›</span></button></li>`).join('');
-    card.innerHTML=`<button class="eg-route6-head" type="button" aria-expanded="false" aria-controls="egRoute6Body"><span class="eg-route6-icon" aria-hidden="true">6</span><span class="eg-route6-copy"><b>6 Nolu Hat</b><small>KML güzergâhı • ${kml.stops.length} işaretli durak</small></span><span class="eg-route6-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></button><div id="egRoute6Body" class="eg-route6-body" hidden><div id="egRoute6Map" class="eg-route6-map" role="region" aria-label="6 nolu hat KML güzergâh haritası"></div><div class="eg-route6-stops-head"><b>Duraklar</b><small>Haritada görmek için dokun</small></div><ol class="eg-route6-stops">${stopItems}</ol><div class="eg-route6-footer">${kml.segments.length} çizgi parçası • KML'deki ${kml.stops.length} durak</div></div>`;
+    card.innerHTML=`<button class="eg-route6-head" type="button" aria-expanded="true" aria-controls="egRoute6Body"><span class="eg-route6-icon" aria-hidden="true">6</span><span class="eg-route6-copy"><b>6 Nolu Hat</b><small>KML güzergâhı • ${kml.stops.length} işaretli durak</small></span><span class="eg-route6-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></button><div id="egRoute6Body" class="eg-route6-body"><div id="egRoute6Map" class="eg-route6-map" role="region" aria-label="6 nolu hat KML güzergâh haritası"></div><div class="eg-route6-stops-head"><b>Duraklar</b><small>Haritada görmek için dokun</small></div><ol class="eg-route6-stops">${stopItems}</ol><div class="eg-route6-footer">${kml.segments.length} çizgi parçası • KML'deki ${kml.stops.length} durak</div></div>`;
     if(placeholder)placeholder.replaceWith(card);else panel.appendChild(card);
-    const routePanel=document.querySelector('.eg-panel[data-panel="routes"]'),container=card.querySelector('.eg-route6-map'),head=card.querySelector('.eg-route6-head'),body=card.querySelector('.eg-route6-body');
+    const container=card.querySelector('.eg-route6-map'),head=card.querySelector('.eg-route6-head'),body=card.querySelector('.eg-route6-body');
     const show=()=>{if(routePanel?.classList.contains('active')&&head.getAttribute('aria-expanded')==='true')refreshMap(container)};
     head.addEventListener('click',()=>{const open=head.getAttribute('aria-expanded')!=='true';head.setAttribute('aria-expanded',String(open));body.hidden=!open;if(open)show()});
     card.querySelectorAll('.eg-route6-stop').forEach(button=>button.addEventListener('click',()=>{
@@ -65,7 +73,7 @@
       routeMap.panTo(point(stop.position));routeMap.setZoom(16);
       container.scrollIntoView({block:'nearest',behavior:'smooth'});
     }));
-    new MutationObserver(show).observe(routePanel,{attributes:true,attributeFilter:['class']});return true;
+    new MutationObserver(show).observe(routePanel,{attributes:true,attributeFilter:['class']});show();return true;
   }
   let tries=0;function boot(){if(mount())return;if(++tries<=50)setTimeout(boot,200)}boot();
 })();
