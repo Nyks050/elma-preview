@@ -34,7 +34,7 @@
     const data=window.ELMA_TRANSIT?.['6'],schedule=data?.schedules?.[key];
     if(!schedule)return;
     const now=amasyaNow();
-    const today=now.day==='weekday'&&key==='weekday'||now.day==='saturday'&&key==='saturday'||now.day==='sunday'&&key.startsWith('sunday');
+    const today=now.day===key;
     detail.querySelector('.eg-line-meta').textContent=`${schedule.departure} • ${schedule.times.length} sefer • ${data.stopCount} durak`;
     detail.querySelector('.eg-line-times').innerHTML=schedule.times.map(time=>{
       const [hour,minute]=time.split(':').map(Number),past=today&&hour*60+minute<now.minute;
@@ -54,7 +54,7 @@
     if(!data){mounting=false;return false}
     addStyles();
     const wrap=document.createElement('div');
-    wrap.innerHTML=`<div class="eg-row eg-line-row eg-line6"><div class="eg-line-bus-icon" aria-hidden="true"><span class="eg-line-number">6</span></div><div class="eg-row-main"><b>${data.name}</b><small>${data.frequency}</small></div><div class="eg-arrow">›</div></div><div class="eg-line-detail"><div class="eg-line-tabs eg-line6-tabs"><button class="eg-line-tab active" data-day="weekday">Hafta içi</button><button class="eg-line-tab" data-day="saturday">Cumartesi</button><button class="eg-line-tab" data-day="sundayKyk">Pazar • KYK</button><button class="eg-line-tab" data-day="sundayIpekkoy">Pazar • İpekköy</button></div><div class="eg-line-meta"></div><div class="eg-line-times"></div><div class="eg-line-note">Saatler kaynaktaki normal tarifeden alınmıştır. Okullar kapalıyken uygulanan özel saatler bu listeye dahil değildir.</div></div>`;
+    wrap.innerHTML=`<div class="eg-row eg-line-row eg-line6"><div class="eg-line-bus-icon" aria-hidden="true"><span class="eg-line-number">6</span></div><div class="eg-row-main"><b>${data.name}</b><small>${data.frequency}</small></div><div class="eg-arrow">›</div></div><div class="eg-line-detail"><div class="eg-line-tabs eg-line6-tabs"><button class="eg-line-tab active" data-day="weekday">Hafta içi</button><button class="eg-line-tab" data-day="saturday">Cumartesi</button></div><div class="eg-line-meta"></div><div class="eg-line-times"></div><div class="eg-line-note">Saatler kaynaktaki normal tarifeden alınmıştır. Okullar kapalıyken uygulanan özel saatler bu listeye dahil değildir.</div></div>`;
     const row=wrap.firstElementChild,detail=wrap.lastElementChild;
     panel.append(row,detail);
     row.onclick=()=>{detail.classList.toggle('show');row.querySelector('.eg-arrow').textContent=detail.classList.contains('show')?'⌄':'›'};
