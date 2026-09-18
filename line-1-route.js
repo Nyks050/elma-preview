@@ -30,20 +30,20 @@
 
   async function initMap(container){
     if(routeMap)return routeMap;
-    if(!window.google?.maps)return null;
-    routeBounds=new google.maps.LatLngBounds();
-    routeMap=new google.maps.Map(container,{center:point(stops[0]),zoom:11,disableDefaultUI:true,clickableIcons:false,gestureHandling:'greedy',mapTypeId:'roadmap'});
+    if(!window.ElmaMaps)return null;
+    routeBounds=new ElmaMaps.LatLngBounds();
+    routeMap=new ElmaMaps.Map(container,{center:point(stops[0]),zoom:11,disableDefaultUI:true,clickableIcons:false,gestureHandling:'greedy',mapTypeId:'roadmap'});
     route.forEach(position=>routeBounds.extend(point(position)));
-    routeLine=new google.maps.Polyline({map:routeMap,path:route.map(point),strokeColor:'#050506',strokeOpacity:.94,strokeWeight:6,geodesic:false});
+    routeLine=new ElmaMaps.Polyline({map:routeMap,path:route.map(point),strokeColor:'#050506',strokeOpacity:.94,strokeWeight:6,geodesic:false});
     routeMarkers=allStops.map((position,index)=>{
       routeBounds.extend(point(position));
       const isReturn=index>=stops.length,number=isReturn?index-stops.length+1:index+1;
-      return new google.maps.Marker({map:routeMap,position:point(position),zIndex:100+index,title:`1 Nolu Hat • ${isReturn?'Dönüş':'Gidiş'} • Durak ${number}`,label:{text:String(number),color:'#050506',fontSize:'8px',fontWeight:'800'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:9,fillColor:isReturn?'#e7e7e9':'#ffffff',fillOpacity:1,strokeColor:'#050506',strokeOpacity:1,strokeWeight:2}});
+      return new ElmaMaps.Marker({map:routeMap,position:point(position),zIndex:100+index,title:`1 Nolu Hat • ${isReturn?'Dönüş':'Gidiş'} • Durak ${number}`,label:{text:String(number),color:'#050506',fontSize:'8px',fontWeight:'800'},icon:{path:ElmaMaps.SymbolPath.CIRCLE,scale:9,fillColor:isReturn?'#e7e7e9':'#ffffff',fillOpacity:1,strokeColor:'#050506',strokeOpacity:1,strokeWeight:2}});
     });
     const returnPath=window.ELMA_FIXED_ROAD_PATHS?.line1Return||[];
     if(returnPath.length){
       returnPath.forEach(position=>routeBounds.extend(point(position)));
-      returnLine=new google.maps.Polyline({map:routeMap,path:returnPath.map(point),strokeColor:'#050506',strokeOpacity:.72,strokeWeight:5,geodesic:false});
+      returnLine=new ElmaMaps.Polyline({map:routeMap,path:returnPath.map(point),strokeColor:'#050506',strokeOpacity:.72,strokeWeight:5,geodesic:false});
     }else console.error('1 Nolu Hat sabit dönüş yol verisi yüklenemedi.');
     fitRoute();
     return routeMap;
@@ -53,7 +53,7 @@
     if(!routeLoading)routeLoading=initMap(container).finally(()=>{routeLoading=null});
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       if(!routeMap)return;
-      google.maps.event.trigger(routeMap,'resize');
+      ElmaMaps.event.trigger(routeMap,'resize');
       fitRoute();
     }));
   }

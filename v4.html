@@ -22,22 +22,23 @@
 <div class="dest-wrap"><div class="routefield"><div class="dot"></div><div style="flex:1"><small>Nereye</small><input id="destinationInput" placeholder="Bir yer ara" autocomplete="off"></div></div><div id="suggestions" class="suggestions"></div></div>
 <button class="cta" onclick="showRoute()">Rota bul →</button>
 </div>
-<div class="mapwrap"><iframe id="mapFrame" src="https://www.google.com/maps?q=Amasya%20Merkez&z=14&output=embed"></iframe></div>
+<div class="mapwrap"><iframe id="mapFrame" src="https://www.openstreetmap.org/export/embed.html?bbox=35.79%2C40.63%2C35.87%2C40.67&amp;layer=mapnik"></iframe></div>
 </main>
 <script>
 let watchId=null,currentLat=null,currentLng=null,selectedDestination=null,suggestTimer=null,suggestAbort=null;
 const $=id=>document.getElementById(id);
+function osmEmbed(lat,lon,zoom=16){const spread=zoom>=17?.006:.014;const bbox=[lon-spread,lat-spread,lon+spread,lat+spread].join(',');return 'https://www.openstreetmap.org/export/embed.html?bbox='+encodeURIComponent(bbox)+'&layer=mapnik&marker='+encodeURIComponent(lat+','+lon)}
 function requestLocation(){if(!navigator.geolocation){return} $('locValue').textContent='Konum alınıyor…';navigator.geolocation.getCurrentPosition(p=>{updateLocation(p);if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=navigator.geolocation.watchPosition(updateLocation,()=>{},{enableHighAccuracy:false,maximumAge:30000,timeout:20000})},()=>{$('locValue').textContent='Konum alınamadı'}, {enableHighAccuracy:true,maximumAge:30000,timeout:12000})}
-function updateLocation(p){currentLat=p.coords.latitude;currentLng=p.coords.longitude;$('locDot').classList.add('live');$('locValue').textContent='Canlı konumum';if(!selectedDestination)$('mapFrame').src='https://www.google.com/maps?q='+currentLat+','+currentLng+'&z=17&output=embed'}
+function updateLocation(p){currentLat=p.coords.latitude;currentLng=p.coords.longitude;$('locDot').classList.add('live');$('locValue').textContent='Canlı konumum';if(!selectedDestination)$('mapFrame').src=osmEmbed(currentLat,currentLng,17)}
 const input=$('destinationInput');
 input.addEventListener('input',()=>{selectedDestination=null;clearTimeout(suggestTimer);const q=input.value.trim();if(q.length<2){hideSuggestions();return}suggestTimer=setTimeout(()=>loadSuggestions(q),220)});
 input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();showRoute()}});
 document.addEventListener('click',e=>{if(!e.target.closest('.dest-wrap'))hideSuggestions()});
 async function loadSuggestions(q){if(suggestAbort)suggestAbort.abort();suggestAbort=new AbortController();try{const url='https://photon.komoot.io/api/?q='+encodeURIComponent(q+', Amasya')+'&lat=40.65&lon=35.83&limit=6&lang=tr&bbox=35.3,40.2,36.4,41.2';const r=await fetch(url,{signal:suggestAbort.signal});const data=await r.json();renderSuggestions((data.features||[]).slice(0,5))}catch(e){if(e.name!=='AbortError')hideSuggestions()}}
 function renderSuggestions(items){const box=$('suggestions');if(!items.length){hideSuggestions();return}box.innerHTML='';items.forEach(f=>{const p=f.properties||{},c=f.geometry.coordinates,name=p.name||p.street||p.city||'Konum',sub=[p.street,p.district,p.city,p.state].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(' • '),b=document.createElement('button');b.className='suggestion';b.innerHTML='<span class="pin">⌖</span><span><div class="s-main">'+escapeHtml(name)+'</div><div class="s-sub">'+escapeHtml(sub||'Amasya')+'</div></span>';b.onclick=()=>selectSuggestion(name,sub,c[1],c[0]);box.appendChild(b)});box.classList.add('show')}
-function selectSuggestion(name,sub,lat,lng){input.value=name;selectedDestination={name,sub,lat,lng};hideSuggestions();$('mapFrame').src='https://www.google.com/maps?q='+lat+','+lng+'&z=16&output=embed'}
+function selectSuggestion(name,sub,lat,lng){input.value=name;selectedDestination={name,sub,lat,lng};hideSuggestions();$('mapFrame').src=osmEmbed(lat,lng)}
 function hideSuggestions(){$('suggestions').classList.remove('show')}
-function showRoute(){const raw=input.value.trim();if(!raw){input.focus();return}hideSuggestions();const dest=selectedDestination?(selectedDestination.lat+','+selectedDestination.lng):encodeURIComponent(raw+', Amasya, Türkiye');if(currentLat!==null&&currentLng!==null)$('mapFrame').src='https://www.google.com/maps?saddr='+currentLat+','+currentLng+'&daddr='+dest+'&dirflg=d&output=embed';else $('mapFrame').src='https://www.google.com/maps?q='+dest+'&z=16&output=embed'}
+function showRoute(){const raw=input.value.trim();if(!raw){input.focus();return}hideSuggestions();if(selectedDestination){$('mapFrame').src=osmEmbed(selectedDestination.lat,selectedDestination.lng);if(currentLat!==null&&currentLng!==null){const coords=currentLat+','+currentLng+';'+selectedDestination.lat+','+selectedDestination.lng;window.open('https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route='+encodeURIComponent(coords),'_blank','noopener')}}else loadSuggestions(raw)}
 function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 window.requestLocation=requestLocation;window.showRoute=showRoute;
 </script>

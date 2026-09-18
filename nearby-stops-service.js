@@ -91,7 +91,7 @@
     stops.forEach((stop,index)=>{
       const link=document.createElement('a');
       link.className='eg-nearby-stop';
-      link.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(stop.lat+','+stop.lng);
+      link.href='https://www.openstreetmap.org/?mlat='+encodeURIComponent(stop.lat)+'&mlon='+encodeURIComponent(stop.lng)+'#map=17/'+encodeURIComponent(stop.lat)+'/'+encodeURIComponent(stop.lng);
       link.target='_blank';
       link.rel='noopener';
       link.setAttribute('aria-label',(index+1)+'. yakındaki durak, '+formatDistance(stop.distance)+', haritada aç');

@@ -42,19 +42,19 @@
   }
 
   function addPolyline(map,path,options){
-    const line=new google.maps.Polyline({map,path,clickable:false,...options});
+    const line=new ElmaMaps.Polyline({map,path,clickable:false,...options});
     overlays.push(line);
     return line;
   }
 
   async function walkingPath(from,to){
     try{
-      const result=await new google.maps.DirectionsService().route({origin:from,destination:to,travelMode:google.maps.TravelMode.WALKING,region:'TR',language:'tr'});
+      const result=await new ElmaMaps.DirectionsService().route({origin:from,destination:to,travelMode:ElmaMaps.TravelMode.WALKING,region:'TR',language:'tr'});
       const leg=result.routes?.[0]?.legs?.[0];
       const detailedPath=leg?.steps?.flatMap(routeStep=>routeStep.path||[])||[];
       return {path:detailedPath.length?detailedPath:result.routes?.[0]?.overview_path||[],meters:leg?.distance?.value,duration:leg?.duration?.value};
     }catch(error){
-      console.warn('Google yaya rotası alınamadı:',error);
+      console.warn('OSM yaya rotası alınamadı:',error);
       return {path:[],error:true};
     }
   }
@@ -101,7 +101,7 @@
     let toIndex=closestRouteIndex(data.route,data.stops[journey.alight],fromIndex);
     addPolyline(map,data.route.slice(fromIndex,toIndex+1).map(point),{strokeColor:'#050506',strokeOpacity:1,strokeWeight:7,zIndex:5});
     if(walkEnd.path.length)addPolyline(map,walkEnd.path,{strokeColor:'#050505',strokeOpacity:0,strokeWeight:0,icons:[{icon:{path:'M 0,-1 0,1',strokeColor:'#050505',strokeOpacity:1,strokeWeight:3.5,scale:2},offset:'0',repeat:'12px'}]});
-    const bounds=new google.maps.LatLngBounds();
+    const bounds=new ElmaMaps.LatLngBounds();
     [...walkStart.path,...data.route.slice(fromIndex,toIndex+1).map(point),...walkEnd.path].forEach(item=>bounds.extend(item));
     map.fitBounds(bounds,70);
     showJourney(journey,walkStart,walkEnd);
