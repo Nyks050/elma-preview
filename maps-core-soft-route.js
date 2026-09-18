@@ -304,6 +304,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
 .elma-flow-copy small{font-size:11.5px!important;line-height:14px!important;margin-top:0!important}
 .elma-flow-arrow{font-size:17px!important}
 @media(max-width:390px){.elma-flow-result{min-height:43px!important;grid-template-columns:28px minmax(0,1fr) 10px!important;gap:6px!important}.elma-flow-icon{width:26px!important;height:26px!important}.elma-flow-copy b{font-size:13px!important}.elma-flow-copy small{font-size:11px!important}}
+.elma-home-brand .elma-home-wordmark{border-radius:0!important;filter:none!important;mix-blend-mode:normal!important;background:transparent!important;box-shadow:none!important}
 
 `;
     document.head.appendChild(style);
