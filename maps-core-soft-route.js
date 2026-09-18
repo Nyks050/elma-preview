@@ -246,9 +246,9 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
 @media(max-width:390px){.elma-home-wordmark{width:116px;height:39px}.elma-search-title{font-size:19px}}
 
 /* Ana logo görünürlüğü ve alt gezinme güvenliği */
-.elma-home-wordmark{display:block!important;width:126px!important;height:42px!important;object-fit:contain!important;opacity:1!important;visibility:visible!important}
+.elma-home-wordmark{display:block!important;width:clamp(136px,36vw,148px)!important;height:auto!important;aspect-ratio:3/1;object-fit:contain!important;opacity:1!important;visibility:visible!important}
 
-.elma-home-brand .elma-home-wordmark{display:block!important;width:126px!important;height:42px!important;opacity:1!important;visibility:visible!important}
+.elma-home-brand .elma-home-wordmark{display:block!important;width:clamp(136px,36vw,148px)!important;height:auto!important;opacity:1!important;visibility:visible!important}
 
 /* Planlama başlığı Go işareti */
 .elma-go-icon{width:38px;height:38px;display:grid;place-items:center;justify-self:end}
@@ -317,7 +317,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     const home=document.createElement('section');
     home.id='elmaHomeScreen';
     home.className='elma-home-screen';
-    home.innerHTML=`<div class="elma-home-inner"><div class="elma-home-brand"><img class="elma-home-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="ElmaGo"></div><button class="elma-quick-search" id="elmaQuickSearch" type="button" aria-label="Nereye gitmek istiyorsunuz?"><svg class="elma-search-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span class="elma-quick-label">Nereye?</span></button></div>`;
+    home.innerHTML=`<div class="elma-home-inner"><div class="elma-home-brand"><img class="elma-home-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="ElmaGo" width="144" height="48"></div><button class="elma-quick-search" id="elmaQuickSearch" type="button" aria-label="Nereye gitmek istiyorsunuz?"><svg class="elma-search-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span class="elma-quick-label">Nereye?</span></button></div>`;
     wrapper.appendChild(home);
 
     const searchScreen=document.createElement('section');
