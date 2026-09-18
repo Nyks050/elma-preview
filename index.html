@@ -4,6 +4,9 @@
 html:not([data-theme="light"]) .wordmark{background-image:url("assets/elmago-wordmark-light.png?v=20260918")!important;mix-blend-mode:screen}
 .splash .wordmark,.login .wordmark,.register .wordmark,.verify .wordmark,.top .wordmark{filter:contrast(500%)!important}
 .splash .wordmark{animation:none!important}
+/* Opening screen uses the dark brand canvas regardless of the form theme. */
+.splash,html[data-theme="light"] .splash{background:#000!important}
+.splash .wordmark,html[data-theme="light"] .splash .wordmark{background-image:url("assets/elmago-wordmark-light.png?v=20260918")!important;mix-blend-mode:screen}
 .wordmark .elma,.wordmark .go{display:none!important}
 .login .brand.wordmark,.register .brand.wordmark,.verify .brand.wordmark{margin:0 auto 28px}
 .top .wordmark{width:148px!important;height:50px!important}
