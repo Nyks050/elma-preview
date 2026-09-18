@@ -24,21 +24,20 @@
     document.head.appendChild(style);
   }
 
-  function amasyaNow(){
-    const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Istanbul',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date()).filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
-    const day=parts.weekday==='Sat'?'saturday':parts.weekday==='Sun'?'sunday':'weekday';
-    return{day,minute:Number(parts.hour)*60+Number(parts.minute)};
+  function deviceNow(){
+    const date=new Date();
+    const day=date.getDay()===6?'saturday':date.getDay()===0?'sunday':'weekday';
+    return{day,minute:date.getHours()*60+date.getMinutes()};
   }
 
   function renderTimes(detail,key){
     const data=window.ELMA_TRANSIT?.['6'],schedule=data?.schedules?.[key];
     if(!schedule)return;
-    const now=amasyaNow();
-    const today=now.day===key;
-    const elapsed=today?schedule.times.filter(time=>{const [hour,minute]=time.split(':').map(Number);return hour*60+minute<now.minute}).length:0;
-    detail.querySelector('.eg-line-meta').textContent=`${schedule.departure} • ${schedule.times.length} sefer • ${data.stopCount} durak${today?` • ${elapsed?`${elapsed} sefer geçti`:'Bugün henüz geçen sefer yok'}`:''}`;
+    const now=deviceNow();
+    const elapsed=schedule.times.filter(time=>{const [hour,minute]=time.split(':').map(Number);return hour*60+minute<now.minute}).length;
+    detail.querySelector('.eg-line-meta').textContent=`${schedule.departure} • ${schedule.times.length} sefer • ${data.stopCount} durak • ${elapsed?`${elapsed} sefer saati geçti`:'Henüz geçen saat yok'}`;
     detail.querySelector('.eg-line-times').innerHTML=schedule.times.map(time=>{
-      const [hour,minute]=time.split(':').map(Number),past=today&&hour*60+minute<now.minute;
+      const [hour,minute]=time.split(':').map(Number),past=hour*60+minute<now.minute;
       return `<div class="eg-line-time${past?' is-past':''}"${past?` aria-label="${time} geçti"`:''}><span>${time}</span></div>`;
     }).join('');
     detail.querySelectorAll('.eg-line-tab').forEach(tab=>tab.classList.toggle('active',tab.dataset.day===key));
@@ -60,7 +59,7 @@
     panel.append(row,detail);
     row.onclick=()=>{detail.classList.toggle('show');row.querySelector('.eg-arrow').textContent=detail.classList.contains('show')?'⌄':'›'};
     detail.querySelectorAll('.eg-line-tab').forEach(button=>button.onclick=()=>renderTimes(detail,button.dataset.day));
-    renderTimes(detail,amasyaNow().day==='saturday'?'saturday':'weekday');
+    renderTimes(detail,deviceNow().day==='saturday'?'saturday':'weekday');
     loaded=true;
     mounting=false;
     return true;
