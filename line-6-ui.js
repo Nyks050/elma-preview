@@ -35,7 +35,8 @@
     if(!schedule)return;
     const now=amasyaNow();
     const today=now.day===key;
-    detail.querySelector('.eg-line-meta').textContent=`${schedule.departure} • ${schedule.times.length} sefer • ${data.stopCount} durak`;
+    const elapsed=today?schedule.times.filter(time=>{const [hour,minute]=time.split(':').map(Number);return hour*60+minute<now.minute}).length:0;
+    detail.querySelector('.eg-line-meta').textContent=`${schedule.departure} • ${schedule.times.length} sefer • ${data.stopCount} durak${today?` • ${elapsed?`${elapsed} sefer geçti`:'Bugün henüz geçen sefer yok'}`:''}`;
     detail.querySelector('.eg-line-times').innerHTML=schedule.times.map(time=>{
       const [hour,minute]=time.split(':').map(Number),past=today&&hour*60+minute<now.minute;
       return `<div class="eg-line-time${past?' is-past':''}"${past?` aria-label="${time} geçti"`:''}>${time}</div>`;
