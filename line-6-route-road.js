@@ -5,7 +5,6 @@
   const outboundStops=stops.slice(0,25),returnStops=stops.slice(24);
   const directions=[{line:'6',name:'6 Nolu Hat',direction:'Gidiş',stops:outboundStops},{line:'6',name:'6 Nolu Hat',direction:'Dönüş',stops:returnStops}];
   const kml=window.ELMA_LINE6_KML||{segments:[],stops:[]};
-  const visualStops=kml.stops.map(stop=>stop.position);
   const startStop=kml.stops[13];
   const distance2=(a,b)=>(a[0]-b[0])**2+((a[1]-b[1])*.76)**2;
   function joinSegments(segments,start){
@@ -28,6 +27,8 @@
   }
   const routePath=joinSegments(kml.segments,startStop?.position);
   const orderedStops=kml.stops.map((stop,index)=>({stop,index,routeIndex:routePath.reduce((best,position,pathIndex)=>distance2(position,stop.position)<distance2(routePath[best],stop.position)?pathIndex:best,0)})).sort((a,b)=>a.routeIndex-b.routeIndex);
+  const numberedStops=orderedStops.map(({stop,index},order)=>({stop,index,number:order+1,name:/^Durak \d+(?: \(\d+\))?$/.test(stop.name)?`Durak ${order+1}`:stop.name}));
+  const visualStops=numberedStops.map(({stop})=>stop.position);
   window.ELMA_LINE_6_ROUTE={stops,outboundStops,returnStops,directions,visualStops};
   window.ELMA_TRANSIT_LINES=window.ELMA_TRANSIT_LINES||[];
   window.ELMA_TRANSIT_LINES=window.ELMA_TRANSIT_LINES.filter(line=>line.line!=='6').concat(directions);
@@ -61,9 +62,9 @@
     routeMap=new ElmaMaps.Map(container,{center:point(routePath[0]||visualStops[0]),zoom:12,disableDefaultUI:true,clickableIcons:false,gestureHandling:'greedy',mapTypeId:'roadmap'});
     const path=routePath.map(point);path.forEach(position=>routeBounds.extend(position));
     new ElmaMaps.Polyline({map:routeMap,path,strokeColor:'#111111',strokeOpacity:1,strokeWeight:6,geodesic:false,clickable:false});
-    kml.stops.forEach((stop,index)=>{
+    numberedStops.forEach(({stop,number,name})=>{
       const position=point(stop.position);routeBounds.extend(position);
-      new ElmaMaps.Marker({map:routeMap,position,zIndex:100+index,title:`6 Nolu Hat • ${stop.name}`,label:{text:String(index+1),color:'#fff',fontSize:'9px',fontWeight:'800'},icon:{path:ElmaMaps.SymbolPath.CIRCLE,scale:11,fillColor:'#17191d',fillOpacity:1,strokeColor:'#fff',strokeOpacity:1,strokeWeight:2}});
+      new ElmaMaps.Marker({map:routeMap,position,zIndex:100+number,title:`6 Nolu Hat • ${number}. durak: ${name}`,label:{text:String(number),color:'#fff',fontSize:'9px',fontWeight:'800'},icon:{path:ElmaMaps.SymbolPath.CIRCLE,scale:11,fillColor:'#17191d',fillOpacity:1,strokeColor:'#fff',strokeOpacity:1,strokeWeight:2}});
     });
     fitRoute();return routeMap;
   }
@@ -82,8 +83,8 @@
     if(panel.querySelector('.eg-route6'))return true;
     addStyles();
     const placeholder=panel.querySelector('.eg-route-empty'),card=document.createElement('div');card.className='eg-route6';
-    const stopItems=orderedStops.map(({stop,index})=>`<li><button class="eg-route6-stop" type="button" data-stop="${index}" aria-label="${index+1}. durak: ${escapeHtml(stop.name)}"><span class="eg-route6-stop-number">${index+1}</span><span class="eg-route6-stop-name">${escapeHtml(stop.name)}</span><span class="eg-route6-stop-arrow" aria-hidden="true">›</span></button></li>`).join('');
-    card.innerHTML=`<button class="eg-route6-head" type="button" aria-expanded="true" aria-controls="egRoute6Body"><span class="eg-route6-icon" aria-hidden="true">6</span><span class="eg-route6-copy"><b>6 Nolu Hat</b><small>14. duraktan başlayan güzergâh • ${kml.stops.length} durak</small></span><span class="eg-route6-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></button><div id="egRoute6Body" class="eg-route6-body"><div id="egRoute6Map" class="eg-route6-map" role="region" aria-label="6 nolu hat KML güzergâh haritası"></div><div class="eg-route6-stops-head"><b>Duraklar</b><small>Haritada görmek için dokun</small></div><ol class="eg-route6-stops">${stopItems}</ol><div class="eg-route6-footer">14. duraktan başlayan kesintisiz rota • ${kml.stops.length} durak</div></div>`;
+    const stopItems=numberedStops.map(({index,number,name})=>`<li><button class="eg-route6-stop" type="button" data-stop="${index}" aria-label="${number}. durak: ${escapeHtml(name)}"><span class="eg-route6-stop-number">${number}</span><span class="eg-route6-stop-name">${escapeHtml(name)}</span><span class="eg-route6-stop-arrow" aria-hidden="true">›</span></button></li>`).join('');
+    card.innerHTML=`<button class="eg-route6-head" type="button" aria-expanded="true" aria-controls="egRoute6Body"><span class="eg-route6-icon" aria-hidden="true">6</span><span class="eg-route6-copy"><b>6 Nolu Hat</b><small>1. duraktan başlayan güzergâh • ${kml.stops.length} durak</small></span><span class="eg-route6-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></button><div id="egRoute6Body" class="eg-route6-body"><div id="egRoute6Map" class="eg-route6-map" role="region" aria-label="6 nolu hat KML güzergâh haritası"></div><div class="eg-route6-stops-head"><b>Duraklar</b><small>Haritada görmek için dokun</small></div><ol class="eg-route6-stops">${stopItems}</ol><div class="eg-route6-footer">1. duraktan başlayan kesintisiz rota • ${kml.stops.length} durak</div></div>`;
     if(placeholder)placeholder.replaceWith(card);else panel.appendChild(card);
     const container=card.querySelector('.eg-route6-map'),head=card.querySelector('.eg-route6-head'),body=card.querySelector('.eg-route6-body');
     const show=()=>{if(routePanel?.classList.contains('active')&&head.getAttribute('aria-expanded')==='true')refreshMap(container)};
