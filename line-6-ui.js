@@ -30,14 +30,20 @@
     return{day,minute:date.getHours()*60+date.getMinutes()};
   }
 
+  function dayState(key,day){
+    if(key==='weekday')return day==='weekday'?'today':'past';
+    return day==='saturday'?'today':day==='sunday'?'past':'future';
+  }
+
   function renderTimes(detail,key){
     const data=window.ELMA_TRANSIT?.['6'],schedule=data?.schedules?.[key];
     if(!schedule)return;
     const now=deviceNow();
-    const elapsed=schedule.times.filter(time=>{const [hour,minute]=time.split(':').map(Number);return hour*60+minute<now.minute}).length;
-    detail.querySelector('.eg-line-meta').textContent=`${schedule.departure} • ${schedule.times.length} sefer • ${data.stopCount} durak • ${elapsed?`${elapsed} sefer saati geçti`:'Henüz geçen saat yok'}`;
+    const state=dayState(key,now.day);
+    const elapsed=state==='past'?schedule.times.length:state==='future'?0:schedule.times.filter(time=>{const [hour,minute]=time.split(':').map(Number);return hour*60+minute<now.minute}).length;
+    detail.querySelector('.eg-line-meta').textContent=`${schedule.departure} • ${schedule.times.length} sefer • ${data.stopCount} durak • ${elapsed?`${elapsed} sefer saati geçti`:state==='future'?'Bu günün seferleri henüz başlamadı':'Henüz geçen saat yok'}`;
     detail.querySelector('.eg-line-times').innerHTML=schedule.times.map(time=>{
-      const [hour,minute]=time.split(':').map(Number),past=hour*60+minute<now.minute;
+      const [hour,minute]=time.split(':').map(Number),past=state==='past'||state==='today'&&hour*60+minute<now.minute;
       return `<div class="eg-line-time${past?' is-past':''}"${past?` aria-label="${time} geçti"`:''}><span>${time}</span></div>`;
     }).join('');
     detail.querySelectorAll('.eg-line-tab').forEach(tab=>tab.classList.toggle('active',tab.dataset.day===key));
