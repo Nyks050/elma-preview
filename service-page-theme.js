@@ -62,6 +62,7 @@ body.eg-service-detail [data-panel="lines"] .eg-line-meta{margin:0 0 12px!import
 body.eg-service-detail [data-panel="lines"] .eg-line-times{gap:8px!important;max-height:370px!important}
 body.eg-service-detail [data-panel="lines"] .eg-line-time{min-height:47px!important;border:1px solid #e9eaed!important;border-radius:13px!important;background:#f8f8f9!important;color:#17191d!important;font-size:14px!important;font-weight:800!important}
 body.eg-service-detail [data-panel="lines"] .eg-line-time.is-past{border-color:#eeeef0!important;background:#f3f3f4!important;color:#858890!important;opacity:.55!important;text-decoration-line:line-through!important;text-decoration-style:solid!important;text-decoration-thickness:2px!important;text-decoration-color:#74777e!important}
+body.eg-service-detail [data-panel="lines"] .eg-line-time.is-past>span{text-decoration:line-through!important;text-decoration-thickness:2px!important;text-decoration-color:#74777e!important}
 body.eg-service-detail [data-panel="lines"] .eg-line-note{margin-top:13px!important;font-size:10px!important;color:#777a80!important}
 @media(prefers-reduced-motion:reduce){body.eg-service-detail [data-panel="lines"] .eg-line-row{transition:none}}
 @media(max-width:350px){body.eg-service-detail .eg-line-times{grid-template-columns:repeat(3,minmax(0,1fr))!important}body.eg-service-detail #elmaHomeWidgets>.eg-panel.active{padding-left:5%!important;padding-right:5%!important}}
