@@ -76,9 +76,9 @@ body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
 #elmaHomeWidgets [data-panel="account"] .eg-page-wordmark{margin:0 auto 24px}
 .eg-reference-heading h2{max-width:430px;font-size:clamp(32px,8.7vw,46px);font-weight:800;letter-spacing:-.065em;line-height:1.06}
 .eg-reference-heading p{margin-top:9px;font-size:14px;color:#73767c;font-weight:500}
-.eg-bus-banner{width:auto;height:clamp(190px,46vw,240px);min-height:190px;margin:0 6%;border-radius:clamp(15px,4.2vw,22px);background:#090b0f;box-shadow:0 16px 36px rgba(12,13,17,.12)}
-.eg-bus-banner:after{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(90deg,#fff 0%,transparent 5%,transparent 95%,#fff 100%),linear-gradient(0deg,#fff 0%,transparent 7%,transparent 93%,#fff 100%);opacity:.72}
-.eg-bus-scene{width:100%;height:100%;overflow:hidden}
+.eg-bus-banner{width:auto;height:clamp(190px,46vw,240px);min-height:190px;margin:0 6%;border-radius:clamp(15px,4.2vw,22px);background:#fff;box-shadow:none}
+.eg-bus-banner:after{content:none}
+.eg-bus-scene{width:100%;height:100%;overflow:hidden;background:#090b0f;-webkit-mask-image:radial-gradient(ellipse 90% 94% at center,#000 72%,rgba(0,0,0,.92) 84%,transparent 100%);mask-image:radial-gradient(ellipse 90% 94% at center,#000 72%,rgba(0,0,0,.92) 84%,transparent 100%)}
 .eg-bus-scene img{display:block;width:100%;height:100%;object-fit:cover;filter:none;animation:none}
 .eg-reference-story{max-width:100%;margin-left:0;padding:25px 22px 24px;color:#fff;min-height:190px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .eg-reference-story .eg-feature-kicker{margin-bottom:15px;color:#bec1c7;font-size:10px;font-weight:800;letter-spacing:.14em}
