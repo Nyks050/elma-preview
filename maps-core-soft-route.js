@@ -695,7 +695,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   roadData.dataset.elmaRoadPathData='1';
   document.head.appendChild(roadData);
   const line1Route=document.createElement('script');
-  line1Route.src='line-1-route.js?v=20260918-osm1';
+  line1Route.src='line-1-route.js?v=20260919-route-visible1';
   line1Route.async=false;
   line1Route.dataset.elmaLine1Route='1';
   document.head.appendChild(line1Route);
@@ -705,7 +705,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   line6KmlData.dataset.elmaLine6KmlData='1';
   document.head.appendChild(line6KmlData);
   const line6Route=document.createElement('script');
-  line6Route.src='line-6-route-road.js?v=20260918-kml1';
+  line6Route.src='line-6-route-road.js?v=20260919-route-visible1';
   line6Route.async=false;
   line6Route.dataset.elmaLine6Route='1';
   document.head.appendChild(line6Route);

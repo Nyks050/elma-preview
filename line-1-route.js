@@ -59,8 +59,14 @@
   }
 
   function mount(){
-    const panel=document.querySelector('.eg-panel[data-panel="routes"] .eg-card');
-    if(!panel)return false;
+    const routePanel=document.querySelector('.eg-panel[data-panel="routes"]');
+    if(!routePanel)return false;
+    let panel=routePanel.querySelector('.eg-card');
+    if(!panel){
+      panel=document.createElement('div');panel.className='eg-card eg-route-list';
+      panel.innerHTML='<div class="eg-route-screen-head"><h2>Güzergâhlar</h2><p>Hatları harita üzerinde keşfet</p></div>';
+      routePanel.appendChild(panel);
+    }
     if(panel.querySelector('.eg-route1'))return true;
     addStyles();
     const placeholder=panel.querySelector('.eg-route-empty');
@@ -70,8 +76,8 @@
     card.innerHTML=`<button class="eg-route1-head" type="button" aria-expanded="false" aria-controls="egRoute1Body"><span class="eg-route1-icon eg-route6-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="7" cy="24" r="3"/><circle cx="25" cy="8" r="3"/><path d="M9.5 22.5c2.8-6.8 7.7-1.8 10.2-7.5 1.1-2.5 2.5-3.9 3.5-4.7"/></svg></span><span class="eg-route1-copy"><b>1 Nolu Hat</b><small>Gidiş + dönüş • 96 durak</small></span><span class="eg-route1-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></button><div id="egRoute1Body" class="eg-route1-body" hidden><div id="egRoute1Map" class="eg-route1-map" role="region" aria-label="1 nolu hat gidiş ve dönüş güzergâh haritası"></div><div class="eg-route1-footer"><span class="eg-route1-legend"><span class="eg-route1-key" aria-hidden="true"></span><span>Gidiş + dönüş</span></span><span class="eg-route1-legend"><span class="eg-route1-stop-key" aria-hidden="true"></span><span>96 durak</span></span></div></div>`;
     if(line6)panel.insertBefore(card,line6);
     else if(placeholder)placeholder.replaceWith(card);
-    else panel.prepend(card);
-    const routePanel=document.querySelector('.eg-panel[data-panel="routes"]'),container=card.querySelector('.eg-route1-map'),head=card.querySelector('.eg-route1-head'),body=card.querySelector('.eg-route1-body');
+    else panel.append(card);
+    const container=card.querySelector('.eg-route1-map'),head=card.querySelector('.eg-route1-head'),body=card.querySelector('.eg-route1-body');
     const show=()=>{if(routePanel?.classList.contains('active')&&head.getAttribute('aria-expanded')==='true')refreshMap(container)};
     head.addEventListener('click',()=>{const open=head.getAttribute('aria-expanded')!=='true';head.setAttribute('aria-expanded',String(open));body.hidden=!open;if(open)show()});
     new MutationObserver(show).observe(routePanel,{attributes:true,attributeFilter:['class']});
