@@ -116,7 +116,7 @@ function loadCardService(){
 }
 function loadScheduleCards(){
  if(scheduleLoad)return scheduleLoad;
- const sources=[['line-1-ui.js?v=20260918-past-times1','1'],['line-2-ui.js?v=20260918-past-times1','2'],['line-6-ui.js?v=20260918-past-times1','6']];
+ const sources=[['line-1-ui.js?v=20260919-past-status1','1'],['line-2-ui.js?v=20260919-past-status1','2'],['line-6-ui.js?v=20260919-past-status1','6']];
  scheduleLoad=Promise.all(sources.map(([src,line])=>new Promise(resolve=>{
   const existing=document.querySelector('script[data-elma-schedule-line="'+line+'"]');if(existing){resolve();return}
   const script=document.createElement('script');script.src=src;script.defer=true;script.dataset.elmaScheduleLine=line;script.onload=resolve;script.onerror=resolve;document.head.appendChild(script);
