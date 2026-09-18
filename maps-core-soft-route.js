@@ -362,7 +362,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     nav.id='elmaMainNav';
     nav.className='elma-main-nav';
     nav.setAttribute('aria-label','Ana menü');
-    nav.innerHTML=`<button class="elma-main-tab active" data-elma-tab="home" type="button"><svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3z"/></svg><span>Ana Sayfa</span></button><button class="elma-main-tab" data-elma-tab="services" type="button"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="4" height="4" rx=".5"/><rect x="10" y="4" width="4" height="4" rx=".5"/><rect x="16" y="4" width="4" height="4" rx=".5"/><rect x="4" y="10" width="4" height="4" rx=".5"/><rect x="10" y="10" width="4" height="4" rx=".5"/><rect x="16" y="10" width="4" height="4" rx=".5"/><rect x="4" y="16" width="4" height="4" rx=".5"/><rect x="10" y="16" width="4" height="4" rx=".5"/><rect x="16" y="16" width="4" height="4" rx=".5"/></svg><span>Hizmetler</span></button><button class="elma-main-tab" data-elma-tab="event" type="button"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-3-6 3z"/><path d="M9 8h6M9 12h6"/></svg><span>Etkinlik</span></button><button class="elma-main-tab" data-elma-tab="account" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg><span>Hesap</span></button>`;
+    nav.innerHTML=`<button class="elma-main-tab active" data-elma-tab="home" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10.7 8.5-7 8.5 7v9.1a1.2 1.2 0 0 1-1.2 1.2H4.7a1.2 1.2 0 0 1-1.2-1.2z"/><path d="M9 21v-7h6v7"/></svg><span>Ana Sayfa</span></button><button class="elma-main-tab" data-elma-tab="services" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Hizmetler</span></button><button class="elma-main-tab" data-elma-tab="event" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 10.5h17M8 15h3m3 0h2"/></svg><span>Etkinlik</span></button><button class="elma-main-tab" data-elma-tab="account" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.2 20v-1.5a6.8 6.8 0 0 1 13.6 0V20z"/></svg><span>Hesap</span></button>`;
     document.body.appendChild(nav);
 
     const resultIcons={
@@ -374,7 +374,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     };
 
     function setNavActive(name){
-      nav.querySelectorAll('.elma-main-tab').forEach(button=>button.classList.toggle('active',button.dataset.elmaTab===name));
+      nav.querySelectorAll('.elma-main-tab').forEach(button=>{const active=button.dataset.elmaTab===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')});
     }
     function hideWhiteScreens(){
       home.classList.add('hide');
