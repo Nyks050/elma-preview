@@ -540,7 +540,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       target.classList.remove('elma-tab-enter');
       void target.offsetWidth;
       target.classList.add('elma-tab-enter');
-      tabAnimationTimers.set(target,setTimeout(()=>target.classList.remove('elma-tab-enter'),280));
+      tabAnimationTimers.set(target,setTimeout(()=>target.classList.remove('elma-tab-enter'),560));
     }
     function showMainTab(name){
       if(name==='home'){showHome();animateMainTab(name);return}
@@ -569,7 +569,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
         source.classList.remove('elma-tab-leave');
         leavingTab=null;
         showMainTab(name);
-      },130);
+      },240);
     }
     nav.querySelectorAll('.elma-main-tab').forEach(button=>{
       button.addEventListener('touchend',event=>{

@@ -50,16 +50,16 @@ body.eg-reference-services #elmaHomeWidgets{width:100%;max-width:520px;padding:e
 .eg-reference-notice[hidden]{display:none}
 /* Embedded navigation bar, shared across all app screens. */
 body .elma-main-nav{position:fixed;z-index:880;left:0;right:0;bottom:0;width:100%;max-width:520px;height:calc(74px + env(safe-area-inset-bottom));margin:0 auto;padding:6px 12px calc(6px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;border:0;border-top:1px solid #e8e8ec;border-radius:0;background:rgba(255,255,255,.97);box-shadow:0 -8px 26px #1113180d;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
-body .elma-main-tab{min-width:0;min-height:60px;padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:22px;background:transparent;color:#7b7e85;font-family:inherit;font-size:10px;font-weight:720;letter-spacing:-.015em;line-height:1.1;white-space:nowrap;transition:background .2s ease,color .2s ease,transform .2s ease,box-shadow .2s ease}
+body .elma-main-tab{min-width:0;min-height:60px;padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:22px;background:transparent;color:#7b7e85;font-family:inherit;font-size:10px;font-weight:720;letter-spacing:-.015em;line-height:1.1;white-space:nowrap;transition:background .42s cubic-bezier(.22,1,.36,1),color .42s ease,transform .42s cubic-bezier(.22,1,.36,1),box-shadow .42s ease}
 body .elma-main-tab svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s ease}
 body .elma-main-tab.active{background:#17191d;color:#fff;font-weight:790;box-shadow:0 6px 14px #1113182b}
 body .elma-main-tab.active svg{transform:translateY(-1px)}
 body .elma-main-tab:active{transform:scale(.96)}
 body .elma-main-tab:focus-visible{outline:2px solid #17191d;outline-offset:2px}
-@keyframes elmaTabLeave{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-6px)}}
-@keyframes elmaTabEnter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.elma-home-screen.elma-tab-leave,#elmaHomeWidgets>.eg-panel.active.elma-tab-leave{animation:elmaTabLeave .13s ease-in both;pointer-events:none}
-.elma-home-screen.elma-tab-enter,#elmaHomeWidgets>.eg-panel.active.elma-tab-enter{animation:elmaTabEnter .28s cubic-bezier(.2,.75,.25,1) both}
+@keyframes elmaTabLeave{from{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}to{opacity:0;transform:translateY(-4px) scale(.997);filter:blur(2px)}}
+@keyframes elmaTabEnter{from{opacity:0;transform:translateY(7px) scale(.997);filter:blur(2px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+.elma-home-screen.elma-tab-leave,#elmaHomeWidgets>.eg-panel.active.elma-tab-leave{animation:elmaTabLeave .24s cubic-bezier(.4,0,.6,1) both;pointer-events:none}
+.elma-home-screen.elma-tab-enter,#elmaHomeWidgets>.eg-panel.active.elma-tab-enter{animation:elmaTabEnter .52s cubic-bezier(.22,1,.36,1) both}
 @media(max-width:350px){body .elma-main-nav{gap:2px;padding-left:7px;padding-right:7px}body .elma-main-tab{font-size:9px}}
 @media(prefers-reduced-motion:reduce){body .elma-main-tab,body .elma-main-tab svg{transition:none!important}.elma-home-screen.elma-tab-enter,#elmaHomeWidgets>.eg-panel.active.elma-tab-enter,.elma-home-screen.elma-tab-leave,#elmaHomeWidgets>.eg-panel.active.elma-tab-leave{animation:none!important}}
 @media(min-width:480px){#elmaHomeWidgets [data-panel="services"] .eg-service-card{min-height:106px;grid-template-columns:48px minmax(0,1fr) 24px;gap:12px}#elmaHomeWidgets [data-panel="services"] .eg-service-icon{width:48px!important;height:48px!important;padding:11px!important}}
@@ -76,19 +76,15 @@ body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
 #elmaHomeWidgets [data-panel="account"] .eg-page-wordmark{margin:0 auto 24px}
 .eg-reference-heading h2{max-width:430px;font-size:clamp(32px,8.7vw,46px);font-weight:800;letter-spacing:-.065em;line-height:1.06}
 .eg-reference-heading p{margin-top:9px;font-size:14px;color:#73767c;font-weight:500}
-.eg-bus-banner{width:auto;min-height:190px;margin:0 6%;border-radius:18px;background:#090b0f;box-shadow:0 16px 36px rgba(12,13,17,.12)}
-.eg-bus-banner{height:220px}
+.eg-bus-banner{width:auto;height:clamp(190px,46vw,240px);min-height:190px;margin:0 6%;border-radius:clamp(15px,4.2vw,22px);background:#090b0f;box-shadow:0 16px 36px rgba(12,13,17,.12)}
 .eg-bus-banner:after{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(90deg,#fff 0%,transparent 5%,transparent 95%,#fff 100%),linear-gradient(0deg,#fff 0%,transparent 7%,transparent 93%,#fff 100%);opacity:.72}
-.eg-bus-scene{width:100%;height:220px;overflow:hidden}
+.eg-bus-scene{width:100%;height:100%;overflow:hidden}
 .eg-bus-scene img{display:block;width:100%;height:100%;object-fit:cover;filter:none;animation:none}
 .eg-reference-story{max-width:100%;margin-left:0;padding:25px 22px 24px;color:#fff;min-height:190px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .eg-reference-story .eg-feature-kicker{margin-bottom:15px;color:#bec1c7;font-size:10px;font-weight:800;letter-spacing:.14em}
 .eg-reference-story h3{max-width:235px;margin:0 0 12px;font-size:clamp(24px,6vw,31px);font-weight:800;line-height:1.08;letter-spacing:-.055em}
 .eg-reference-story p{max-width:220px;color:#d1d3d8;font-size:12px;line-height:1.5}
-.eg-service-section-head{display:flex;justify-content:space-between;align-items:baseline;margin:31px 6% 14px}
-.eg-service-section-head h3{margin:0;color:#121316;font-size:22px;font-weight:800;letter-spacing:-.05em}
-.eg-service-section-head span{color:#858891;font-size:11px;font-weight:760;letter-spacing:.08em}
-#elmaHomeWidgets [data-panel="services"] .eg-services-grid{gap:11px;margin:0 6%;background:transparent}
+#elmaHomeWidgets [data-panel="services"] .eg-services-grid{gap:clamp(8px,2.7vw,12px);margin:clamp(18px,5vw,30px) 6% 0;background:transparent}
 #elmaHomeWidgets [data-panel="services"] .eg-service-card,#elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(odd),#elmaHomeWidgets [data-panel="services"] .eg-service-card:nth-child(even),#elmaHomeWidgets [data-panel="services"] .eg-service-card:last-child:nth-child(odd){grid-column:auto;min-height:145px;grid-template-columns:1fr auto;grid-template-rows:46px 1fr;gap:5px 4px;padding:15px;border:1px solid #ececef;border-radius:21px;background:#f7f7f8;box-shadow:none;transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
 #elmaHomeWidgets [data-panel="services"] .eg-service-card:after{grid-column:2;grid-row:1;width:25px;height:25px;background:#e9eaec;color:#32343a;font-size:21px}
 #elmaHomeWidgets [data-panel="services"] .eg-service-icon{grid-column:1;grid-row:1;width:43px!important;height:43px!important;padding:10px!important;border-radius:13px!important;background:#fff!important;color:#16171a!important}
@@ -138,7 +134,6 @@ grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageThem
 const hero=document.createElement('div');hero.className='eg-reference-hero';
 hero.innerHTML='<header class="eg-reference-heading"><img class="eg-page-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="Elma Go" width="126" height="42"></header><div class="eg-bus-banner"><div class="eg-bus-scene" role="img" aria-label="Amasya’da soldan sağa ilerleyen otobüs animasyonu"><img src="assets/services-bus-stop.svg?v=20260918-citydoors1" alt="" width="800" height="400" decoding="async"></div></div>';
 root.prepend(hero);
-const sectionHead=document.createElement('div');sectionHead.className='eg-service-section-head';sectionHead.innerHTML='<h3>Keşfet</h3><span>ŞEHİR HİZMETLERİ</span>';grid.before(sectionHead);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
 const schedule=make('schedule','Sefer Saatleri','Güncel sefer saatlerini inceleyin.',()=>{const b=root.querySelector('[data-service-target="lines"]');if(b)b.click();else message('Hat bilgileri henüz yüklenmedi. Lütfen tekrar deneyin.')});
 const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>message('Duyuru kaynağı henüz bağlanmadı. Güncel duyurular burada gösterilecek.'));
