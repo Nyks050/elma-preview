@@ -57,7 +57,8 @@
     const line1=window.ELMA_LINE_1_ROUTE;
     if(line1?.directions)line1.directions.forEach(item=>groups.push(item));
     const line6=window.ELMA_LINE_6_ROUTE;
-    if(line6?.directions)line6.directions.forEach(item=>groups.push(item));
+    if(line6?.visualStops?.length)groups.push({line:'6',name:'6 Nolu Hat',direction:'KML durakları',stops:line6.visualStops});
+    else if(line6?.directions)line6.directions.forEach(item=>groups.push(item));
     const unique=new Map();
     groups.forEach(group=>(group.stops||[]).forEach((point,index)=>{
       const lat=Number(point[0]),lng=Number(point[1]);
