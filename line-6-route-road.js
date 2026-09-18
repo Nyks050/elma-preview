@@ -41,16 +41,18 @@
     const style=document.createElement('style');style.id='elmaLine6RouteStyle';
     style.textContent=`
 .eg-panel[data-panel="routes"] .eg-route-list{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
-.eg-route-screen-head{padding:4px 0 20px}.eg-route-screen-head h2{margin:0;color:#111216;font-size:31px;font-weight:850;letter-spacing:-.055em}.eg-route-screen-head p{margin:7px 0 0;color:#74777e;font-size:13px}
-.eg-route6{overflow:hidden;border:1px solid #e8e9ec;border-radius:20px;background:#fff}
-.eg-route6-head{display:flex;align-items:center;gap:13px;width:100%;padding:16px;border:0;background:#fff;text-align:left;cursor:pointer}
-.eg-route6-icon{width:44px;height:44px;border-radius:14px;background:#17191d;color:#fff;display:grid;place-items:center;flex:0 0 44px;font:850 22px/1 Inter,system-ui,sans-serif}
-.eg-route6-copy{flex:1;min-width:0}.eg-route6-copy b{display:block;color:#111216;font-size:16px;font-weight:800;margin-bottom:4px}.eg-route6-copy small{display:block;color:#74777e;font-size:11px}
+.eg-panel[data-panel="routes"] .eg-screen-head{padding:0 0 23px!important}.eg-panel[data-panel="routes"] .eg-screen-title{font-size:clamp(32px,8.5vw,42px)!important;line-height:1.06!important;letter-spacing:-.06em!important}.eg-panel[data-panel="routes"] .eg-screen-subtitle{margin-top:9px!important;font-size:14px!important;color:#73767c!important;font-weight:500!important}
+.eg-route-section{display:flex;align-items:baseline;justify-content:space-between;margin:6px 0 14px}.eg-route-section h3{margin:0;color:#111216;font-size:22px;font-weight:800;letter-spacing:-.05em}.eg-route-section span{color:#858891;font-size:10px;font-weight:750;letter-spacing:.09em}
+.eg-route6{background:transparent}
+.eg-route6-head{display:flex;align-items:center;gap:14px;width:100%;min-height:84px;padding:16px;border:1px solid #ececef;border-radius:21px;background:#f7f7f8;text-align:left;cursor:pointer;transition:transform .18s ease,background .18s ease}.eg-route6-head:active{transform:scale(.985);background:#eeeff1}.eg-route6-head:focus-visible{outline:2px solid #17191d;outline-offset:2px}
+.eg-route6-icon{width:48px;height:48px;border-radius:14px;background:#17191d;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;flex:0 0 48px;font:850 23px/1 Inter,system-ui,sans-serif}.eg-route6-icon:after{content:"HAT";color:#d4d5da;font-size:8px;font-weight:800;letter-spacing:.12em}
+.eg-route6-copy{flex:1;min-width:0}.eg-route6-copy b{display:block;color:#111216;font-size:16px;font-weight:800;margin-bottom:4px;letter-spacing:-.035em}.eg-route6-copy small{display:block;color:#74777e;font-size:11px}
 .eg-route6-toggle{width:30px;height:30px;border-radius:50%;background:#f0f0f2;color:#17191d;display:grid;place-items:center;flex:0 0 30px;transition:transform .2s}.eg-route6-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}.eg-route6-head[aria-expanded="true"] .eg-route6-toggle{transform:rotate(180deg)}
-.eg-route6-body[hidden]{display:none}.eg-route6-map{height:380px;border-top:1px solid #e6e7e9;border-bottom:1px solid #e6e7e9;background:#f7f7f8}
+.eg-route6-body[hidden]{display:none}.eg-route6-body{margin:8px 0 12px;padding:12px;border:1px solid #e8e9eb;border-radius:20px;background:#fff;box-shadow:0 9px 25px #1113180d}.eg-route6-map{height:380px;border-radius:15px;background:#f7f7f8;overflow:hidden}
 .eg-route6-stops-head{display:flex;justify-content:space-between;align-items:baseline;padding:17px 16px 10px}.eg-route6-stops-head b{font-size:16px;letter-spacing:-.03em}.eg-route6-stops-head small{font-size:11px;color:#7c7f85}
 .eg-route6-stops{list-style:none;margin:0;padding:0 12px 14px;max-height:290px;overflow:auto}.eg-route6-stops li+li{border-top:1px solid #f0f0f2}.eg-route6-stop{display:flex;align-items:center;gap:11px;width:100%;min-height:53px;padding:8px 4px;border:0;background:transparent;color:#1b1c20;text-align:left;font:650 12px/1.3 Inter,system-ui,sans-serif;cursor:pointer}.eg-route6-stop:hover,.eg-route6-stop:focus-visible{background:#f7f7f8;outline:0}.eg-route6-stop-number{width:27px;height:27px;flex:0 0 27px;border-radius:50%;background:#17191d;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800}.eg-route6-stop-name{flex:1;min-width:0}.eg-route6-stop-arrow{color:#a0a3a9;font-size:19px}
-.eg-route6-footer{padding:12px 16px;border-top:1px solid #eeeef0;color:#74777e;font-size:11px}
+.eg-route6-footer{padding:12px 4px 2px;border-top:1px solid #eeeef0;color:#74777e;font-size:11px}
+@media(prefers-reduced-motion:reduce){.eg-route6-head{transition:none}}
 `;
     document.head.appendChild(style);
   }
@@ -77,14 +79,14 @@
     let panel=routePanel.querySelector('.eg-card');
     if(!panel){
       panel=document.createElement('div');panel.className='eg-card eg-route-list';
-      panel.innerHTML='<div class="eg-route-screen-head"><h2>Güzergâhlar</h2><p>Hatları harita üzerinde keşfet</p></div>';
+      panel.innerHTML='<div class="eg-screen-head"><h2 class="eg-screen-title">Güzergâhlar</h2><p class="eg-screen-subtitle">Hatları ve durakları haritada keşfedin.</p></div><div class="eg-route-section"><h3>Hatlar</h3><span>GÜZERGÂH HARİTASI</span></div>';
       routePanel.appendChild(panel);
     }
     if(panel.querySelector('.eg-route6'))return true;
     addStyles();
     const placeholder=panel.querySelector('.eg-route-empty'),card=document.createElement('div');card.className='eg-route6';
     const stopItems=numberedStops.map(({index,number,name})=>`<li><button class="eg-route6-stop" type="button" data-stop="${index}" aria-label="${number}. durak: ${escapeHtml(name)}"><span class="eg-route6-stop-number">${number}</span><span class="eg-route6-stop-name">${escapeHtml(name)}</span><span class="eg-route6-stop-arrow" aria-hidden="true">›</span></button></li>`).join('');
-    card.innerHTML=`<button class="eg-route6-head" type="button" aria-expanded="true" aria-controls="egRoute6Body"><span class="eg-route6-icon" aria-hidden="true">6</span><span class="eg-route6-copy"><b>6 Nolu Hat</b><small>1. duraktan başlayan güzergâh • ${kml.stops.length} durak</small></span><span class="eg-route6-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></button><div id="egRoute6Body" class="eg-route6-body"><div id="egRoute6Map" class="eg-route6-map" role="region" aria-label="6 nolu hat KML güzergâh haritası"></div><div class="eg-route6-stops-head"><b>Duraklar</b><small>Haritada görmek için dokun</small></div><ol class="eg-route6-stops">${stopItems}</ol><div class="eg-route6-footer">1. duraktan başlayan kesintisiz rota • ${kml.stops.length} durak</div></div>`;
+    card.innerHTML=`<button class="eg-route6-head" type="button" aria-expanded="false" aria-controls="egRoute6Body"><span class="eg-route6-icon" aria-hidden="true">6</span><span class="eg-route6-copy"><b>6 Nolu Hat</b><small>1. duraktan başlayan güzergâh • ${kml.stops.length} durak</small></span><span class="eg-route6-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></button><div id="egRoute6Body" class="eg-route6-body" hidden><div id="egRoute6Map" class="eg-route6-map" role="region" aria-label="6 nolu hat KML güzergâh haritası"></div><div class="eg-route6-stops-head"><b>Duraklar</b><small>Haritada görmek için dokun</small></div><ol class="eg-route6-stops">${stopItems}</ol><div class="eg-route6-footer">1. duraktan başlayan kesintisiz rota • ${kml.stops.length} durak</div></div>`;
     if(placeholder)placeholder.replaceWith(card);else panel.appendChild(card);
     const container=card.querySelector('.eg-route6-map'),head=card.querySelector('.eg-route6-head'),body=card.querySelector('.eg-route6-body');
     const show=()=>{if(routePanel?.classList.contains('active')&&head.getAttribute('aria-expanded')==='true')refreshMap(container)};
