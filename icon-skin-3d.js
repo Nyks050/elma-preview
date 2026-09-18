@@ -27,8 +27,6 @@ body.eg-reference-services #elmaHomeWidgets{width:100%;max-width:520px;padding:e
 .eg-reference-heading h2{margin:0;font-size:clamp(32px,8.8vw,46px);font-weight:780;letter-spacing:-.055em;line-height:1.1}
 .eg-reference-heading p{margin:5px 0 0;font-size:clamp(14px,3.7vw,19px);color:#626262;line-height:1.4}
 .eg-bus-banner{position:relative;isolation:isolate;width:100%;min-height:clamp(160px,42vw,200px);overflow:hidden;background:#fff}
-.eg-bus-banner>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 88%;z-index:-2}
-.eg-bus-banner:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,.96) 27%,rgba(255,255,255,.82) 43%,rgba(255,255,255,0) 74%),linear-gradient(0deg,#fff,rgba(255,255,255,0) 25%)}
 .eg-reference-story{position:relative;max-width:60%;padding:22px 0 25px;margin-left:6%;color:#09090a}
 .eg-reference-story h3{white-space:pre-line;font-size:clamp(23px,6.1vw,30px);font-weight:750;letter-spacing:-.05em;line-height:1.05;margin:0 0 9px}
 .eg-reference-story p{max-width:185px;margin:0;color:#595959;font-size:14px;line-height:1.4}
@@ -66,10 +64,8 @@ body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
 .eg-reference-eyebrow{display:block;margin-bottom:10px;color:#777a80;font-size:10px;font-weight:800;letter-spacing:.16em}
 .eg-reference-heading h2{max-width:430px;font-size:clamp(32px,8.7vw,46px);font-weight:800;letter-spacing:-.065em;line-height:1.06}
 .eg-reference-heading p{margin-top:9px;font-size:14px;color:#73767c;font-weight:500}
-.eg-bus-banner{width:auto;min-height:216px;margin:0 6%;border-radius:28px;background:#111216;box-shadow:0 18px 40px rgba(12,13,17,.14)}
-.eg-bus-banner>img{left:32%;width:68%;object-position:52% 75%;opacity:.85;filter:saturate(.75) contrast(1.08)}
-.eg-bus-banner:after{background:linear-gradient(90deg,#111216 2%,rgba(17,18,22,.97) 35%,rgba(17,18,22,.62) 67%,rgba(17,18,22,.08) 100%),linear-gradient(0deg,rgba(17,18,22,.4),transparent 50%)}
-.eg-reference-story{max-width:75%;margin-left:0;padding:25px 22px 24px;color:#fff;min-height:216px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+.eg-bus-banner{width:auto;min-height:190px;margin:0 6%;border-radius:28px;background:#111216;box-shadow:0 18px 40px rgba(12,13,17,.14)}
+.eg-reference-story{max-width:100%;margin-left:0;padding:25px 22px 24px;color:#fff;min-height:190px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .eg-reference-story .eg-feature-kicker{margin-bottom:15px;color:#bec1c7;font-size:10px;font-weight:800;letter-spacing:.14em}
 .eg-reference-story h3{max-width:235px;margin:0 0 12px;font-size:clamp(24px,6vw,31px);font-weight:800;line-height:1.08;letter-spacing:-.055em}
 .eg-reference-story p{max-width:220px;color:#d1d3d8;font-size:12px;line-height:1.5}
@@ -124,7 +120,7 @@ function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageTheme();
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<header class="eg-reference-heading"><span class="eg-reference-eyebrow">ELMA GO / ŞEHİR REHBERİ</span><h2>Şehir, elinin altında.</h2><p>Günlük yolculuğun için ihtiyacın olan her şey.</p></header><div class="eg-bus-banner"><img src="assets/amasya-services-hero.webp" width="1100" height="1100" alt="Amasya şehir manzarası ve otobüs" decoding="async"><div class="eg-reference-story"><span class="eg-feature-kicker">ŞEHRİN RİTMİNDE</span><h3>Her durakta<br>yanındayız.</h3><p>Hatlar, duraklar ve şehir hizmetleri tek yerde.</p></div></div>';
+hero.innerHTML='<header class="eg-reference-heading"><span class="eg-reference-eyebrow">ELMA GO / ŞEHİR REHBERİ</span><h2>Şehir, elinin altında.</h2><p>Günlük yolculuğun için ihtiyacın olan her şey.</p></header><div class="eg-bus-banner"><div class="eg-reference-story"><span class="eg-feature-kicker">ŞEHRİN RİTMİNDE</span><h3>Her durakta<br>yanındayız.</h3><p>Hatlar, duraklar ve şehir hizmetleri tek yerde.</p></div></div>';
 root.prepend(hero);
 const sectionHead=document.createElement('div');sectionHead.className='eg-service-section-head';sectionHead.innerHTML='<h3>Keşfet</h3><span>ŞEHİR HİZMETLERİ</span>';grid.before(sectionHead);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
