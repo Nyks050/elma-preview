@@ -530,7 +530,6 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
         else tab.removeAttribute('aria-current');
       });
     }
-    let lastMainTabTouch=0;
     let tabTransitionLocked=false;
     let pendingTabTimer;
     let tabUnlockTimer;
@@ -575,13 +574,11 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       },480);
     }
     nav.querySelectorAll('.elma-main-tab').forEach(button=>{
-      button.addEventListener('touchstart',event=>{
-        event.preventDefault();
-        lastMainTabTouch=Date.now();
+      button.addEventListener('pointerdown',event=>{
+        if(event.pointerType==='mouse')return;
         activateMainTab(button);
-      },{passive:false});
+      });
       button.addEventListener('click',event=>{
-        if(Date.now()-lastMainTabTouch<650)return;
         event.preventDefault();
         activateMainTab(button);
       });
