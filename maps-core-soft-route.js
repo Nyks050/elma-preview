@@ -324,11 +324,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     document.head.appendChild(modeStyle);
 
     const wrapper=$('.mapwrap');
-    const home=document.createElement('section');
-    home.id='elmaHomeScreen';
-    home.className='elma-home-screen';
-    home.innerHTML=`<div class="elma-home-inner"><div class="elma-home-brand"><img class="elma-home-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="ElmaGo" width="144" height="48"></div><main class="elma-lost-home"><span class="elma-lost-kicker">KAYIP EŞYA MERKEZİ</span><h1>Kaybolan eşyanı birlikte bulalım.</h1><p>Kayıp ve bulunan eşya ilanlarını görüntüle, yeni bildirim oluştur ve gelişmeleri tek yerden takip et.</p><button class="elma-lost-home-button" id="elmaLostHomeOpen" type="button">Kayıp Eşya İlanları <span aria-hidden="true">›</span></button></main></div>`;
-    wrapper.appendChild(home);
+    const home=null;
 
     const searchScreen=document.createElement('section');
     searchScreen.id='elmaSearchScreen';
@@ -356,7 +352,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     nav.id='elmaMainNav';
     nav.className='elma-main-nav';
     nav.setAttribute('aria-label','Ana menü');
-    nav.innerHTML=`<button class="elma-main-tab active" data-elma-tab="home" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.5 10.7 8.5-7 8.5 7v9.1a1.2 1.2 0 0 1-1.2 1.2H4.7a1.2 1.2 0 0 1-1.2-1.2z"/><path d="M9 21v-7h6v7"/></svg><span>Ana Sayfa</span></button><button class="elma-main-tab" data-elma-tab="services" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Hizmetler</span></button><button class="elma-main-tab" data-elma-tab="account" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.2 20v-1.5a6.8 6.8 0 0 1 13.6 0V20z"/></svg><span>Hesap</span></button>`;
+    nav.innerHTML=`<button class="elma-main-tab active" data-elma-tab="lost" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="13" rx="2.5"/><path d="M8 7.5V5.8A2.8 2.8 0 0 1 10.8 3h2.4A2.8 2.8 0 0 1 16 5.8v1.7M8.5 14h7M12 10.5v7"/></svg><span>İlanlar</span></button><button class="elma-main-tab" data-elma-tab="services" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Şehir</span></button><button class="elma-main-tab" data-elma-tab="account" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.2 20v-1.5a6.8 6.8 0 0 1 13.6 0V20z"/></svg><span>Hesap</span></button>`;
     document.body.appendChild(nav);
     const tabCurtain=document.createElement('div');
     tabCurtain.className='elma-tab-curtain';
@@ -375,21 +371,21 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       nav.querySelectorAll('.elma-main-tab').forEach(button=>{const active=button.dataset.elmaTab===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')});
     }
     function hideWhiteScreens(){
-      home.classList.add('hide');
+      home?.classList.add('hide');
       searchScreen.classList.remove('show');
       pickNote.classList.remove('show');
     }
     function showHome(){
       document.getElementById('elmaFlowBootGuard')?.remove();
-      document.querySelector('.eg-tab[data-tab="home"]')?.click();
-      document.body.classList.add('elma-white-flow');
-      wrapper.style.display='block';
+      document.querySelector('.eg-tab[data-tab="lost"]')?.click();
+      document.body.classList.remove('elma-white-flow');
+      wrapper.style.display='none';
       wrapper.classList.remove('elma-map-open');
       searchScreen.classList.remove('show');
       pickNote.classList.remove('show');
-      home.classList.remove('hide');
+      home?.classList.remove('hide');
       nav.style.display='grid';
-      setNavActive('home');
+      setNavActive('lost');
 
     }
     function showMap(){
@@ -398,7 +394,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       document.body.classList.remove('elma-white-flow');
       hideWhiteScreens();
       nav.style.display='grid';
-      setNavActive('home');
+      setNavActive('lost');
       wrapper.classList.remove('elma-map-open');
       document.getElementById('elmaFlowBootGuard')?.remove();
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
@@ -485,28 +481,15 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     function openSearch(){
       document.body.classList.add('elma-white-flow');
       wrapper.classList.remove('elma-map-open');
-      home.classList.add('hide');
+      home?.classList.add('hide');
       searchScreen.classList.add('show');
       nav.style.display='grid';
-      setNavActive('home');
+      setNavActive('lost');
       renderDefaults();
       $('#elmaTo').value='';
       $('#elmaTo').focus();
     }
 
-    $('#elmaLostHomeOpen').onclick=()=>{
-      const servicesButton=nav.querySelector('[data-elma-tab="services"]');
-      if(!servicesButton)return;
-      activateMainTab(servicesButton);
-      let attempts=0;
-      const openLost=()=>{
-        if(tabTransitionLocked&&attempts++<30){setTimeout(openLost,100);return}
-        const lostCard=document.querySelector('.eg-lost-card');
-        if(lostCard){lostCard.click();return}
-        if(attempts++<30)setTimeout(openLost,100);
-      };
-      setTimeout(openLost,500);
-    };
     $('#elmaSearchBack').onclick=showHome;
     $('#elmaFrom').oninput=()=>{
       manualOriginEditing=true;
@@ -545,7 +528,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     let tabUnlockTimer;
     const tabAnimationTimers=new WeakMap();
     function mainTabSurface(name){
-      return name==='home'?home:document.querySelector(`.eg-panel[data-panel="${name}"]`);
+      return name==='lost'?document.querySelector('.eg-panel[data-panel="lost-found"]'):document.querySelector(`.eg-panel[data-panel="${name}"]`);
     }
     function animateMainTab(name){
       if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.reduceMotion==='true')return;
@@ -558,7 +541,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       tabAnimationTimers.set(target,setTimeout(()=>target.classList.remove('elma-tab-enter'),560));
     }
     function showMainTab(name){
-      if(name==='home'){showHome();animateMainTab(name);return}
+      if(name==='lost'){showHome();animateMainTab(name);return}
       document.body.classList.remove('elma-white-flow');
       hideWhiteScreens();
       setNavActive(name);
@@ -732,12 +715,12 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   pharmacy.dataset.elmaPharmacyService='1';
   document.head.appendChild(pharmacy);
   const lostFound=document.createElement('script');
-  lostFound.src='lost-found-service.js?v=20260919-lost-center1';
+  lostFound.src='lost-found-service.js?v=20260919-nav-city1';
   lostFound.defer=true;
   lostFound.dataset.elmaLostFoundService='1';
   document.head.appendChild(lostFound);
   const helpCenter=document.createElement('script');
-  helpCenter.src='help-center.js?v=20260830-help-back-eye-align';
+  helpCenter.src='help-center.js?v=20260919-nav-city1';
   helpCenter.defer=true;
   helpCenter.dataset.elmaHelpCenter='1';
   document.head.appendChild(helpCenter);

@@ -6,10 +6,9 @@
   const searchIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>';
   const guides=[
     {id:'location',title:'Konum izni nasıl açılır?',summary:'Hava durumu ve yakınındaki hizmetler için',keywords:'konum izin gps hava eczane',steps:['Hesap ekranındaki Ayarlar bölümünü aç.','Konum servisleri anahtarını etkinleştir.','Telefon izin penceresinde “İzin ver” seçeneğine dokun.'],action:'location',actionText:'Konum ayarına git'},
-    {id:'lost',title:'Kayıp eşya ilanı nasıl verilir?',summary:'Fotoğraflı kayıp veya buluntu ilanı oluştur',keywords:'kayıp buluntu ilan fotoğraf eşya',steps:['Hizmetler ekranından Kayıp bölümünü aç.','“Bir şey kaybettim” veya “Bir şey buldum” seçeneğini seç.','Eşya ve konum bilgilerini doldurup ilanı yayımla.'],action:'lost',actionText:'Kayıp ilanı ver'},
-    {id:'times',title:'Sefer saatlerini nereden bulurum?',summary:'Hatların güncel kalkış saatlerini görüntüle',keywords:'hat sefer saat otobüs kalkış geçmiş',steps:['Hizmetler ekranındaki Hatlar bölümünü aç.','Bakmak istediğin hat numarasına dokun.','Hafta içi, Cumartesi veya Pazar sekmesini seç.'],action:'lines',actionText:'Hatlara git'},
-    {id:'route',title:'Güzergâhı nasıl görüntülerim?',summary:'Hat yolunu ve numaralı durakları haritada aç',keywords:'güzergah rota harita durak hat',steps:['Hizmetler ekranından Güzergah bölümünü aç.','İstediğin hat kartına dokun.','Haritayı yakınlaştırarak durakları incele.'],action:'routes',actionText:'Güzergâhlara git'},
-    {id:'pharmacy',title:'Nöbetçi eczaneyi nasıl bulurum?',summary:'Konumuna en yakın güncel eczaneleri göster',keywords:'eczane nöbetçi konum sağlık',steps:['Hizmetler ekranından Nöbetçi Eczane bölümünü aç.','İstenirse konum iznine onay ver.','Eczane kartındaki Ara veya Yol tarifi seçeneğini kullan.'],action:'pharmacy',actionText:'Eczaneleri göster'},
+    {id:'lost',title:'Kayıp eşya ilanı nasıl verilir?',summary:'Fotoğraflı kayıp veya buluntu ilanı oluştur',keywords:'kayıp buluntu ilan fotoğraf eşya',steps:['Alt menüden İlanlar bölümünü aç.','“Eşyamı kaybettim” veya “Eşya buldum” seçeneğini seç.','Eşya ve konum bilgilerini doldurup ilanı yayımla.'],action:'lost',actionText:'Kayıp ilanı ver'},
+    {id:'requests',title:'İletişim taleplerini nereden görürüm?',summary:'İlanlarına gelen talepleri yönet',keywords:'iletişim talep ilan mesaj ara',steps:['Alt menüden İlanlar bölümünü aç.','Üstteki Talepler sekmesine dokun.','İletişim bilgisini kullan veya talebi tamamlandı olarak işaretle.'],action:'requests',actionText:'Talepleri görüntüle'},
+    {id:'pharmacy',title:'Nöbetçi eczaneyi nasıl bulurum?',summary:'Konumuna en yakın güncel eczaneleri göster',keywords:'eczane nöbetçi konum sağlık',steps:['Alt menüden Şehir bölümünü aç.','Nöbetçi Eczane kartına dokun ve istenirse konum izni ver.','Eczane kartındaki Ara veya Yol tarifi seçeneğini kullan.'],action:'pharmacy',actionText:'Eczaneleri göster'},
     {id:'login',title:'Giriş yapamıyorum',summary:'Telefon kodu ve Google girişi sorunları',keywords:'giriş telefon sms kod google hesap doğrulama',steps:['Telefon numaranı başında sıfır olmadan kontrol et.','SMS kodu gelmediyse kısa bir süre bekleyip yeniden dene.','Google girişinde doğru hesabı seçtiğinden emin ol.'],action:'account',actionText:'Hesaba dön'}
   ];
 
@@ -23,6 +22,7 @@
 
   function setNavAccount(){
     document.querySelectorAll('.eg-tab').forEach(tab=>{const active=tab.dataset.tab==='account';tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));if(active)tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current')});
+    document.querySelectorAll('.elma-main-tab').forEach(tab=>{const active=tab.dataset.elmaTab==='account';tab.classList.toggle('active',active);if(active)tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current')});
   }
 
   function showHelp(panel){
@@ -32,20 +32,16 @@
     document.getElementById('elmaHomeWidgets')?.classList.remove('home-active');setNavAccount();
   }
 
-  function goAccount(){document.querySelector('.eg-tab[data-tab="account"]')?.click()}
+  function goAccount(){const main=document.querySelector('.elma-main-tab[data-elma-tab="account"]');if(main)main.click();else document.querySelector('.eg-tab[data-tab="account"]')?.click()}
 
   function openService(target){
     if(target==='account')return goAccount();
     if(target==='location'){
       goAccount();setTimeout(()=>document.getElementById('egLocationToggle')?.scrollIntoView({behavior:'smooth',block:'center'}),50);return;
     }
-    document.querySelector('.eg-tab[data-tab="services"]')?.click();
-    setTimeout(()=>{
-      if(target==='lost')document.querySelector('.eg-lost-card')?.click();
-      else if(target==='pharmacy')document.querySelector('.eg-pharmacy-card')?.click();
-      else document.querySelector('.eg-service-card[data-service-target="'+target+'"]')?.click();
-      if(target==='lost')setTimeout(()=>document.getElementById('egLostQuickLost')?.click(),80);
-    },30);
+    if(target==='lost'||target==='requests'){window.elmaOpenLostFound?.();if(target==='lost')setTimeout(()=>document.querySelector('[data-new-kind="lost"]')?.click(),80);else setTimeout(()=>document.querySelector('.eg-lost-nav [data-mode="requests"]')?.click(),80);return}
+    const city=document.querySelector('.elma-main-tab[data-elma-tab="services"]');if(city)city.click();else document.querySelector('.eg-tab[data-tab="services"]')?.click();
+    setTimeout(()=>{if(target==='pharmacy')document.querySelector('.eg-pharmacy-card')?.click();else document.querySelector('.eg-service-card[data-service-target="'+target+'"]')?.click()},30);
   }
 
   function renderGuides(container){
@@ -67,7 +63,7 @@
 
   function mount(){
     const widgets=document.getElementById('elmaHomeWidgets'),account=document.querySelector('.eg-panel[data-panel="account"]'),helpButton=document.getElementById('egAccountHelp');if(!widgets||!account||!helpButton)return false;if(document.querySelector('.eg-panel[data-panel="help"]'))return true;addStyles();
-    const panel=document.createElement('div');panel.className='eg-panel';panel.dataset.panel='help';panel.innerHTML='<button class="eg-service-back" type="button">‹ Hesap</button><div class="eg-help-shell"><section class="eg-help-hero"><h2>Nasıl yardımcı olabiliriz?</h2><p>Aradığın konuyu seç veya yazarak hızlıca bul.</p><div class="eg-help-visual" aria-hidden="true">'+helpIcon+'</div><label class="eg-help-search">'+searchIcon+'<input id="egHelpSearch" type="search" placeholder="Bir sorun veya özellik ara"></label></section><div class="eg-help-label">Hızlı işlemler</div><div class="eg-help-quick"><button class="eg-help-quick-btn" data-help-action="lost"><b>Kayıp ilanı ver</b><span>Eşyanı paylaş</span><span class="eg-help-arrow">↗</span></button><button class="eg-help-quick-btn" data-help-action="lines"><b>Sefer saatleri</b><span>Hatları görüntüle</span><span class="eg-help-arrow">↗</span></button><button class="eg-help-quick-btn" data-help-action="location"><b>Konum ayarı</b><span>İzinleri kontrol et</span><span class="eg-help-arrow">↗</span></button><button class="eg-help-quick-btn" data-help-action="pharmacy"><b>Nöbetçi eczane</b><span>Yakınındakileri bul</span><span class="eg-help-arrow">↗</span></button></div><div class="eg-help-label">Önerilen yardımlar</div><div id="egHelpList" class="eg-help-list"></div><div id="egHelpEmpty" class="eg-help-empty">Bu aramayla eşleşen bir yardım bulunamadı.<br>Farklı bir kelime deneyebilirsin.</div></div>';
+    const panel=document.createElement('div');panel.className='eg-panel';panel.dataset.panel='help';panel.innerHTML='<button class="eg-service-back" type="button">‹ Hesap</button><div class="eg-help-shell"><section class="eg-help-hero"><h2>Nasıl yardımcı olabiliriz?</h2><p>Aradığın konuyu seç veya yazarak hızlıca bul.</p><div class="eg-help-visual" aria-hidden="true">'+helpIcon+'</div><label class="eg-help-search">'+searchIcon+'<input id="egHelpSearch" type="search" placeholder="Bir sorun veya özellik ara"></label></section><div class="eg-help-label">Hızlı işlemler</div><div class="eg-help-quick"><button class="eg-help-quick-btn" data-help-action="lost"><b>Kayıp ilanı ver</b><span>Eşyanı paylaş</span><span class="eg-help-arrow">↗</span></button><button class="eg-help-quick-btn" data-help-action="requests"><b>Talepler</b><span>İletişimleri yönet</span><span class="eg-help-arrow">↗</span></button><button class="eg-help-quick-btn" data-help-action="location"><b>Konum ayarı</b><span>İzinleri kontrol et</span><span class="eg-help-arrow">↗</span></button><button class="eg-help-quick-btn" data-help-action="pharmacy"><b>Nöbetçi eczane</b><span>Yakınındakileri bul</span><span class="eg-help-arrow">↗</span></button></div><div class="eg-help-label">Önerilen yardımlar</div><div id="egHelpList" class="eg-help-list"></div><div id="egHelpEmpty" class="eg-help-empty">Bu aramayla eşleşen bir yardım bulunamadı.<br>Farklı bir kelime deneyebilirsin.</div></div>';
     widgets.insertBefore(panel,account);renderGuides(panel.querySelector('#egHelpList'));document.querySelectorAll('.eg-service-back').forEach(button=>{button.textContent=button.textContent.replace(/^‹\s*/,'← ')});
     helpButton.onclick=()=>showHelp(panel);panel.querySelector('.eg-service-back').onclick=goAccount;panel.querySelectorAll('[data-help-action]').forEach(button=>button.onclick=()=>openService(button.dataset.helpAction));panel.querySelector('#egHelpSearch').oninput=event=>filterGuides(event.target.value);return true;
   }

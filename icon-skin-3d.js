@@ -73,7 +73,7 @@ html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-servic
 body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
 #elmaHomeWidgets [data-panel="services"]{padding-bottom:20px}
 .eg-reference-heading{padding:22px 6% 17px}
-.eg-reference-heading .eg-page-wordmark{margin:0 auto}
+.eg-reference-heading .eg-page-wordmark{margin:0 auto 20px}
 .eg-page-wordmark{display:block;width:clamp(136px,36vw,148px);height:auto;aspect-ratio:3/1;object-fit:contain;background:transparent;border:0;border-radius:0;box-shadow:none;filter:none;mix-blend-mode:normal}
 #elmaHomeWidgets [data-panel="account"] .eg-settings-head{padding:22px 3px 1px}
 #elmaHomeWidgets [data-panel="account"] .eg-page-wordmark{margin:0 auto 24px}
@@ -134,7 +134,7 @@ function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageTheme();
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<header class="eg-reference-heading"><img class="eg-page-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="Elma Go" width="144" height="48"></header><div class="eg-lost-banner"><div class="eg-lost-scene"><img class="eg-lost-dog-art" src="assets/lost-dog-digging.svg?v=20260919-digging-dog1" alt="Kayıp anahtarı bulmak için toprağı kazan köpek animasyonu" width="800" height="400" decoding="async"></div></div>';
+hero.innerHTML='<header class="eg-reference-heading"><img class="eg-page-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="Elma Go" width="144" height="48"><h2>Şehir</h2><p>Günlük ihtiyaçların tek yerde.</p></header><div class="eg-lost-banner"><div class="eg-lost-scene"><img class="eg-lost-dog-art" src="assets/lost-dog-digging.svg?v=20260919-dig-forever1" alt="Toprağı kazmaya devam eden köpek animasyonu" width="800" height="400" decoding="async"></div></div>';
 root.prepend(hero);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
 const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>message('Duyuru kaynağı henüz bağlanmadı. Güncel duyurular burada gösterilecek.'));
@@ -142,7 +142,6 @@ grid.append(news);
 function refresh(){
 observer?.disconnect();
 const defs=[
-[root.querySelector('.eg-lost-card'),'lost','Kayıp Eşya','Kayıp ve bulunan eşya ilanları.'],
 [news,'news','Duyurular','Güncel duyuruları ve haberleri takip edin.'],
 [root.querySelector('.eg-pharmacy-card'),'pharmacy','Nöbetçi Eczane','Nöbetçi eczanelere ulaşın.'],
 [root.querySelector('[data-service-target="weather"]'),'weather','Hava Durumu','Güncel hava durumu bilgileri.']];
