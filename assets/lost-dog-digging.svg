@@ -42,8 +42,7 @@
     </style>
   </defs>
 
-  <rect width="800" height="400" fill="#090a0d"/>
-  <ellipse cx="425" cy="352" rx="305" ry="74" fill="url(#floor)"/>
+  <ellipse cx="425" cy="352" rx="305" ry="74" fill="url(#floor)" opacity=".58"/>
   <ellipse cx="510" cy="326" rx="180" ry="28" fill="#000" opacity=".7" filter="url(#softShadow)"/>
   <path d="M80 326H720" stroke="#575a61" stroke-width="2" opacity=".5"/>
   <path d="M120 345H680M175 365H625" stroke="#fff" stroke-width="1" opacity=".08"/>
