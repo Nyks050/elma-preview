@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" role="img" aria-labelledby="title desc">
+  <title id="title">Toprağı kazan köpek</title>
+  <desc id="desc">Bir köpek kayıp anahtarı bulmak için toprağı kazıyor.</desc>
+  <defs>
+    <linearGradient id="fur" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset=".48" stop-color="#d9dadd"/>
+      <stop offset="1" stop-color="#898c92"/>
+    </linearGradient>
+    <linearGradient id="darkFur" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#5d6066"/>
+      <stop offset="1" stop-color="#17191d"/>
+    </linearGradient>
+    <radialGradient id="floor" cx="50%" cy="0" r="90%">
+      <stop stop-color="#34363c"/>
+      <stop offset="1" stop-color="#090a0d"/>
+    </radialGradient>
+    <filter id="softShadow" x="-40%" y="-80%" width="180%" height="240%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <style>
+      .dog{transform-origin:520px 245px;animation:dogBob .72s ease-in-out infinite}
+      .head{transform-origin:420px 230px;animation:headBob .72s ease-in-out infinite}
+      .ear{transform-origin:430px 185px;animation:earFlop .72s ease-in-out infinite}
+      .tail{transform-origin:626px 217px;animation:tailWag .48s ease-in-out infinite alternate}
+      .paw-a{transform-origin:418px 272px;animation:pawDig .42s cubic-bezier(.4,0,.6,1) infinite}
+      .paw-b{transform-origin:458px 274px;animation:pawDig .42s .21s cubic-bezier(.4,0,.6,1) infinite}
+      .dirt-a{animation:dirtFlyA 1.05s linear infinite}
+      .dirt-b{animation:dirtFlyB 1.05s .34s linear infinite}
+      .dirt-c{animation:dirtFlyC 1.05s .68s linear infinite}
+      .hole{transform-origin:337px 326px;animation:holeBreathe 2.4s ease-in-out infinite}
+      .key{transform-origin:305px 319px;animation:keyFound 5.4s ease-in-out infinite}
+      .ring{transform-origin:305px 310px;animation:foundRing 5.4s ease-out infinite}
+      @keyframes dogBob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(4px) rotate(-.7deg)}}
+      @keyframes headBob{0%,100%{transform:rotate(-5deg) translateY(0)}50%{transform:rotate(4deg) translateY(5px)}}
+      @keyframes earFlop{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(13deg)}}
+      @keyframes tailWag{from{transform:rotate(-13deg)}to{transform:rotate(17deg)}}
+      @keyframes pawDig{0%,100%{transform:rotate(16deg) translate(0,0)}48%{transform:rotate(-22deg) translate(-13px,8px)}70%{transform:rotate(-7deg) translate(-5px,3px)}}
+      @keyframes dirtFlyA{0%{opacity:0;transform:translate(0,0) scale(.5)}15%{opacity:.9}100%{opacity:0;transform:translate(-88px,-66px) scale(1.1)}}
+      @keyframes dirtFlyB{0%{opacity:0;transform:translate(0,0) scale(.6)}18%{opacity:.75}100%{opacity:0;transform:translate(-62px,-92px) scale(.85)}}
+      @keyframes dirtFlyC{0%{opacity:0;transform:translate(0,0) scale(.45)}20%{opacity:.8}100%{opacity:0;transform:translate(-112px,-34px) scale(1.2)}}
+      @keyframes holeBreathe{0%,100%{transform:scaleX(.93)}50%{transform:scaleX(1.05)}}
+      @keyframes keyFound{0%,54%{opacity:0;transform:translateY(30px) rotate(-18deg) scale(.75)}66%,88%{opacity:1;transform:translateY(-5px) rotate(8deg) scale(1)}100%{opacity:0;transform:translateY(-18px) rotate(16deg) scale(.9)}}
+      @keyframes foundRing{0%,58%{opacity:0;transform:scale(.5)}68%{opacity:.8;transform:scale(1)}82%,100%{opacity:0;transform:scale(1.75)}}
+      @media(prefers-reduced-motion:reduce){.dog,.head,.ear,.tail,.paw-a,.paw-b,.dirt-a,.dirt-b,.dirt-c,.hole,.key,.ring{animation:none}.key{opacity:1;transform:translateY(-5px) rotate(8deg)}}
+    </style>
+  </defs>
+
+  <rect width="800" height="400" fill="#090a0d"/>
+  <ellipse cx="425" cy="352" rx="305" ry="74" fill="url(#floor)"/>
+  <ellipse cx="510" cy="326" rx="180" ry="28" fill="#000" opacity=".7" filter="url(#softShadow)"/>
+  <path d="M80 326H720" stroke="#575a61" stroke-width="2" opacity=".5"/>
+  <path d="M120 345H680M175 365H625" stroke="#fff" stroke-width="1" opacity=".08"/>
+
+  <g class="hole">
+    <ellipse cx="337" cy="326" rx="79" ry="23" fill="#020203"/>
+    <path d="M267 323c23-15 111-18 142 0" fill="none" stroke="#74777e" stroke-width="5" stroke-linecap="round" opacity=".72"/>
+    <path d="M282 335c31 9 83 10 116-1" fill="none" stroke="#292b30" stroke-width="7" stroke-linecap="round"/>
+  </g>
+
+  <g class="ring" opacity="0">
+    <circle cx="305" cy="310" r="34" fill="none" stroke="#fff" stroke-width="2"/>
+  </g>
+  <g class="key" opacity="0" filter="url(#glow)">
+    <circle cx="291" cy="299" r="15" fill="none" stroke="#f4f4f5" stroke-width="8"/>
+    <path d="M302 310l31 31m-11-12 10-10m-2 18 9-9" fill="none" stroke="#f4f4f5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g class="dog">
+    <g class="tail">
+      <path d="M620 222c52-8 63-45 91-58 18-8 32 8 20 22-26 30-57 53-105 57" fill="none" stroke="url(#fur)" stroke-width="29" stroke-linecap="round"/>
+      <path d="M710 176c12-6 22 0 17 10" fill="none" stroke="#f6f6f7" stroke-width="8" stroke-linecap="round" opacity=".55"/>
+    </g>
+
+    <ellipse cx="538" cy="225" rx="105" ry="65" fill="url(#fur)"/>
+    <path d="M491 175c40-25 109-14 143 24-7 19-19 35-39 47-50 29-113 7-132-35 4-15 14-27 28-36Z" fill="#babcc1" opacity=".55"/>
+    <path d="M592 181c30 8 50 27 56 52-21 15-45 23-73 22 20-22 25-47 17-74Z" fill="url(#darkFur)" opacity=".78"/>
+
+    <path d="M580 266c23 8 44 24 50 47 2 9-5 17-14 17h-72c-9 0-14-11-8-18l25-37c5-8 11-11 19-9Z" fill="url(#fur)"/>
+    <ellipse cx="604" cy="326" rx="39" ry="12" fill="#c7c9cd"/>
+    <path d="M607 316c10-2 23 2 29 9" fill="none" stroke="#6f7278" stroke-width="5" stroke-linecap="round"/>
+
+    <g class="head">
+      <path d="M464 184c-15-28-50-42-83-29-34 13-55 50-43 83 10 28 39 43 71 36 36-8 63-43 55-90Z" fill="url(#fur)"/>
+      <g class="ear">
+        <path d="M424 164c12-27 36-35 51-17 17 20 0 54-24 70-13-13-22-30-27-53Z" fill="url(#darkFur)"/>
+        <path d="M444 160c9-10 20-10 25-2 7 12-3 30-15 40" fill="none" stroke="#8d9096" stroke-width="6" stroke-linecap="round" opacity=".55"/>
+      </g>
+      <path d="M361 203c-22 2-43 13-52 31-8 17 5 33 25 33h48c20 0 35-17 31-36-5-21-25-31-52-28Z" fill="#ececee"/>
+      <ellipse cx="319" cy="238" rx="17" ry="13" fill="#121317"/>
+      <ellipse cx="377" cy="197" rx="8" ry="10" fill="#111216"/>
+      <circle cx="374" cy="194" r="2.5" fill="#fff"/>
+      <path d="M333 253c12 9 27 11 41 5" fill="none" stroke="#4d5056" stroke-width="4" stroke-linecap="round"/>
+      <path d="M403 244c19 5 38 3 54-7" fill="none" stroke="#17191d" stroke-width="12" stroke-linecap="round"/>
+      <rect x="407" y="232" width="51" height="13" rx="6.5" fill="#f2f2f3"/>
+      <circle cx="422" cy="238.5" r="4" fill="#17191d"/>
+    </g>
+
+    <g class="paw-a">
+      <path d="M443 258c-8 5-16 20-18 39l-4 27c-1 8 7 14 15 11l24-9c7-3 9-12 4-18l-3-4 10-30c3-12-15-23-28-16Z" fill="url(#fur)"/>
+      <path d="M418 326l14-5m-9 11 14-5" stroke="#686b71" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g class="paw-b">
+      <path d="M479 262c-10 7-15 20-15 38l1 27c0 8 8 13 16 9l21-12c7-4 7-13 1-18l-4-3 5-29c2-13-14-21-25-12Z" fill="#c4c6ca"/>
+      <path d="M463 328l13-7m-8 13 13-7" stroke="#686b71" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <g fill="#d4d5d8">
+    <circle class="dirt-a" cx="401" cy="315" r="8"/>
+    <path class="dirt-b" d="M410 313l12 5-6 12-13-5Z"/>
+    <circle class="dirt-c" cx="397" cy="323" r="5"/>
+  </g>
+</svg>

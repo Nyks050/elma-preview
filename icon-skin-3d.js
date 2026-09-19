@@ -81,19 +81,7 @@ body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
 .eg-reference-heading p{margin-top:9px;font-size:14px;color:#73767c;font-weight:500}
 .eg-lost-banner{width:auto;height:clamp(190px,46vw,240px);min-height:190px;margin:0 6%;border-radius:clamp(15px,4.2vw,22px);background:#fff;box-shadow:none}
 .eg-lost-scene{position:relative;width:100%;height:100%;overflow:hidden;background:radial-gradient(circle at 50% 58%,#303238 0,#15161a 33%,#090a0d 72%);-webkit-mask-image:radial-gradient(ellipse 90% 94% at center,#000 72%,rgba(0,0,0,.92) 84%,transparent 100%);mask-image:radial-gradient(ellipse 90% 94% at center,#000 72%,rgba(0,0,0,.92) 84%,transparent 100%)}
-.eg-lost-grid{position:absolute;inset:0;opacity:.25;background-image:linear-gradient(#ffffff10 1px,transparent 1px),linear-gradient(90deg,#ffffff10 1px,transparent 1px);background-size:28px 28px;transform:perspective(360px) rotateX(62deg) scale(1.35);transform-origin:center bottom}
-.eg-lost-halo{position:absolute;left:50%;top:53%;width:154px;height:154px;border:1px solid #ffffff36;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 22px #ffffff0b,0 0 46px #ffffff15;animation:egLostHalo 3.4s ease-in-out infinite}
-.eg-lost-object{position:absolute;z-index:3;left:50%;bottom:4px;width:clamp(142px,39vw,190px);height:auto;transform:translateX(-50%);filter:drop-shadow(0 20px 20px #0009);animation:egLostFloat 4.2s ease-in-out infinite}
-.eg-lost-scan{position:absolute;z-index:4;left:14%;right:14%;top:22%;height:1px;background:linear-gradient(90deg,transparent,#fff 24%,#fff 76%,transparent);box-shadow:0 0 12px #fff,0 0 28px #ffffff70;opacity:.85;animation:egLostScan 3.8s cubic-bezier(.45,0,.55,1) infinite}
-.eg-lost-found{position:absolute;z-index:5;left:calc(50% + 58px);top:25%;width:34px;height:34px;border:1px solid #ffffff55;border-radius:50%;background:#f5f5f6;color:#101114;display:grid;place-items:center;font-size:19px;font-weight:900;box-shadow:0 8px 22px #0008;animation:egLostFound 3.8s ease-in-out infinite}
-.eg-lost-dot{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 12px #fff;opacity:.45;animation:egLostDot 3.6s ease-in-out infinite}
-.eg-lost-dot.d1{left:18%;top:36%}.eg-lost-dot.d2{right:17%;top:58%;animation-delay:-1.2s}.eg-lost-dot.d3{left:27%;bottom:18%;animation-delay:-2.1s}
-@keyframes egLostFloat{0%,100%{transform:translateX(-50%) translateY(2px) rotate(-1deg)}50%{transform:translateX(-50%) translateY(-8px) rotate(1deg)}}
-@keyframes egLostHalo{0%,100%{opacity:.42;transform:translate(-50%,-50%) scale(.94)}50%{opacity:.85;transform:translate(-50%,-50%) scale(1.06)}}
-@keyframes egLostScan{0%,100%{top:22%;opacity:0}12%{opacity:.8}50%{top:76%;opacity:1}72%{opacity:.25}78%{top:22%;opacity:0}}
-@keyframes egLostFound{0%,54%{opacity:0;transform:scale(.72)}66%,90%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.86)}}
-@keyframes egLostDot{0%,100%{opacity:.18;transform:translateY(5px) scale(.75)}50%{opacity:.75;transform:translateY(-7px) scale(1)}}
-@media(prefers-reduced-motion:reduce){.eg-lost-object,.eg-lost-halo,.eg-lost-scan,.eg-lost-found,.eg-lost-dot{animation:none!important}.eg-lost-scan{top:62%;opacity:.45}.eg-lost-found{opacity:1;transform:none}}
+.eg-lost-dog-art{display:block;width:100%;height:100%;object-fit:cover}
 .eg-reference-story{max-width:100%;margin-left:0;padding:25px 22px 24px;color:#fff;min-height:190px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .eg-reference-story .eg-feature-kicker{margin-bottom:15px;color:#bec1c7;font-size:10px;font-weight:800;letter-spacing:.14em}
 .eg-reference-story h3{max-width:235px;margin:0 0 12px;font-size:clamp(24px,6vw,31px);font-weight:800;line-height:1.08;letter-spacing:-.055em}
@@ -146,7 +134,7 @@ function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageTheme();
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<header class="eg-reference-heading"><img class="eg-page-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="Elma Go" width="144" height="48"></header><div class="eg-lost-banner"><div class="eg-lost-scene" role="img" aria-label="Kayıp eşyaların taranıp bulunduğunu gösteren animasyon"><span class="eg-lost-grid"></span><span class="eg-lost-halo"></span><span class="eg-lost-dot d1"></span><span class="eg-lost-dot d2"></span><span class="eg-lost-dot d3"></span><img class="eg-lost-object" src="assets/elma-service-lost-3d-mono.png?v=20260919-lost-focus1" alt="" width="256" height="256" decoding="async"><span class="eg-lost-scan"></span><span class="eg-lost-found" aria-hidden="true">✓</span></div></div>';
+hero.innerHTML='<header class="eg-reference-heading"><img class="eg-page-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="Elma Go" width="144" height="48"></header><div class="eg-lost-banner"><div class="eg-lost-scene"><img class="eg-lost-dog-art" src="assets/lost-dog-digging.svg?v=20260919-digging-dog1" alt="Kayıp anahtarı bulmak için toprağı kazan köpek animasyonu" width="800" height="400" decoding="async"></div></div>';
 root.prepend(hero);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
 const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>message('Duyuru kaynağı henüz bağlanmadı. Güncel duyurular burada gösterilecek.'));
