@@ -715,7 +715,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   pharmacy.dataset.elmaPharmacyService='1';
   document.head.appendChild(pharmacy);
   const lostFound=document.createElement('script');
-  lostFound.src='lost-found-service.js?v=20260919-nav-city1';
+  lostFound.src='lost-found-service.js?v=20260919-city-flow1';
   lostFound.defer=true;
   lostFound.dataset.elmaLostFoundService='1';
   document.head.appendChild(lostFound);
