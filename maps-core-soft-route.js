@@ -719,6 +719,11 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   lostFound.defer=true;
   lostFound.dataset.elmaLostFoundService='1';
   document.head.appendChild(lostFound);
+  const adminRuntime=document.createElement('script');
+  adminRuntime.src='admin-runtime.js?v=20260920-admin1';
+  adminRuntime.defer=true;
+  adminRuntime.dataset.elmaAdminRuntime='1';
+  document.head.appendChild(adminRuntime);
   const helpCenter=document.createElement('script');
   helpCenter.src='help-center.js?v=20260919-nav-city1';
   helpCenter.defer=true;
