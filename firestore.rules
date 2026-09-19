@@ -20,6 +20,24 @@ service cloud.firestore {
           || resource.data.requesterUid == request.auth.uid);
       allow update, delete: if request.auth != null
         && resource.data.ownerUid == request.auth.uid;
+
+      match /messages/{messageId} {
+        function contact() {
+          return get(/databases/$(database)/documents/lostFoundContacts/$(requestId)).data;
+        }
+        function isParticipant() {
+          return request.auth != null
+            && (contact().ownerUid == request.auth.uid
+              || contact().requesterUid == request.auth.uid);
+        }
+        allow read: if isParticipant();
+        allow create: if isParticipant()
+          && request.resource.data.senderUid == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 500;
+        allow update, delete: if false;
+      }
     }
 
     match /lostFoundReports/{reportId} {
