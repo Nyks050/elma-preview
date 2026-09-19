@@ -732,15 +732,10 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   pharmacy.dataset.elmaPharmacyService='1';
   document.head.appendChild(pharmacy);
   const lostFound=document.createElement('script');
-  lostFound.src='lost-found-service.js?v=20260830-lost-found';
+  lostFound.src='lost-found-service.js?v=20260919-lost-center1';
   lostFound.defer=true;
   lostFound.dataset.elmaLostFoundService='1';
   document.head.appendChild(lostFound);
-  const lostFoundPremium=document.createElement('script');
-  lostFoundPremium.src='lost-found-premium.js?v=20260901-digging-dog1';
-  lostFoundPremium.defer=true;
-  lostFoundPremium.dataset.elmaLostFoundPremium='1';
-  document.head.appendChild(lostFoundPremium);
   const helpCenter=document.createElement('script');
   helpCenter.src='help-center.js?v=20260830-help-back-eye-align';
   helpCenter.defer=true;
