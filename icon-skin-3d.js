@@ -50,8 +50,8 @@ body.eg-reference-services #elmaHomeWidgets{width:100%;max-width:520px;padding:e
 .eg-reference-notice[hidden]{display:none}
 /* Embedded navigation bar, shared across all app screens. */
 body .elma-main-nav{position:fixed;z-index:880;left:0;right:0;bottom:0;width:100%;max-width:520px;height:calc(74px + env(safe-area-inset-bottom));margin:0 auto;padding:6px 12px calc(6px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;border:0;border-top:1px solid #e8e8ec;border-radius:0;background:rgba(255,255,255,.97);box-shadow:0 -8px 26px #1113180d;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
-body .elma-main-tab{min-width:0;min-height:60px;padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:22px;background:transparent;color:#7b7e85;font-family:inherit;font-size:10px;font-weight:720;letter-spacing:-.015em;line-height:1.1;white-space:nowrap;transition:background .42s cubic-bezier(.22,1,.36,1),color .42s ease,transform .42s cubic-bezier(.22,1,.36,1),box-shadow .42s ease}
-body .elma-main-tab svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s ease}
+body .elma-main-tab{min-width:0;min-height:60px;padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:22px;background:transparent;color:#7b7e85;font-family:inherit;font-size:10px;font-weight:720;letter-spacing:-.015em;line-height:1.1;white-space:nowrap;touch-action:manipulation;transition:background .14s ease,color .14s ease,transform .14s ease,box-shadow .2s ease}
+body .elma-main-tab svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round;transition:transform .14s ease}
 body .elma-main-tab.active{background:#17191d;color:#fff;font-weight:790;box-shadow:0 6px 14px #1113182b}
 body .elma-main-tab.active svg{transform:translateY(-1px)}
 body .elma-main-tab:active{transform:scale(.96)}
