@@ -134,7 +134,7 @@ function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageTheme();
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<header class="eg-reference-heading"><img class="eg-page-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="Elma Go" width="144" height="48"><h2>Şehir</h2><p>Günlük ihtiyaçların tek yerde.</p></header><div class="eg-lost-banner"><div class="eg-lost-scene"><img class="eg-lost-dog-art" src="assets/lost-dog-digging.svg?v=20260919-dig-forever1" alt="Toprağı kazmaya devam eden köpek animasyonu" width="800" height="400" decoding="async"></div></div>';
+hero.innerHTML='<div class="eg-lost-banner"><div class="eg-lost-scene"><img class="eg-lost-dog-art" src="assets/lost-dog-digging.svg?v=20260919-dig-forever1" alt="Toprağı kazmaya devam eden köpek animasyonu" width="800" height="400" decoding="async"></div></div>';
 root.prepend(hero);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
 const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>message('Duyuru kaynağı henüz bağlanmadı. Güncel duyurular burada gösterilecek.'));
