@@ -574,7 +574,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       },480);
     }
     nav.querySelectorAll('.elma-main-tab').forEach(button=>{
-      button.addEventListener('touchend',event=>{
+      button.addEventListener('touchstart',event=>{
         event.preventDefault();
         lastMainTabTouch=Date.now();
         activateMainTab(button);
