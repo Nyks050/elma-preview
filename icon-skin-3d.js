@@ -72,9 +72,10 @@ html[data-large-text="true"] #elmaHomeWidgets [data-panel="services"] .eg-servic
 /* Elma Go services: spacious editorial header, dark city feature and tactile tiles. */
 body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
 #elmaHomeWidgets [data-panel="services"]{padding-bottom:20px}
-.eg-reference-heading{padding:27px 6% 17px}
+.eg-reference-heading{padding:22px 6% 17px}
 .eg-reference-heading .eg-page-wordmark{margin:0 auto}
 .eg-page-wordmark{display:block;width:clamp(136px,36vw,148px);height:auto;aspect-ratio:3/1;object-fit:contain;background:transparent;border:0;border-radius:0;box-shadow:none;filter:none;mix-blend-mode:normal}
+#elmaHomeWidgets [data-panel="account"] .eg-settings-head{padding:22px 3px 1px}
 #elmaHomeWidgets [data-panel="account"] .eg-page-wordmark{margin:0 auto 24px}
 .eg-reference-heading h2{max-width:430px;font-size:clamp(32px,8.7vw,46px);font-weight:800;letter-spacing:-.065em;line-height:1.06}
 .eg-reference-heading p{margin-top:9px;font-size:14px;color:#73767c;font-weight:500}
