@@ -137,7 +137,7 @@ const hero=document.createElement('div');hero.className='eg-reference-hero';
 hero.innerHTML='<div class="eg-lost-banner"><div class="eg-lost-scene"><img class="eg-lost-dog-art" src="assets/lost-dog-digging.svg?v=20260919-dig-forever1" alt="Toprağı kazmaya devam eden köpek animasyonu" width="800" height="400" decoding="async"></div></div>';
 root.prepend(hero);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
-const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>message('Duyuru kaynağı henüz bağlanmadı. Güncel duyurular burada gösterilecek.'));
+const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>window.elmaOpenAnnouncements?.());
 grid.append(news);
 function refresh(){
 observer?.disconnect();
