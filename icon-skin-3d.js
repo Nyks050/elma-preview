@@ -138,35 +138,18 @@ const hero=document.createElement('div');hero.className='eg-reference-hero';
 hero.innerHTML='<header class="eg-reference-heading"><img class="eg-page-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="Elma Go" width="144" height="48"></header><div class="eg-bus-banner"><div class="eg-bus-scene" role="img" aria-label="Amasya’da soldan sağa ilerleyen otobüs animasyonu"><img src="assets/services-bus-stop.svg?v=20260918-citydoors1" alt="" width="800" height="400" decoding="async"></div></div>';
 root.prepend(hero);
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
-const schedule=make('schedule','Sefer Saatleri','Güncel sefer saatlerini inceleyin.',()=>{const b=root.querySelector('[data-service-target="lines"]');if(b)b.click();else message('Hat bilgileri henüz yüklenmedi. Lütfen tekrar deneyin.')});
 const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>message('Duyuru kaynağı henüz bağlanmadı. Güncel duyurular burada gösterilecek.'));
-const card=make('card','Kart İşlemleri','Kart özellikleri yakında Elma Go’da.',()=>loadCardService().then(()=>{if(window.elmaOpenCardService)window.elmaOpenCardService();else message('Kart işlemleri yüklenemedi. Lütfen tekrar deneyin.')}));
-grid.append(schedule,news,card);
-// Keep the original lines action available to Sefer Saatleri, outside the visible grid.
-const internalActions=document.createElement('div');internalActions.hidden=true;internalActions.style.display='none';root.appendChild(internalActions);
-const linesPanel=document.querySelector('.eg-panel[data-panel="lines"]');
-if(linesPanel&&!linesPanel.querySelector('.eg-list')){
- const heading=document.createElement('div');heading.className='eg-screen-head';heading.innerHTML='<h2 class="eg-screen-title">Sefer Saatleri</h2><p class="eg-screen-subtitle">Hatları ve güncel kalkış saatlerini görüntüle.</p>';
- const list=document.createElement('div');list.className='eg-list';const section=document.createElement('div');section.className='eg-schedule-section';section.innerHTML='<h3>Hatlar</h3><span>KALKIŞ LİSTESİ</span>';linesPanel.append(heading,section,list);
-}
-loadScheduleCards();loadCardService();
+grid.append(news);
 function refresh(){
 observer?.disconnect();
-const linesAction=root.querySelector('[data-service-target="lines"]');
-if(linesAction&&linesAction.parentElement!==internalActions)internalActions.appendChild(linesAction);
-// Estimated everyday use, not measured analytics.
 const defs=[
-[schedule,'schedule','Sefer Saatleri','Güncel sefer saatlerini inceleyin.'],
-[card,'card','Kart İşlemleri','Kart özellikleri yakında Elma Go’da.'],
-[root.querySelector('.eg-nearby-card'),'nearby','Yakındaki Duraklar','Size en yakın durakları bulun.'],
-[root.querySelector('[data-service-target="routes"]'),'routes','Güzergâh','Hatların güzergâhlarını inceleyin.'],
-[root.querySelector('.eg-pharmacy-card'),'pharmacy','Nöbetçi Eczane','Nöbetçi eczanelere ulaşın.'],
-[root.querySelector('[data-service-target="weather"]'),'weather','Hava Durumu','Güncel hava durumu bilgileri.'],
 [root.querySelector('.eg-lost-card'),'lost','Kayıp Eşya','Kayıp ve bulunan eşya ilanları.'],
-[news,'news','Duyurular','Güncel duyuruları ve haberleri takip edin.']];
+[news,'news','Duyurular','Güncel duyuruları ve haberleri takip edin.'],
+[root.querySelector('.eg-pharmacy-card'),'pharmacy','Nöbetçi Eczane','Nöbetçi eczanelere ulaşın.'],
+[root.querySelector('[data-service-target="weather"]'),'weather','Hava Durumu','Güncel hava durumu bilgileri.']];
 const ordered=[];
 defs.forEach(([b,key,title,desc])=>{if(!b)return;ordered.push(b);if(b.dataset.referenceStyled)return;b.dataset.referenceStyled='1';b.innerHTML='<span class="eg-service-icon" aria-hidden="true">'+icons[key]+'</span><span class="eg-service-copy"><span class="eg-service-name">'+title+'</span><span class="eg-service-description">'+desc+'</span></span>';});
-
+Array.from(grid.children).forEach(card=>{if(!ordered.includes(card))card.remove()});
 ordered.forEach((b,i)=>{if(grid.children[i]!==b)grid.insertBefore(b,grid.children[i]||null)});
 document.body.classList.toggle('eg-reference-services',root.classList.contains('active'));
 observer.observe(document.getElementById('elmaHomeWidgets'),{subtree:true,childList:true,attributes:true,attributeFilter:['class']});

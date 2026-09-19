@@ -306,6 +306,15 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
 @media(max-width:390px){.elma-flow-result{min-height:43px!important;grid-template-columns:28px minmax(0,1fr) 10px!important;gap:6px!important}.elma-flow-icon{width:26px!important;height:26px!important}.elma-flow-copy b{font-size:13px!important}.elma-flow-copy small{font-size:11px!important}}
 .elma-home-brand .elma-home-wordmark{border-radius:0!important;filter:none!important;mix-blend-mode:normal!important;background:transparent!important;box-shadow:none!important}
 .elma-home-screen{padding-top:calc(22px + env(safe-area-inset-top))!important}
+.mapwrap #map,.osm-map-ui{display:none!important}
+.elma-lost-home{width:min(100%,390px);margin-top:clamp(28px,8vh,64px);text-align:left}
+.elma-lost-kicker{display:block;margin-bottom:13px;color:#777a80;font-size:10px;font-weight:850;letter-spacing:.14em}
+.elma-lost-home h1{max-width:340px;margin:0;color:#101114;font-size:clamp(32px,9vw,46px);font-weight:850;letter-spacing:-.065em;line-height:1.02}
+.elma-lost-home p{max-width:330px;margin:17px 0 25px;color:#686b71;font-size:14px;font-weight:520;line-height:1.55}
+.elma-lost-home-button{width:100%;min-height:62px;border:0;border-radius:19px;background:#17191d;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:15px;font-weight:820;box-shadow:0 13px 28px #11131824;touch-action:manipulation}
+.elma-lost-home-button:active{transform:scale(.985)}
+.elma-lost-home-button span{font-size:28px;font-weight:400}
+.elma-search-screen[hidden]{display:none!important}
 
 `;
     document.head.appendChild(style);
@@ -318,13 +327,14 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     const home=document.createElement('section');
     home.id='elmaHomeScreen';
     home.className='elma-home-screen';
-    home.innerHTML=`<div class="elma-home-inner"><div class="elma-home-brand"><img class="elma-home-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="ElmaGo" width="144" height="48"></div><button class="elma-quick-search" id="elmaQuickSearch" type="button" aria-label="Nereye gitmek istiyorsunuz?"><svg class="elma-search-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span class="elma-quick-label">Nereye?</span></button></div>`;
+    home.innerHTML=`<div class="elma-home-inner"><div class="elma-home-brand"><img class="elma-home-wordmark" src="assets/elmago-wordmark-dark.png?v=20260918-alpha1" alt="ElmaGo" width="144" height="48"></div><main class="elma-lost-home"><span class="elma-lost-kicker">KAYIP EŞYA MERKEZİ</span><h1>Kaybolan eşyanı birlikte bulalım.</h1><p>Kayıp ve bulunan eşya ilanlarını görüntüle, yeni bildirim oluştur ve gelişmeleri tek yerden takip et.</p><button class="elma-lost-home-button" id="elmaLostHomeOpen" type="button">Kayıp Eşya İlanları <span aria-hidden="true">›</span></button></main></div>`;
     wrapper.appendChild(home);
 
     const searchScreen=document.createElement('section');
     searchScreen.id='elmaSearchScreen';
     searchScreen.className='elma-search-screen';
-    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button class="elma-back" id="elmaSearchBack" type="button" aria-label="Geri"><svg viewBox="0 0 32 32"><path d="M27 16H5M13 8l-8 8 8 8"/></svg></button><h1 class="elma-search-title">Yolculuğunuzu planlayın</h1><span aria-hidden="true"></span></header><div class="elma-search-body"><section class="elma-mode-picker" aria-labelledby="elmaModeTitle"><div class="elma-mode-heading"><b id="elmaModeTitle">Nasıl gitmek istersin?</b><small>Ulaşım şeklini seç</small></div><div class="elma-mode-grid" role="radiogroup" aria-label="Ulaşım şekli"><button class="elma-mode-card active" type="button" data-travel-mode="TRANSIT" role="radio" aria-checked="true"><span class="elma-mode-art bus" aria-hidden="true"></span><span>Toplu taşıma</span></button><button class="elma-mode-card" type="button" data-travel-mode="DRIVING" role="radio" aria-checked="false"><span class="elma-mode-art car" aria-hidden="true"></span><span>Araba</span></button><button class="elma-mode-card" type="button" data-travel-mode="WALKING" role="radio" aria-checked="false"><span class="elma-mode-art walk" aria-hidden="true"></span><span>Yürüme</span></button></div></section><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row"><span class="elma-route-point elma-route-origin" aria-hidden="true"></span><input id="elmaFrom" aria-label="Başlangıç konumu" placeholder="Nereden?" autocomplete="off"></label><label class="elma-route-row"><span class="elma-route-point elma-route-destination" aria-hidden="true"></span><input id="elmaTo" aria-label="Nereye" placeholder="Nereye?" autocomplete="off"></label></div></div><div class="elma-flow-results" id="elmaFlowResults"></div></div></div>`;
+    searchScreen.hidden=true;
+    searchScreen.innerHTML='<button id="elmaSearchBack" type="button" hidden></button><input id="elmaFrom" type="hidden"><input id="elmaTo" type="hidden"><div id="elmaFlowResults" hidden></div>';
     wrapper.appendChild(searchScreen);
     document.querySelectorAll('.elma-go-icon,.elma-go-logo-crop').forEach(element=>element.remove());
     searchScreen.querySelectorAll('.elma-mode-card').forEach(button=>button.onclick=()=>{
@@ -342,17 +352,6 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
     pickNote.className='elma-map-pick-note';
     pickNote.textContent='Varış noktasını haritadan seçin';
     wrapper.appendChild(pickNote);
-    const mapToolbar=document.createElement('div');
-    mapToolbar.className='osm-map-ui osm-map-toolbar';
-    mapToolbar.innerHTML='<button class="osm-map-search" type="button" aria-label="Yeni rota ara"><span class="osm-map-logo">elma <b>go</b></span><span class="osm-map-subtitle">Amasya’da yolculuğunu keşfet</span><span class="osm-map-search-icon" aria-hidden="true">⌕</span></button>';
-    wrapper.appendChild(mapToolbar);
-    mapToolbar.querySelector('button').onclick=()=>window.elmaOpenSearch?.();
-    const controls=document.createElement('div');
-    controls.className='osm-map-ui osm-map-controls';
-    controls.innerHTML='<button type="button" data-osm-action="plus" aria-label="Yakınlaştır">+</button><button type="button" data-osm-action="minus" aria-label="Uzaklaştır">−</button><button type="button" data-osm-action="location" aria-label="Konumuma git">◎</button>';
-    wrapper.appendChild(controls);
-    controls.onclick=async event=>{const action=event.target.closest('button')?.dataset.osmAction;if(!action||!map)return;if(action==='plus')map.setZoom(Math.min(19,map.getZoom()+1));if(action==='minus')map.setZoom(Math.max(4,map.getZoom()-1));if(action==='location'){const point=await window.requestLocation?.();if(point)flyTo(point,16)}};
-
     const nav=document.createElement('nav');
     nav.id='elmaMainNav';
     nav.className='elma-main-nav';
@@ -495,8 +494,19 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       $('#elmaTo').focus();
     }
 
-    $('#elmaQuickSearch').onclick=openSearch;
-    $('#elmaQuickSearch').onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openSearch()}};
+    $('#elmaLostHomeOpen').onclick=()=>{
+      const servicesButton=nav.querySelector('[data-elma-tab="services"]');
+      if(!servicesButton)return;
+      activateMainTab(servicesButton);
+      let attempts=0;
+      const openLost=()=>{
+        if(tabTransitionLocked&&attempts++<30){setTimeout(openLost,100);return}
+        const lostCard=document.querySelector('.eg-lost-card');
+        if(lostCard){lostCard.click();return}
+        if(attempts++<30)setTimeout(openLost,100);
+      };
+      setTimeout(openLost,500);
+    };
     $('#elmaSearchBack').onclick=showHome;
     $('#elmaFrom').oninput=()=>{
       manualOriginEditing=true;
@@ -613,10 +623,11 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   async function init(){
     const old=$('#map');
     if(!old)return;
+    old.remove();
+    setup();
+    return;
     const fresh=document.createElement('div');
     fresh.id='map';
-    old.replaceWith(fresh);
-    setup();
     if(!window.ElmaMaps)throw new Error('OpenStreetMap haritası yüklenemedi');
 
     map=new ElmaMaps.Map(fresh,{
@@ -715,31 +726,6 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
 })();
 
 (()=>{
-  const roadData=document.createElement('script');
-  roadData.src='road-path-data.js?v=20260901-google-fixed';
-  roadData.async=false;
-  roadData.dataset.elmaRoadPathData='1';
-  document.head.appendChild(roadData);
-  const line1Route=document.createElement('script');
-  line1Route.src='line-1-route.js?v=20260919-routes-style1';
-  line1Route.async=false;
-  line1Route.dataset.elmaLine1Route='1';
-  document.head.appendChild(line1Route);
-  const line6KmlData=document.createElement('script');
-  line6KmlData.src='line-6-kml-data.js?v=20260918-kml1';
-  line6KmlData.async=false;
-  line6KmlData.dataset.elmaLine6KmlData='1';
-  document.head.appendChild(line6KmlData);
-  const line6Route=document.createElement('script');
-  line6Route.src='line-6-route-road.js?v=20260919-routes-style1';
-  line6Route.async=false;
-  line6Route.dataset.elmaLine6Route='1';
-  document.head.appendChild(line6Route);
-  const nearbyStops=document.createElement('script');
-  nearbyStops.src='nearby-stops-service.js?v=20260918-kml1';
-  nearbyStops.defer=true;
-  nearbyStops.dataset.elmaNearbyStops='1';
-  document.head.appendChild(nearbyStops);
   const pharmacy=document.createElement('script');
   pharmacy.src='pharmacy-service.js?v=20260918-osm1';
   pharmacy.defer=true;
