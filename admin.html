@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0d">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Elma Go Yönetim</title>
+  <link rel="icon" href="assets/elmago-icon-v2.png">
+  <link rel="stylesheet" href="admin.css?v=20260920-admin1">
+</head>
+<body>
+  <section id="adminLogin" class="login-shell">
+    <div class="login-card">
+      <div class="admin-mark">EG</div>
+      <span class="eyebrow">ELMA GO YÖNETİM</span>
+      <h1>Kontrol sende.</h1>
+      <p>İlanları, şikâyetleri, kullanıcıları ve uygulama ayarlarını tek merkezden yönet.</p>
+      <button id="adminLoginButton" class="primary" type="button">Google ile yönetici girişi</button>
+      <div id="adminLoginStatus" class="status" role="status"></div>
+    </div>
+  </section>
+
+  <div id="adminApp" class="admin-app" hidden>
+    <aside class="sidebar">
+      <div class="brand"><span>EG</span><div><b>Elma Go</b><small>Yönetim merkezi</small></div></div>
+      <nav id="adminNav">
+        <button class="active" data-view="dashboard">Genel Bakış</button>
+        <button data-view="listings">İlanlar <span id="navListings">0</span></button>
+        <button data-view="reports">Şikâyetler <span id="navReports">0</span></button>
+        <button data-view="conversations">Sohbetler <span id="navChats">0</span></button>
+        <button data-view="users">Kullanıcılar <span id="navUsers">0</span></button>
+        <button data-view="announcements">Duyurular <span id="navAnnouncements">0</span></button>
+        <button data-view="settings">Uygulama Ayarları</button>
+        <button data-view="audit">İşlem Geçmişi</button>
+      </nav>
+      <div class="sidebar-foot">
+        <small id="adminIdentity"></small>
+        <button id="adminLogout" type="button">Oturumu kapat</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button id="adminMenu" class="menu" type="button" aria-label="Menüyü aç">☰</button>
+        <div><span class="eyebrow">YÖNETİM PANELİ</span><h1 id="viewTitle">Genel Bakış</h1></div>
+        <div class="top-actions"><button id="refreshAdmin" type="button">Yenile</button><button id="exportAdmin" class="dark" type="button">Veriyi dışa aktar</button></div>
+      </header>
+
+      <section id="view-dashboard" class="view active">
+        <div id="statsGrid" class="stats-grid"></div>
+        <div class="dashboard-grid">
+          <article class="panel"><div class="panel-head"><div><span class="eyebrow">SON DURUM</span><h2>Yeni ilanlar</h2></div><button data-go="listings">Tümünü aç</button></div><div id="recentListings" class="compact-list"></div></article>
+          <article class="panel"><div class="panel-head"><div><span class="eyebrow">AKSİYON</span><h2>Bekleyen şikâyetler</h2></div><button data-go="reports">İncele</button></div><div id="recentReports" class="compact-list"></div></article>
+        </div>
+      </section>
+
+      <section id="view-listings" class="view">
+        <div class="toolbar"><input id="listingSearch" type="search" placeholder="Başlık, şehir veya kullanıcı ara"><select id="listingStatus"><option value="all">Tüm durumlar</option><option value="active">Aktif</option><option value="solved">Çözüldü</option><option value="expired">Süresi doldu</option></select></div>
+        <div id="listingTable" class="table-shell"></div>
+      </section>
+
+      <section id="view-reports" class="view"><div id="reportTable" class="table-shell"></div></section>
+      <section id="view-conversations" class="view"><div id="chatTable" class="table-shell"></div></section>
+      <section id="view-users" class="view"><div class="toolbar"><input id="userSearch" type="search" placeholder="Ad veya UID ara"></div><div id="userTable" class="table-shell"></div></section>
+
+      <section id="view-announcements" class="view">
+        <div class="split-grid">
+          <form id="announcementForm" class="panel form-panel">
+            <span class="eyebrow">YENİ DUYURU</span><h2>Duyuru yayınla</h2>
+            <label>Başlık<input id="announcementTitle" maxlength="80" required></label>
+            <label>İçerik<textarea id="announcementBody" maxlength="500" required></textarea></label>
+            <div class="form-row"><label>Şehir<input id="announcementCity" placeholder="Tümü"></label><label>Önem<select id="announcementLevel"><option value="info">Bilgi</option><option value="important">Önemli</option><option value="urgent">Acil</option></select></label></div>
+            <label class="check"><input id="announcementPublished" type="checkbox" checked> Hemen yayınla</label>
+            <button class="primary" type="submit">Duyuruyu kaydet</button>
+          </form>
+          <div id="announcementList" class="stack"></div>
+        </div>
+      </section>
+
+      <section id="view-settings" class="view">
+        <form id="settingsForm" class="panel form-panel wide">
+          <span class="eyebrow">UYGULAMA KONTROLÜ</span><h2>Genel ayarlar</h2>
+          <label class="switch-row"><span><b>Bakım modu</b><small>Kullanıcılara bakım uyarısı gösterir.</small></span><input id="maintenanceMode" type="checkbox"></label>
+          <label>Uygulama üst bildirimi<textarea id="globalNotice" maxlength="240" placeholder="Boş bırakırsan bildirim gösterilmez."></textarea></label>
+          <div class="form-row"><label>Yakın ilan yarıçapı (km)<input id="nearbyRadius" type="number" min="1" max="50" value="5"></label><label>İlan süresi (gün)<input id="listingDays" type="number" min="1" max="90" value="30"></label></div>
+          <button class="primary" type="submit">Ayarları kaydet</button>
+        </form>
+      </section>
+
+      <section id="view-audit" class="view"><div id="auditTable" class="table-shell"></div></section>
+    </main>
+  </div>
+
+  <div id="adminToast" class="toast" role="status"></div>
+  <div id="adminModal" class="modal" hidden><div class="modal-card"><button id="modalClose" class="modal-close" type="button">×</button><div id="modalContent"></div></div></div>
+  <script type="module" src="admin.js?v=20260920-admin1"></script>
+</body>
+</html>
