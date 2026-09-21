@@ -710,12 +710,12 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
 
 (()=>{
   const pharmacy=document.createElement('script');
-  pharmacy.src='pharmacy-service.js?v=20260918-osm1';
+  pharmacy.src='pharmacy-service.js?v=20260921-tilesfix2';
   pharmacy.defer=true;
   pharmacy.dataset.elmaPharmacyService='1';
   document.head.appendChild(pharmacy);
   const lostFound=document.createElement('script');
-  lostFound.src='lost-found-service.js?v=20260919-account-clean1';
+  lostFound.src='lost-found-service.js?v=20260921-tilesfix2';
   lostFound.defer=true;
   lostFound.dataset.elmaLostFoundService='1';
   document.head.appendChild(lostFound);
