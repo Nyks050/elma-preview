@@ -545,7 +545,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       document.body.classList.remove('elma-white-flow');
       hideWhiteScreens();
       setNavActive(name);
-      wrapper.style.display=name==='transport'?'none':'block';
+      wrapper.style.display='none';
       openLegacyTab(name);
       animateMainTab(name);
     }
