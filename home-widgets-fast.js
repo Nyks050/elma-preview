@@ -34,7 +34,7 @@
 .eg-bus-clear:before{content:"";position:absolute;inset:0 0 48%;background:linear-gradient(90deg,#12151b 0 8%,#171a21 8% 19%,#101319 19% 25%,#1a1d24 25% 39%,#11141a 39% 48%,#181b22 48% 63%,#101319 63% 71%,#171a21 71% 86%,#11141a 86%)}
 .eg-bus-clear:after{content:"";position:absolute;left:-2%;right:-2%;bottom:9%;height:2px;background:repeating-linear-gradient(90deg,#c5c7cb66 0 9%,transparent 9% 18%)}
 .eg-bus-arrival{position:absolute;inset:0;z-index:3;display:block;width:100%;height:100%;object-fit:fill;clip-path:polygon(8% 36%,66% 36%,71% 39%,74% 48%,74% 70%,67% 73%,9% 73%,7% 68%,7% 43%);will-change:transform,opacity;animation:egBusArrival 16s cubic-bezier(.38,.02,.18,1) infinite}
-.eg-wheel{position:absolute;z-index:4;display:block;width:4.27%;height:8.44%;overflow:hidden;border-radius:50%;will-change:transform,opacity;animation:egBusArrival 16s cubic-bezier(.38,.02,.18,1) infinite}.eg-wheel.rear{left:23.16%;top:59.44%}.eg-wheel.front{left:53.57%;top:59.56%}
+.eg-wheel{position:absolute;z-index:4;display:block;width:4.27%;height:8.44%;overflow:hidden;border-radius:50%;will-change:transform,opacity;animation:egWheelArrival 16s cubic-bezier(.38,.02,.18,1) infinite}.eg-wheel.rear{left:23.16%;top:59.44%}.eg-wheel.front{left:53.57%;top:59.56%}
 .eg-wheel img{position:absolute;display:block;width:2341.92%;height:1184.83%;max-width:none!important;object-fit:fill;animation:egWheelSpin 16s linear infinite}.eg-wheel.rear img{left:-542.39%;top:-704.27%;transform-origin:25.29% 63.67%}.eg-wheel.front img{left:-1254.57%;top:-705.69%;transform-origin:55.71% 63.78%}
 .eg-wind{position:absolute;left:2%;top:38%;z-index:4;width:69%;height:31%;opacity:0;pointer-events:none;animation:egWind 16s linear infinite}.eg-wind i{position:absolute;left:0;height:1px;border-radius:2px;background:linear-gradient(90deg,transparent,#e9edf36b,transparent);animation:egWindLine .9s linear infinite}.eg-wind i:nth-child(1){top:12%;width:25%;animation-delay:-.2s}.eg-wind i:nth-child(2){top:48%;width:18%;animation-delay:-.55s}.eg-wind i:nth-child(3){top:83%;width:29%;animation-delay:-.78s}
 .eg-door-open-map{position:absolute;inset:0;z-index:5;display:block;width:100%;height:100%;object-fit:fill;opacity:0;animation:egDoorInterior 16s ease-in-out infinite}
@@ -52,6 +52,7 @@
 .eg-door-step{position:absolute;left:-3%;right:-3%;bottom:-4%;height:8%;z-index:4;border-radius:0 0 3px 3px;background:linear-gradient(180deg,#d4d8dd,#626a74);opacity:0;transform:translateY(-3px);animation:egDoorStep 16s ease-in-out infinite}
 @keyframes egBusClear{0%,25%{opacity:1}27%,99%{opacity:0}100%{opacity:1}}
 @keyframes egBusArrival{0%{opacity:1;transform:translateX(-112%)}4%{opacity:1;transform:translateX(-105%)}25%{opacity:1;transform:translateX(0)}27%,100%{opacity:0;transform:translateX(0)}}
+@keyframes egWheelArrival{0%{opacity:1;transform:translateX(-2623%)}4%{opacity:1;transform:translateX(-2459%)}25%{opacity:1;transform:translateX(0)}27%,100%{opacity:0;transform:translateX(0)}}
 @keyframes egWheelSpin{0%{transform:rotate(0)}25%{transform:rotate(1080deg)}25.01%,100%{transform:rotate(1080deg)}}
 @keyframes egWind{0%,3%{opacity:0}7%,22%{opacity:.22}26%,100%{opacity:0}}
 @keyframes egWindLine{0%{transform:translateX(0) scaleX(.65)}100%{transform:translateX(-55%) scaleX(1)}}
