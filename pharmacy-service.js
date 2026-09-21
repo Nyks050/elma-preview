@@ -111,7 +111,7 @@
 
   function mount(){
     const widgets=document.getElementById('elmaHomeWidgets');
-    const grid=widgets?.querySelector('.eg-services-grid');
+    const grid=widgets?.querySelector('.eg-panel[data-panel="services"] .eg-services-grid');
     if(!widgets||!grid)return false;
     if(document.querySelector('.eg-pharmacy-card'))return true;
     addStyles();
