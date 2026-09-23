@@ -1,146 +1,137 @@
 (()=>{
-  const DATA_URL='assets/amasya-transit-data.json?v=20260922-map1';
-  const LEAFLET_CSS='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-  const LEAFLET_JS='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-  const panelSelector='.eg-panel[data-panel="transport-routes"]';
-  let data,selectedId,direction='outbound',map,routeLayer,stopLayer,selectedMarker,loadingMap;
-  const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-  const label=line=>line.id==='4-alt'?'4 Alt':line.id==='4-ust'?'4 Üst':line.number+' Numaralı Hat';
-  const activeLine=()=>data?.lines.find(line=>line.id===selectedId);
-  const stopsFor=line=>line.stops.filter(stop=>stop.direction===direction);
+  const DATA='assets/amasya-transit-data.json?v=20260922-map1';
+  const PANEL='.eg-panel[data-panel="transport-routes"]';
+  let data,id,direction='outbound',map,routeLayer,stopLayer,leafletPromise,drawId=0;
+  const $=s=>document.querySelector(s),root=()=>$('#elmaRoutes');
+  const line=()=>data?.lines.find(item=>item.id===id);
+  const label=item=>item.id==='4-alt'?'4 Alt':item.id==='4-ust'?'4 Üst':'Hat '+item.number;
+  const stops=()=>line().stops.filter(stop=>stop.direction===direction);
+  function route(){
+    const item=line(),turn=item.stops[item.returnStartIndex];
+    const index=item.route.findIndex(point=>point[0]===turn?.lat&&point[1]===turn?.lng);
+    return index<0?item.route:direction==='outbound'?item.route.slice(0,index+1):item.route.slice(index);
+  }
+  function km(points){
+    let length=0;const rad=x=>x*Math.PI/180;
+    for(let i=1;i<points.length;i++){
+      const a=points[i-1],b=points[i],lat=rad(b[0]-a[0]),lon=rad(b[1]-a[1]);
+      const h=Math.sin(lat/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(lon/2)**2;
+      length+=12742*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));
+    }
+    return length.toFixed(1).replace('.',',')+' km';
+  }
   function styles(){
-    if(document.getElementById('elmaRoutesStyle'))return;
+    if($('#elmaRoutesStyle'))return;
     const style=document.createElement('style');style.id='elmaRoutesStyle';
     style.textContent=`
-      ${panelSelector}{padding-bottom:calc(96px + env(safe-area-inset-bottom));color:#17191d;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif}
-      ${panelSelector}>.eg-service-back{display:none!important}
-      .er-shell{max-width:720px;margin:auto;padding:calc(env(safe-area-inset-top) + 16px) 16px 24px}
-      .er-heading{display:flex;align-items:center;gap:13px;margin-bottom:18px}
-      .er-back{width:39px;height:39px;flex:none;border:1px solid #e3e5e8;border-radius:13px;background:#fff;color:#202329;font-size:26px;line-height:1;cursor:pointer}
-      .er-heading p{margin:0 0 3px;color:#81868e;font-size:10px;font-weight:800;letter-spacing:1.3px}
-      .er-heading h1{margin:0;font-size:27px;letter-spacing:-1.1px;line-height:1.1}
-      .er-intro{margin:-7px 0 17px;color:#747983;font-size:12px;line-height:1.5}
-      .er-line-picker{display:flex;gap:8px;overflow-x:auto;margin:0 -16px 16px;padding:0 16px 4px;scrollbar-width:none}
-      .er-line-picker::-webkit-scrollbar{display:none}
-      .er-line{display:flex;align-items:center;gap:9px;flex:none;min-height:43px;padding:5px 13px 5px 6px;border:1px solid #e3e5e8;border-radius:14px;background:#fff;color:#4c525a;font-size:12px;font-weight:750;cursor:pointer}
-      .er-line b{min-width:31px;height:31px;display:grid;place-items:center;border-radius:10px;background:#f0f1f3;color:#202329;font-size:13px}
-      .er-line[aria-pressed="true"]{border-color:#17191d;background:#17191d;color:#fff}
-      .er-line[aria-pressed="true"] b{background:#fff;color:#17191d}
-      .er-card{overflow:hidden;border:1px solid #e4e6e8;border-radius:22px;background:#fff;box-shadow:0 10px 32px #1d24300c}
-      .er-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 17px}
-      .er-card-top h2{margin:0;font-size:17px;letter-spacing:-.5px}.er-card-top p{margin:4px 0 0;color:#81868e;font-size:11px}
-      .er-legend{display:flex;align-items:center;gap:6px;flex:none;color:#737982;font-size:10px;font-weight:750}.er-legend i{width:16px;height:4px;border-radius:4px;background:#202329}
-      .er-map{height:min(46vh,390px);min-height:300px;background:#edf0ed}.er-map .leaflet-control-attribution{font-size:9px}
-      .er-map-message{height:100%;display:grid;place-items:center;padding:22px;color:#626973;font-size:12px;text-align:center}
-      .er-map-tools{display:flex;justify-content:flex-end;padding:9px 13px;border-top:1px solid #e9eaec}
-      .er-map-tools button{padding:7px 11px;border:0;border-radius:9px;background:#f2f3f5;color:#333840;font-size:11px;font-weight:750;cursor:pointer}
-      .er-stop-dot{width:12px;height:12px;border:2.5px solid #fff;border-radius:50%;background:#202329;box-shadow:0 0 0 2px #202329,0 2px 6px #0005}
-      .er-stop-dot.selected{width:17px;height:17px;background:#fff;box-shadow:0 0 0 4px #202329,0 2px 8px #0006}
-      .er-section{margin-top:21px}.er-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.er-section-head h2{margin:0;font-size:19px;letter-spacing:-.5px}.er-section-head span{color:#858a93;font-size:11px;font-weight:700}
-      .er-directions{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:14px;padding:4px;border-radius:14px;background:#eff0f2}
-      .er-directions button{height:39px;border:0;border-radius:11px;background:transparent;color:#747983;font-size:12px;font-weight:800;cursor:pointer}
-      .er-directions button[aria-pressed="true"]{background:#17191d;color:#fff;box-shadow:0 2px 8px #1a1e2430}
-      .er-stops{margin:0;padding:0;list-style:none;border:1px solid #e4e6e8;border-radius:19px;background:#fff;overflow:hidden}
-      .er-stops li+li{border-top:1px solid #f0f1f2}
-      .er-stop{width:100%;display:flex;align-items:center;gap:13px;min-height:58px;padding:10px 15px;border:0;background:transparent;color:#202329;text-align:left;cursor:pointer}
-      .er-stop[aria-current="true"]{background:#f0f1f3}
-      .er-stop-index{width:27px;height:27px;flex:none;display:grid;place-items:center;border-radius:50%;background:#eef0f2;color:#5d636d;font-size:10px;font-weight:800}
-      .er-stop[aria-current="true"] .er-stop-index{background:#17191d;color:#fff}
-      .er-stop-name{font-size:12px;font-weight:750}.er-stop-sub{display:block;margin-top:3px;color:#8a8f97;font-size:10px;font-weight:600}
-      .er-status{padding:32px 20px;border:1px solid #e4e6e8;border-radius:18px;background:#fff;color:#636973;font-size:13px;text-align:center}
-      @media(min-width:720px){.er-shell{padding-top:32px}.er-map{height:390px}}
+      ${PANEL}{padding:0 0 calc(78px + env(safe-area-inset-bottom))!important;background:#fff;color:#000;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif}
+      ${PANEL}>.eg-service-back{display:none!important}
+      .er-screen{max-width:720px;min-height:calc(100dvh - 78px);margin:auto;background:#fff}
+      .er-screen *{box-sizing:border-box}.er-screen button,.er-screen select{font:inherit}
+      .er-head{height:calc(86px + env(safe-area-inset-top));display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:0 18px 16px;background:#fff}
+      .er-head-left{display:flex;align-items:center;gap:12px;min-width:0}
+      .er-back{width:38px;height:38px;flex:none;border:1.5px solid #000;border-radius:12px;background:#fff;color:#000;font-size:26px!important;line-height:1;cursor:pointer}
+      .er-title{margin:0;font-size:26px;font-weight:820;letter-spacing:-1px;line-height:1}
+      .er-select-wrap{position:relative;flex:none}
+      .er-select{max-width:135px;height:39px;appearance:none;padding:0 32px 0 13px;border:1.5px solid #000;border-radius:12px;background:#fff;color:#000;font-size:12px!important;font-weight:800!important;cursor:pointer}
+      .er-select-wrap:after{content:'⌄';position:absolute;right:12px;top:3px;font-size:24px;pointer-events:none}
+      .er-map-area{position:relative;height:clamp(480px,calc(100dvh - 170px - env(safe-area-inset-top)),850px);overflow:hidden;border-top:1px solid #000;background:#fff}
+      .er-map{position:absolute;inset:0;background:#fff}
+      .er-map .leaflet-tile-pane{filter:grayscale(1) brightness(.55) contrast(100)}
+      .er-map .leaflet-control-attribution{background:#fff!important;color:#000!important;font-size:9px!important}
+      .er-map .leaflet-control-attribution a{color:#000!important}
+      .er-error{height:100%;display:grid;place-items:center;padding:20px;text-align:center;font-size:13px;font-weight:700}
+      .er-center{position:absolute;top:18px;right:18px;z-index:700;width:43px;height:43px;border:1.5px solid #000;border-radius:13px;background:#fff;color:#000;font-size:23px!important;cursor:pointer}
+      .er-sheet{position:absolute;right:13px;bottom:24px;left:13px;z-index:700;padding:13px;border:1.5px solid #000;border-radius:22px;background:#fff}
+      .er-handle{width:34px;height:4px;margin:0 auto 13px;border-radius:4px;background:#000}
+      .er-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+      .er-directions{display:grid;grid-template-columns:1fr 1fr;overflow:hidden;border:1.5px solid #000;border-radius:12px}
+      .er-directions button{height:46px;border:0;background:#fff;color:#000;font-size:12px!important;font-weight:800!important;cursor:pointer}
+      .er-directions button+button{border-left:1px solid #000}
+      .er-directions button[aria-pressed="true"]{background:#000;color:#fff}
+      .er-fit{height:49px;border:1.5px solid #000;border-radius:12px;background:#000;color:#fff;font-size:12px!important;font-weight:800!important;cursor:pointer}
+      .er-distance{display:flex;justify-content:space-between;align-items:center;margin:11px 4px 0;font-size:11px;font-weight:800}
+      .er-distance strong{font-size:17px;letter-spacing:-.5px}
+      .er-end{width:18px;height:18px;border:4px solid #000;border-radius:50%;background:#fff;box-shadow:0 0 0 3px #fff}
+      .er-end.last{background:#000}
+      @media(max-width:370px){.er-title{font-size:22px}.er-select{max-width:110px}.er-actions{gap:5px}.er-directions button,.er-fit{font-size:10px!important}}
+      @media(min-width:720px){.er-screen{border-right:1px solid #000;border-left:1px solid #000}.er-map-area{height:720px}}
     `;
     document.head.appendChild(style);
   }
-  function loadLeaflet(){
+  function leaflet(){
     if(window.L)return Promise.resolve(window.L);
-    if(loadingMap)return loadingMap;
-    loadingMap=new Promise((resolve,reject)=>{
-      if(!document.querySelector('link[data-elma-route-leaflet]')){
-        const css=document.createElement('link');css.rel='stylesheet';css.href=LEAFLET_CSS;css.dataset.elmaRouteLeaflet='1';document.head.appendChild(css);
+    if(leafletPromise)return leafletPromise;
+    leafletPromise=new Promise((resolve,reject)=>{
+      if(!$('#elmaRoutesLeafletCSS')){
+        const css=document.createElement('link');css.id='elmaRoutesLeafletCSS';css.rel='stylesheet';css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(css);
       }
-      const existing=document.querySelector('script[data-elma-route-leaflet]');
-      const script=existing||document.createElement('script');
-      script.addEventListener('load',()=>window.L?resolve(window.L):reject(new Error('Leaflet yüklenemedi')),{once:true});
-      script.addEventListener('error',()=>reject(new Error('Harita kütüphanesi yüklenemedi')),{once:true});
-      if(!existing){script.src=LEAFLET_JS;script.dataset.elmaRouteLeaflet='1';document.head.appendChild(script)}
-    }).catch(error=>{loadingMap=null;throw error});
-    return loadingMap;
+      const script=document.createElement('script');script.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload=()=>window.L?resolve(window.L):reject(new Error('Leaflet'));
+      script.onerror=()=>reject(new Error('Leaflet'));
+      document.head.appendChild(script);
+    }).catch(error=>{leafletPromise=null;throw error});
+    return leafletPromise;
   }
-  function splitRoute(line){
-    const turning=line.stops[line.returnStartIndex];
-    if(!turning)return line.route;
-    const index=line.route.findIndex(point=>point[0]===turning.lat&&point[1]===turning.lng);
-    if(index<0)return line.route;
-    return direction==='outbound'?line.route.slice(0,index+1):line.route.slice(index);
+  function fit(){
+    if(map&&line())map.fitBounds(route(),{paddingTopLeft:[30,65],paddingBottomRight:[30,180],maxZoom:15,animate:true});
   }
-  function render(){
-    const root=document.getElementById('elmaRoutes');if(!root||!data)return;
-    const line=activeLine(),stops=stopsFor(line);
-    root.querySelector('.er-line-picker').innerHTML=data.lines.map(item=>`<button class="er-line" type="button" data-line="${esc(item.id)}" aria-pressed="${item.id===selectedId}"><b>${esc(item.number)}</b>${item.variant?esc(item.variant)+' ':''}Hat</button>`).join('');
-    root.querySelector('.er-card-top h2').textContent=label(line);
-    root.querySelector('.er-card-top p').textContent=`${line.stops.length} durak · ${line.frequency||'Tarife belirtilmedi'}`;
-    root.querySelector('.er-section-head span').textContent=stops.length+' durak';
-    root.querySelectorAll('[data-direction]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.direction===direction)));
-    root.querySelector('.er-stops').innerHTML=stops.map((stop,index)=>`<li><button class="er-stop" type="button" data-stop="${index}" aria-current="false"><span class="er-stop-index">${index+1}</span><span><span class="er-stop-name">${esc(stop.name)}</span><small class="er-stop-sub">${direction==='outbound'?'Gidiş':'Dönüş'} · Durak ${esc(stop.number)}</small></span></button></li>`).join('');
-    drawMap();
-  }
-  async function drawMap(){
-    const root=document.getElementById('elmaRoutes'),element=root?.querySelector('.er-map');if(!element||!data||!root.closest('.eg-panel')?.classList.contains('active'))return;
+  async function draw(){
+    const element=root()?.querySelector('.er-map'),panel=root()?.closest('.eg-panel');
+    if(!element||!data||!panel?.classList.contains('active'))return;
+    const token=++drawId;
     try{
-      const L=await loadLeaflet();
-      if(!element.isConnected||!root.closest('.eg-panel')?.classList.contains('active'))return;
+      const L=await leaflet();
+      if(token!==drawId||!element.isConnected||!panel.classList.contains('active'))return;
       if(!map){
-        element.replaceChildren();
         map=L.map(element,{zoomControl:false,scrollWheelZoom:false,preferCanvas:true});
         L.tileLayer(window.ELMA_OSM_TILE_URL||'https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> katkıda bulunanlar'}).addTo(map);
         L.control.zoom({position:'bottomright'}).addTo(map);
       }
-      routeLayer?.remove();stopLayer?.remove();routeLayer=L.layerGroup().addTo(map);stopLayer=L.layerGroup().addTo(map);selectedMarker=null;
-      const line=activeLine(),route=splitRoute(line),stops=stopsFor(line);
-      if(route.length){
-        L.polyline(route,{color:'#fff',weight:9,opacity:.9,lineCap:'round',lineJoin:'round',interactive:false}).addTo(routeLayer);
-        L.polyline(route,{color:'#202329',weight:5,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(routeLayer);
+      routeLayer?.remove();stopLayer?.remove();
+      routeLayer=L.layerGroup().addTo(map);stopLayer=L.layerGroup().addTo(map);
+      const points=route(),marks=stops();
+      if(points.length){
+        L.polyline(points,{color:'#fff',weight:11,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(routeLayer);
+        L.polyline(points,{color:'#000',weight:6,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(routeLayer);
       }
-      stops.forEach((stop,index)=>{
-        const marker=L.marker([stop.lat,stop.lng],{icon:L.divIcon({className:'',html:'<div class="er-stop-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(stopLayer);
-        marker.bindTooltip(esc(stop.name),{direction:'top'});
-        marker.on('click',()=>selectStop(index));
+      marks.forEach((stop,index)=>{
+        if(index===0||index===marks.length-1||index%4!==0)return;
+        L.circleMarker([stop.lat,stop.lng],{radius:3.5,color:'#000',weight:2,fillColor:'#fff',fillOpacity:1}).addTo(stopLayer);
       });
-      const bounds=route.length?L.latLngBounds(route):L.latLngBounds(stops.map(stop=>[stop.lat,stop.lng]));
-      if(bounds.isValid())map.fitBounds(bounds,{padding:[30,30],maxZoom:15});
-      setTimeout(()=>map?.invalidateSize(),80);
-    }catch(error){console.warn('Güzergâh haritası açılamadı:',error);element.innerHTML='<div class="er-map-message">OpenStreetMap haritası yüklenemedi. Bağlantını kontrol edip yeniden dene.</div>'}
-  }
-  function selectStop(index){
-    const root=document.getElementById('elmaRoutes'),line=activeLine(),stop=stopsFor(line)[index];if(!stop)return;
-    root.querySelectorAll('.er-stop').forEach(button=>button.setAttribute('aria-current',String(Number(button.dataset.stop)===index)));
-    root.querySelector(`.er-stop[data-stop="${index}"]`)?.scrollIntoView({block:'nearest',behavior:'smooth'});
-    if(map&&window.L){
-      selectedMarker?.remove();
-      selectedMarker=window.L.marker([stop.lat,stop.lng],{icon:window.L.divIcon({className:'',html:'<div class="er-stop-dot selected"></div>',iconSize:[22,22],iconAnchor:[11,11]})}).addTo(stopLayer);
-      selectedMarker.bindTooltip(esc(stop.name),{permanent:true,direction:'top'});
-      map.flyTo([stop.lat,stop.lng],Math.max(map.getZoom(),16),{duration:.5});
+      [marks[0],marks.at(-1)].filter(Boolean).forEach((stop,index)=>{
+        L.marker([stop.lat,stop.lng],{icon:L.divIcon({className:'',html:'<div class="er-end '+(index?'last':'')+'"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(stopLayer);
+      });
+      map.invalidateSize();fit();setTimeout(()=>map?.invalidateSize(),100);
+    }catch(error){
+      console.warn('Güzergâh haritası yüklenemedi:',error);
+      if(element&&!map)element.innerHTML='<div class="er-error">Harita yüklenemedi</div>';
     }
   }
+  function render(){
+    if(!data||!root())return;
+    root().querySelector('.er-select').value=id;
+    root().querySelectorAll('[data-direction]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.direction===direction)));
+    root().querySelector('.er-distance strong').textContent=km(route());
+    draw();
+  }
   function mount(){
-    const panel=document.querySelector(panelSelector);if(!panel||document.getElementById('elmaRoutes'))return;
+    const panel=$(PANEL);if(!panel||root())return;
     styles();
-    const root=document.createElement('div');root.id='elmaRoutes';root.className='er-shell';
-    root.innerHTML=`<header class="er-heading"><button class="er-back" type="button" aria-label="Ulaşıma dön">‹</button><div><p>AMASYA ULAŞIM</p><h1>Güzergâhlar</h1></div></header><p class="er-intro">Hat seç, güzergâhı haritada incele ve duraklara dokun.</p><nav class="er-line-picker" aria-label="Hat seçimi"></nav><div class="er-card"><div class="er-card-top"><div><h2>Hatlar</h2><p>Güzergâh yükleniyor</p></div><span class="er-legend"><i></i> Rota</span></div><div class="er-map" aria-label="OpenStreetMap güzergâh haritası"><div class="er-map-message">Harita yükleniyor…</div></div><div class="er-map-tools"><button type="button" data-fit-route>Rotayı göster</button></div></div><section class="er-section"><div class="er-section-head"><h2>Duraklar</h2><span></span></div><div class="er-directions" role="group" aria-label="Yön seçimi"><button type="button" data-direction="outbound" aria-pressed="true">Gidiş</button><button type="button" data-direction="return" aria-pressed="false">Dönüş</button></div><ol class="er-stops"></ol></section>`;
-    panel.appendChild(root);
-    new MutationObserver(()=>{if(panel.classList.contains('active')&&data){drawMap();setTimeout(()=>map?.invalidateSize(),120)}}).observe(panel,{attributes:true,attributeFilter:['class']});
-    root.addEventListener('click',event=>{
-      if(event.target.closest('.er-back')){panel.querySelector('.eg-service-back')?.click();return}
-      const lineButton=event.target.closest('[data-line]');if(lineButton){selectedId=lineButton.dataset.line;render();return}
-      const directionButton=event.target.closest('[data-direction]');if(directionButton){direction=directionButton.dataset.direction;render();return}
-      const stopButton=event.target.closest('[data-stop]');if(stopButton){selectStop(Number(stopButton.dataset.stop));return}
-      if(event.target.closest('[data-fit-route]')){const route=splitRoute(activeLine());if(map&&route.length)map.fitBounds(route,{padding:[30,30],maxZoom:15})}
-    });
-    fetch(DATA_URL).then(response=>{if(!response.ok)throw new Error('Veri: '+response.status);return response.json()}).then(result=>{
+    const screen=document.createElement('div');screen.id='elmaRoutes';screen.className='er-screen';
+    screen.innerHTML=`<header class="er-head"><div class="er-head-left"><button class="er-back" type="button" aria-label="Ulaşıma dön">‹</button><h1 class="er-title">Güzergâh</h1></div><label class="er-select-wrap"><select class="er-select" aria-label="Hat seçimi"></select></label></header><div class="er-map-area"><div class="er-map" aria-label="OpenStreetMap güzergâh haritası"></div><button class="er-center" type="button" aria-label="Rotaya odaklan">⌖</button><div class="er-sheet"><div class="er-handle"></div><div class="er-actions"><div class="er-directions" role="group" aria-label="Yön seçimi"><button type="button" data-direction="outbound" aria-pressed="true">Gidiş</button><button type="button" data-direction="return" aria-pressed="false">Dönüş</button></div><button class="er-fit" type="button">Rotayı göster ↗</button></div><div class="er-distance"><span>ROTA UZUNLUĞU</span><strong>—</strong></div></div></div>`;
+    panel.appendChild(screen);
+    screen.querySelector('.er-back').onclick=()=>panel.querySelector('.eg-service-back')?.click();
+    screen.querySelector('.er-select').onchange=event=>{id=event.target.value;render()};
+    screen.querySelectorAll('[data-direction]').forEach(button=>button.onclick=()=>{direction=button.dataset.direction;render()});
+    screen.querySelector('.er-fit').onclick=fit;screen.querySelector('.er-center').onclick=fit;
+    new MutationObserver(()=>{if(panel.classList.contains('active')){draw();setTimeout(()=>map?.invalidateSize(),100)}}).observe(panel,{attributes:true,attributeFilter:['class']});
+    fetch(DATA).then(response=>{if(!response.ok)throw new Error(response.status);return response.json()}).then(result=>{
       if(!Array.isArray(result.lines)||!result.lines.length)throw new Error('Hat bulunamadı');
-      data=result;selectedId=result.lines[0].id;render();
-    }).catch(error=>{console.warn('Güzergâh verisi yüklenemedi:',error);root.querySelector('.er-line-picker').innerHTML='<div class="er-status">Güzergâh verileri yüklenemedi. Sayfayı yenileyip tekrar dene.</div>'});
+      data=result;id=result.lines[0].id;
+      screen.querySelector('.er-select').innerHTML=result.lines.map(item=>'<option value="'+item.id+'">'+label(item)+'</option>').join('');
+      render();
+    }).catch(error=>{console.warn('Güzergâh verisi yüklenemedi:',error);screen.querySelector('.er-distance strong').textContent='—'});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);
   else mount();
