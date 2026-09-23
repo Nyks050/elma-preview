@@ -1,7 +1,7 @@
 (()=>{
   const DATA='assets/amasya-transit-data.json?v=20260922-map1';
   const PANEL='.eg-panel[data-panel="transport-routes"]';
-  let data,id,direction='outbound',map,routeLayer,stopLayer,leafletPromise,drawId=0;
+  let data,id,direction='outbound',map,mapPromise,drawId=0;
   const $=s=>document.querySelector(s),root=()=>$('#elmaRoutes');
   const line=()=>data?.lines.find(item=>item.id===id);
   const label=item=>item.id==='4-alt'?'4 Alt':item.id==='4-ust'?'4 Üst':'Hat '+item.number;
@@ -37,9 +37,9 @@
       .er-select-wrap:after{content:'⌄';position:absolute;right:12px;top:3px;font-size:24px;pointer-events:none}
       .er-map-area{position:relative;height:clamp(480px,calc(100dvh - 170px - env(safe-area-inset-top)),850px);overflow:hidden;border-top:1px solid #000;background:#fff}
       .er-map{position:absolute;inset:0;background:#fff}
-      .er-map .leaflet-tile-pane{filter:grayscale(1) brightness(.55) contrast(100)}
-      .er-map .leaflet-control-attribution{background:#fff!important;color:#000!important;font-size:9px!important}
-      .er-map .leaflet-control-attribution a{color:#000!important}
+      .er-map .maplibregl-control-container{font-family:Inter,-apple-system,sans-serif}
+      .er-map .maplibregl-ctrl-attrib{background:#fff!important;color:#000!important;font-size:9px!important}
+      .er-map .maplibregl-ctrl-attrib a{color:#000!important}
       .er-error{height:100%;display:grid;place-items:center;padding:20px;text-align:center;font-size:13px;font-weight:700}
       .er-center{position:absolute;top:18px;right:18px;z-index:700;width:43px;height:43px;border:1.5px solid #000;border-radius:13px;background:#fff;color:#000;font-size:23px!important;cursor:pointer}
       .er-sheet{position:absolute;right:13px;bottom:24px;left:13px;z-index:700;padding:13px;border:1.5px solid #000;border-radius:22px;background:#fff}
@@ -59,50 +59,73 @@
     `;
     document.head.appendChild(style);
   }
-  function leaflet(){
-    if(window.L)return Promise.resolve(window.L);
-    if(leafletPromise)return leafletPromise;
-    leafletPromise=new Promise((resolve,reject)=>{
-      if(!$('#elmaRoutesLeafletCSS')){
-        const css=document.createElement('link');css.id='elmaRoutesLeafletCSS';css.rel='stylesheet';css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(css);
+  function loadMap(){
+    if(window.maplibregl)return Promise.resolve(window.maplibregl);
+    if(mapPromise)return mapPromise;
+    mapPromise=new Promise((resolve,reject)=>{
+      if(!$('#elmaRoutesMapCSS')){
+        const css=document.createElement('link');css.id='elmaRoutesMapCSS';css.rel='stylesheet';
+        css.href='https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.css';document.head.appendChild(css);
       }
-      const script=document.createElement('script');script.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      script.onload=()=>window.L?resolve(window.L):reject(new Error('Leaflet'));
-      script.onerror=()=>reject(new Error('Leaflet'));
+      const script=document.createElement('script');
+      script.src='https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js';
+      script.onload=()=>window.maplibregl?resolve(window.maplibregl):reject(new Error('MapLibre'));
+      script.onerror=()=>reject(new Error('MapLibre'));
       document.head.appendChild(script);
-    }).catch(error=>{leafletPromise=null;throw error});
-    return leafletPromise;
+    }).catch(error=>{mapPromise=null;throw error});
+    return mapPromise;
   }
   function fit(){
-    if(map&&line())map.fitBounds(route(),{paddingTopLeft:[30,65],paddingBottomRight:[30,180],maxZoom:15,animate:true});
+    if(!map||!line())return;
+    const points=route();
+    if(!points.length)return;
+    const xs=points.map(point=>point[1]),ys=points.map(point=>point[0]);
+    map.fitBounds([[Math.min(...xs),Math.min(...ys)],[Math.max(...xs),Math.max(...ys)]],
+      {padding:{top:55,right:28,bottom:190,left:28},maxZoom:15,duration:550});
   }
   async function draw(){
     const element=root()?.querySelector('.er-map'),panel=root()?.closest('.eg-panel');
     if(!element||!data||!panel?.classList.contains('active'))return;
     const token=++drawId;
     try{
-      const L=await leaflet();
+      const GL=await loadMap();
       if(token!==drawId||!element.isConnected||!panel.classList.contains('active'))return;
       if(!map){
-        map=L.map(element,{zoomControl:false,scrollWheelZoom:false,preferCanvas:true});
-        L.tileLayer(window.ELMA_OSM_TILE_URL||'https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> katkıda bulunanlar'}).addTo(map);
-        L.control.zoom({position:'bottomright'}).addTo(map);
+        map=new GL.Map({container:element,style:'elmago-bw-map.json?v=20260923-1',
+          center:[35.83,40.65],zoom:12,attributionControl:true,dragRotate:false,pitchWithRotate:false});
+        map.touchZoomRotate.disableRotation();
+        map.on('load',()=>{if(data&&panel.classList.contains('active'))draw()});
+        map.on('error',event=>console.warn('Harita döşemesi:',event.error));
+        return;
       }
-      routeLayer?.remove();stopLayer?.remove();
-      routeLayer=L.layerGroup().addTo(map);stopLayer=L.layerGroup().addTo(map);
+      if(!map.isStyleLoaded())return;
       const points=route(),marks=stops();
-      if(points.length){
-        L.polyline(points,{color:'#fff',weight:11,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(routeLayer);
-        L.polyline(points,{color:'#000',weight:6,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(routeLayer);
+      const geometry={type:'Feature',geometry:{type:'LineString',coordinates:points.map(p=>[p[1],p[0]])},properties:{}};
+      const stopFeatures=marks.map((stop,index)=>({
+        type:'Feature',geometry:{type:'Point',coordinates:[stop.lng,stop.lat]},
+        properties:{terminal:index===0||index===marks.length-1,show:index===0||index===marks.length-1||index%5===0}
+      })).filter(feature=>feature.properties.show);
+      const routeData={type:'FeatureCollection',features:[geometry]};
+      const stopData={type:'FeatureCollection',features:stopFeatures};
+      if(map.getSource('elma-route'))map.getSource('elma-route').setData(routeData);
+      else{
+        map.addSource('elma-route',{type:'geojson',data:routeData});
+        map.addLayer({id:'elma-route-halo',type:'line',source:'elma-route',
+          layout:{'line-cap':'round','line-join':'round'},
+          paint:{'line-color':'#fff','line-width':11}});
+        map.addLayer({id:'elma-route-core',type:'line',source:'elma-route',
+          layout:{'line-cap':'round','line-join':'round'},
+          paint:{'line-color':'#000','line-width':5.5}});
       }
-      marks.forEach((stop,index)=>{
-        if(index===0||index===marks.length-1||index%4!==0)return;
-        L.circleMarker([stop.lat,stop.lng],{radius:3.5,color:'#000',weight:2,fillColor:'#fff',fillOpacity:1}).addTo(stopLayer);
-      });
-      [marks[0],marks.at(-1)].filter(Boolean).forEach((stop,index)=>{
-        L.marker([stop.lat,stop.lng],{icon:L.divIcon({className:'',html:'<div class="er-end '+(index?'last':'')+'"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(stopLayer);
-      });
-      map.invalidateSize();fit();setTimeout(()=>map?.invalidateSize(),100);
+      if(map.getSource('elma-stops'))map.getSource('elma-stops').setData(stopData);
+      else{
+        map.addSource('elma-stops',{type:'geojson',data:stopData});
+        map.addLayer({id:'elma-stop-halo',type:'circle',source:'elma-stops',
+          paint:{'circle-radius':['case',['get','terminal'],8,3.5],
+            'circle-color':'#fff','circle-stroke-color':'#000',
+            'circle-stroke-width':['case',['get','terminal'],3,1.5]}});
+      }
+      map.resize();fit();
     }catch(error){
       console.warn('Güzergâh haritası yüklenemedi:',error);
       if(element&&!map)element.innerHTML='<div class="er-error">Harita yüklenemedi</div>';
@@ -125,7 +148,7 @@
     screen.querySelector('.er-select').onchange=event=>{id=event.target.value;render()};
     screen.querySelectorAll('[data-direction]').forEach(button=>button.onclick=()=>{direction=button.dataset.direction;render()});
     screen.querySelector('.er-fit').onclick=fit;screen.querySelector('.er-center').onclick=fit;
-    new MutationObserver(()=>{if(panel.classList.contains('active')){draw();setTimeout(()=>map?.invalidateSize(),100)}}).observe(panel,{attributes:true,attributeFilter:['class']});
+    new MutationObserver(()=>{if(panel.classList.contains('active')){map?.resize();draw()}}).observe(panel,{attributes:true,attributeFilter:['class']});
     fetch(DATA).then(response=>{if(!response.ok)throw new Error(response.status);return response.json()}).then(result=>{
       if(!Array.isArray(result.lines)||!result.lines.length)throw new Error('Hat bulunamadı');
       data=result;id=result.lines[0].id;
