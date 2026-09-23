@@ -78,7 +78,7 @@
     const syncDock=()=>dock.classList.toggle('show',panel.classList.contains('active'));
     new MutationObserver(syncDock).observe(panel,{attributes:true,attributeFilter:['class']});
     syncDock();
-    try{const response=await fetch(DATA_URL);if(!response.ok)throw new Error('Hat verisi yüklenemedi');state.data=await response.json();window.elmaTransitData=state.data;window.dispatchEvent(new CustomEvent('elma:transit-data',{detail:state.data}));render();setInterval(render,60000)}
+    try{state.data=await window.elmaGetTransitData();window.elmaTransitData=state.data;window.dispatchEvent(new CustomEvent('elma:transit-data',{detail:state.data}));render();setInterval(render,60000)}
     catch(error){root.querySelector('.el-lines-list').innerHTML='<div class="el-lines-empty"><b>Hatlar yüklenemedi</b><span>Bağlantını kontrol edip tekrar dene.</span></div>';console.error(error)}
     return true;
   }
