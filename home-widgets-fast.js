@@ -97,7 +97,7 @@
   <path d="M8 18h13" />
   <path d="M8 6h13" />
 </svg></span><span class="eg-service-copy"><span class="eg-service-name">Hatlar</span><span class="eg-service-description">Otobüs hatları.</span></span></button><button class="eg-service-card" type="button" data-service-target="transport-trips" data-service-origin="transport"><span class="eg-service-icon"><svg aria-hidden="true" style="stroke-width:1.8"
-  class="lucide lucide-timer"
+  class="lucide lucide-map-pin"
   xmlns="http://www.w3.org/2000/svg"
   width="24"
   height="24"
@@ -108,10 +108,9 @@
   stroke-linecap="round"
   stroke-linejoin="round"
 >
-  <line x1="10" x2="14" y1="2" y2="2" />
-  <line x1="12" x2="15" y1="14" y2="11" />
-  <circle cx="12" cy="14" r="8" />
-</svg></span><span class="eg-service-copy"><span class="eg-service-name">Sefer</span><span class="eg-service-description">Sefer bilgileri.</span></span></button><button class="eg-service-card" type="button" data-service-target="transport-topup" data-service-origin="transport"><span class="eg-service-icon"><svg aria-hidden="true" style="stroke-width:1.8"
+  <path d="M20 10c0 5-5.5 10.2-7.4 11.8a1 1 0 0 1-1.2 0C9.5 20.2 4 15 4 10a8 8 0 0 1 16 0Z" />
+  <circle cx="12" cy="10" r="3" />
+</svg></span><span class="eg-service-copy"><span class="eg-service-name">Duraklar</span><span class="eg-service-description">Hatların tüm durakları.</span></span></button><button class="eg-service-card" type="button" data-service-target="transport-topup" data-service-origin="transport"><span class="eg-service-icon"><svg aria-hidden="true" style="stroke-width:1.8"
   class="lucide lucide-map-pin"
   xmlns="http://www.w3.org/2000/svg"
   width="24"
