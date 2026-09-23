@@ -6,7 +6,7 @@ window.__elmaBackNavigation=true;
 const markup='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg><span>Geri</span>';
 const selectors=[
 '.eg-service-back','.el-dock-back','.erm-back','.est-back',
-'.eg-card-page-head button','.eg-chat-back','.eg-announcement-head button',
+'.eg-card-page-head button','.eg-chat-back','.eg-announcement-head button','#kvkk .back button',
 '#egCityClose','#egLostClose','#egLostDetailClose','#egLostDropClose',
 '#jrClose','#jrLoadingClose'
 ].join(',');
@@ -41,6 +41,12 @@ border:0!important;border-bottom:1px solid #ededee!important;background:#fff!imp
 html body .elma-back-header>h2{min-width:0;flex:1;margin:0;font-size:18px}
 html body .eg-card-page-head.elma-back-header{display:grid!important;grid-template-columns:76px minmax(0,1fr) 76px!important}
 html body .eg-chat-head.elma-back-header{padding:8px 16px!important;margin-bottom:0!important}
+html body #elmaHomeWidgets:has(>.eg-panel.elma-has-back.active),
+html body #elmaHomeWidgets:has(>.eg-panel[data-panel="transport-routes"].active),
+html body #elmaHomeWidgets:has(>.eg-panel[data-panel="transport-trips"].active),
+html body #elmaHomeWidgets:has(>.eg-panel[data-panel="transport-lines"].active){padding:0!important}
+html body #kvkk{align-items:flex-start;padding:calc(8px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom))}
+html body #kvkk>.box{max-width:488px;margin:0 auto}
 html body #elmaHomeWidgets>.eg-panel.elma-has-back{padding-top:calc(8px + env(safe-area-inset-top))!important;padding-left:16px!important;padding-right:16px!important}
 html body #elmaHomeWidgets>.eg-panel[data-panel="transport-routes"],
 html body #elmaHomeWidgets>.eg-panel[data-panel="transport-trips"]{padding-top:0!important;padding-left:0!important;padding-right:0!important}
@@ -58,7 +64,10 @@ function decorate(button){
  button.innerHTML=markup;
  button.setAttribute('aria-label','Geri');
  const parent=button.parentElement;
- if(parent.matches('.eg-panel,.erm-detail,.est-detail')){
+ if(button.closest('#kvkk')){
+  const header=document.createElement('header');header.className='elma-back-header';
+  button.closest('.box').prepend(header);header.append(button);parent.remove();
+ }else if(parent.matches('.eg-panel,.erm-detail,.est-detail')){
   const header=document.createElement('header');header.className='elma-back-header';
   button.before(header);header.append(button);
   if(parent.matches('.eg-panel'))parent.classList.add('elma-has-back');
