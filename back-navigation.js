@@ -6,7 +6,7 @@ window.__elmaBackNavigation=true;
 const markup='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg><span>Geri</span>';
 const selectors=[
 '.eg-service-back','.el-dock-back','.erm-back','.est-back',
-'.eg-card-page-head button','.eg-chat-back',
+'.eg-card-page-head button','.eg-chat-back','.eg-announcement-head button',
 '#egCityClose','#egLostClose','#egLostDetailClose','#egLostDropClose',
 '#jrClose','#jrLoadingClose'
 ].join(',');
@@ -46,6 +46,7 @@ html body #elmaHomeWidgets>.eg-panel[data-panel="transport-routes"],
 html body #elmaHomeWidgets>.eg-panel[data-panel="transport-trips"]{padding-top:0!important;padding-left:0!important;padding-right:0!important}
 html body .erm,html body .est{padding-top:calc(8px + env(safe-area-inset-top))!important;padding-left:16px!important;padding-right:16px!important}
 html body #elmaHomeWidgets>.eg-panel[data-panel="transport-lines"]{padding-top:calc(8px + env(safe-area-inset-top))!important;padding-left:16px!important;padding-right:16px!important}
+html body .eg-announcement-sheet:has(>.elma-back-header),
 html body .eg-lost-sheet:has(>.elma-back-header){padding-top:calc(8px + env(safe-area-inset-top))!important;padding-left:16px!important;padding-right:16px!important}
 html body .eg-lost-sheet.eg-chat-sheet:has(>.elma-back-header){padding-left:0!important;padding-right:0!important}
 `;
@@ -61,7 +62,7 @@ function decorate(button){
   const header=document.createElement('header');header.className='elma-back-header';
   button.before(header);header.append(button);
   if(parent.matches('.eg-panel'))parent.classList.add('elma-has-back');
- }else if(parent.matches('.el-dock-top,.eg-card-page-head,.eg-chat-head,.eg-lost-sheet-head,.jr-head')){
+ }else if(parent.matches('.el-dock-top,.eg-card-page-head,.eg-chat-head,.eg-lost-sheet-head,.eg-announcement-head,.jr-head')){
   parent.classList.add('elma-back-header');
   if(parent.firstElementChild!==button)parent.prepend(button);
  }
