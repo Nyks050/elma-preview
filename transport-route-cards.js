@@ -2,8 +2,7 @@
   const PANEL='.eg-panel[data-panel="transport-routes"]';
   const DATA_URL='assets/amasya-transit-data.json?v=20260922-map1';
   const TILE_URL='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-  let lines=[],selected='',direction='outbound',query='',map,libPromise;
-  const previews=new Map();
+  let lines=[],selected='',direction='outbound',query='',map;
   const panel=()=>document.querySelector(PANEL),root=()=>document.getElementById('elmaRouteMap');
   const number=line=>line.id==='4-alt'?'4 ALT':line.id==='4-ust'?'4 ÜST':String(line.number);
   const numberHTML=line=>line.id==='4-alt'?'4<small>ALT</small>':line.id==='4-ust'?'4<small>ÜST</small>':String(line.number);
@@ -24,19 +23,7 @@
       total+=12742*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));
     }return total.toFixed(1).replace('.',',')+' km';
   }
-  function library(){
-    if(window.maplibregl)return Promise.resolve(window.maplibregl);
-    if(libPromise)return libPromise;
-    libPromise=new Promise((resolve,reject)=>{
-      if(!document.getElementById('ermMapCSS')){
-        const css=document.createElement('link');css.id='ermMapCSS';css.rel='stylesheet';
-        css.href='https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.css';document.head.appendChild(css);
-      }
-      const script=document.createElement('script');script.src='https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js';
-      script.onload=()=>window.maplibregl?resolve(window.maplibregl):reject(Error('MapLibre'));
-      script.onerror=()=>reject(Error('MapLibre'));document.head.appendChild(script);
-    }).catch(error=>{libPromise=null;throw error});return libPromise;
-  }
+  const library=()=>window.elmaGetMapLibre();
   function fit(instance,points,padding=18){
     if(!instance||!points.length)return;
     const xs=points.map(p=>p[1]),ys=points.map(p=>p[0]);
@@ -53,21 +40,11 @@
     }
     instance.getSource('ends').setData({type:'FeatureCollection',features:[points[0],points[points.length-1]].map(p=>({type:'Feature',properties:{},geometry:{type:'Point',coordinates:[p[1],p[0]]}}))});
   }
-  async function preview(element,line){
-    if(!element?.isConnected||previews.has(line.id))return;
-    try{
-      const GL=await library();if(!element.isConnected||previews.has(line.id))return;
-      const instance=new GL.Map({container:element,style,center:[35.83,40.65],zoom:11,interactive:false,attributionControl:false,fadeDuration:0});
-      previews.set(line.id,instance);
-      instance.on('load',()=>{trace(instance,line.route);fit(instance,line.route,13)});
-    }catch(error){console.warn('Harita önizlemesi:',error)}
-  }
-  function clearPreviews(){for(const instance of previews.values())instance.remove();previews.clear()}
+  function preview(element,line){window.elmaRenderMapPreview?.(element,line.route)}
   function renderList(){
     const wrap=root();if(!wrap||!lines.length)return;
     const q=query.trim().toLocaleLowerCase('tr-TR');
     const visible=lines.filter(line=>!q||[title(line),number(line)].join(' ').toLocaleLowerCase('tr-TR').includes(q));
-    clearPreviews();
     wrap.querySelector('.erm-cards').innerHTML=visible.length?visible.map(line=>'<article class="erm-card"><button class="erm-card-open" type="button" data-line="'+line.id+'" aria-label="'+title(line)+' güzergâhını haritada aç"><span class="erm-card-head"><b class="erm-card-number">'+numberHTML(line)+'</b><b class="erm-card-metric">'+distance(line.route)+'</b></span><span class="erm-thumb" data-preview="'+line.id+'"></span></button></article>').join(''):'<div class="erm-no-results">Hat bulunamadı.</div>';
     const observer=new IntersectionObserver((entries,instance)=>{
       for(const entry of entries)if(entry.isIntersecting){instance.unobserve(entry.target);const line=lines.find(item=>item.id===entry.target.dataset.preview);if(line)preview(entry.target,line)}
@@ -123,8 +100,8 @@
     wrap.querySelector('.erm-back').onclick=()=>{selected='';wrap.querySelector('.erm-detail').hidden=true;wrap.querySelector('.erm-list').hidden=false;renderList()};
     wrap.querySelector('.erm-fit').onclick=()=>current()&&fit(map,halves(current())[direction],38);
     wrap.querySelector('.erm-dir').onclick=event=>{const button=event.target.closest('[data-direction]');if(!button||!current())return;direction=button.dataset.direction;wrap.querySelectorAll('[data-direction]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));wrap.querySelector('.erm-distance').textContent=distance(halves(current())[direction]);drawDetail()};
-    new MutationObserver(()=>{if(target.classList.contains('active')&&map&&current())fit(map,halves(current())[direction],38)}).observe(target,{attributes:true,attributeFilter:['class']});
-    fetch(DATA_URL).then(response=>{if(!response.ok)throw Error(response.status);return response.json()}).then(data=>{lines=data.lines.filter(line=>Array.isArray(line.route)&&line.route.length>1);renderList()}).catch(()=>{wrap.querySelector('.erm-cards').innerHTML='<div class="erm-no-results">Hatlar yüklenemedi. Tekrar deneyin.</div>'});
+    new MutationObserver(()=>{if(target.classList.contains('active')){library().catch(()=>{});if(map&&current())fit(map,halves(current())[direction],38)}}).observe(target,{attributes:true,attributeFilter:['class']});
+    window.elmaGetTransitData().then(data=>{lines=data.lines.filter(line=>Array.isArray(line.route)&&line.route.length>1);renderList()}).catch(()=>{wrap.querySelector('.erm-cards').innerHTML='<div class="erm-no-results">Hatlar yüklenemedi. Tekrar deneyin.</div>'});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
   window.addEventListener('elma-home-widgets-ready',mount);
