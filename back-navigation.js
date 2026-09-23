@@ -58,7 +58,10 @@ html body .eg-lost-sheet.eg-chat-sheet:has(>.elma-back-header){padding-left:0!im
 `;
 document.head.appendChild(style);
 function decorate(button){
- if(button.classList.contains('elma-back-control'))return;
+ if(button.classList.contains('elma-back-control')){
+  if(!button.querySelector('svg'))button.innerHTML=markup;
+  return;
+ }
  // The original button is retained so its own navigation and cleanup handlers survive.
  button.classList.add('elma-back-control');
  button.innerHTML=markup;
