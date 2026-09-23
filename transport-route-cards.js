@@ -49,7 +49,7 @@
     const style=document.createElement('style');style.id='elmaRouteCardsStyle';
     style.textContent=`
       ${PANEL}{padding-bottom:110px!important}
-      ${PANEL}>.eg-service-back{margin:2px 0 17px}
+      .erc-back{display:inline-flex;align-items:center;gap:7px;margin:0 0 17px;padding:5px 0;border:0;background:none;color:var(--erc-muted);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
       .erc{--erc-bg:#fff;--erc-ink:#101113;--erc-muted:#777a80;--erc-border:#dedfe2;--erc-soft:#f5f5f5;color:var(--erc-ink);padding:0 16px 24px;font-family:inherit}
       html:not([data-theme="light"]) .erc{--erc-bg:#171719;--erc-ink:#f6f6f6;--erc-muted:#a3a3a8;--erc-border:#39393d;--erc-soft:#222225}
       .erc *{box-sizing:border-box}.erc-head{display:flex;justify-content:space-between;align-items:flex-end;margin:0 0 19px}.erc-eyebrow{display:block;margin-bottom:6px;color:var(--erc-muted);font-size:10px;font-weight:800;letter-spacing:1.7px}.erc h2{margin:0;color:var(--erc-ink);font-size:32px;font-weight:850;letter-spacing:-1.25px;line-height:1.1}.erc-count{padding:7px 9px;border:1px solid var(--erc-border);border-radius:8px;color:var(--erc-muted);font-size:10px;font-weight:800;letter-spacing:.7px}
@@ -65,8 +65,9 @@
     const target=panel();if(!target||root())return;
     styles();
     const wrap=document.createElement('div');wrap.id='elmaRouteCards';wrap.className='erc';
-    wrap.innerHTML='<div class="erc-head"><div><span class="erc-eyebrow">ULAŞIM / AMASYA</span><h2>Güzergâhlar</h2></div><span class="erc-count">—</span></div><label class="erc-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" placeholder="Hat ara" aria-label="Güzergâh ara"></label><div class="erc-list" aria-live="polite"><div class="erc-empty">Güzergâhlar yükleniyor…</div></div>';
+    wrap.innerHTML='<button class="erc-back" type="button">‹ Ulaşım</button><div class="erc-head"><div><span class="erc-eyebrow">ULAŞIM / AMASYA</span><h2>Güzergâhlar</h2></div><span class="erc-count">—</span></div><label class="erc-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" placeholder="Hat ara" aria-label="Güzergâh ara"></label><div class="erc-list" aria-live="polite"><div class="erc-empty">Güzergâhlar yükleniyor…</div></div>';
     target.appendChild(wrap);
+    wrap.querySelector('.erc-back').addEventListener('click',()=>window.elmaSelectMainTab?.('transport'));
     wrap.querySelector('input').addEventListener('input',event=>{query=event.target.value;render()});
     wrap.querySelector('.erc-list').addEventListener('click',event=>{
       const dir=event.target.closest('[data-direction]');
