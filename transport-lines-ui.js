@@ -1,218 +1,78 @@
 (()=>{
-  if(window.__elmaTransportLinesV2)return;
-  window.__elmaTransportLinesV2=true;
-
-  const LINES=['1','2','3','4 ALT','4 ÜST','5','6','8','11'];
-  const DATA_LINES=new Set(['1','2','6']);
-  const FAVORITES_KEY='elma_favorite_lines_v2';
-  const state={query:'',filter:'all',sort:'asc',open:null,direction:'outbound',favorites:new Set(readFavorites())};
-
-  function readFavorites(){
-    try{return JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]')}catch{return[]}
+  if(window.__elmaTransportLinesV3)return;
+  window.__elmaTransportLinesV3=true;
+  const DATA_URL='assets/amasya-transit-data.json?v=20260922-map1';
+  const FAVORITES_KEY='elma_favorite_lines_v3';
+  const state={data:null,query:'',filter:'all',sort:'asc',open:null,day:todayKey(),detail:'times',favorites:new Set(readFavorites())};
+  function todayKey(){const d=new Date().getDay();return d===6?'saturday':d===0?'sundayHoliday':'weekday'}
+  function readFavorites(){try{return JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]')}catch{return[]}}
+  function saveFavorites(){try{localStorage.setItem(FAVORITES_KEY,JSON.stringify([...state.favorites]))}catch{}}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function label(line){return line.id==='4-alt'?'4 Numaralı Hat · Alt':line.id==='4-ust'?'4 Numaralı Hat · Üst':line.number+' Numaralı Hat'}
+  function badge(line){return line.id==='4-alt'?'4<small>ALT</small>':line.id==='4-ust'?'4<small>ÜST</small>':esc(line.number)}
+  function minuteOf(time){const p=String(time).split(':').map(Number);return p[0]*60+p[1]}
+  function live(line,day=todayKey()){
+    const times=line.schedule?.[day]||[],now=new Date(),minute=now.getHours()*60+now.getMinutes(),first=times[0]||null,last=times[times.length-1]||null,isToday=day===todayKey();
+    const phase=!times.length?'unknown':!isToday?'scheduled':minute<minuteOf(first)?'not-started':minute>minuteOf(last)?'finished':'active';
+    const next=phase==='active'?times.find(t=>minuteOf(t)>=minute):null;
+    return{times,phase,next,minutes:next?Math.max(0,minuteOf(next)-minute):null,first,last};
   }
-
-  function saveFavorites(){
-    try{localStorage.setItem(FAVORITES_KEY,JSON.stringify([...state.favorites]))}catch{}
-  }
-
-  function loadScript(src){
-    return new Promise(resolve=>{
-      if(document.querySelector(`script[data-elma-lines-src="${src}"]`))return resolve();
-      const script=document.createElement('script');
-      script.src=src;
-      script.dataset.elmaLinesSrc=src;
-      script.onload=script.onerror=resolve;
-      document.head.appendChild(script);
-    });
-  }
-
-  function dayKey(line){
-    const day=new Date().getDay();
-    if(line==='6')return day===6?'saturday':day===0?'sunday':'weekday';
-    return day===6?'saturday':day===0?'sundayHoliday':'weekday';
-  }
-
-  function scheduleFor(line){
-    const data=window.ELMA_TRANSIT?.[line];
-    const schedule=data?.schedules?.[dayKey(line)];
-    if(Array.isArray(schedule))return{times:schedule,departure:data.departureStop?`Durak ${data.departureStop}`:'Kalkış durağı'};
-    if(schedule?.times)return{times:schedule.times,departure:schedule.departure||'Kalkış durağı'};
-    return{times:[],departure:data?.departureStop?`Durak ${data.departureStop}`:'Kalkış durağı'};
-  }
-
-  function liveInfo(line){
-    const data=window.ELMA_TRANSIT?.[line],schedule=scheduleFor(line),now=new Date(),minute=now.getHours()*60+now.getMinutes();
-    const minuteOf=time=>{const [h,m]=time.split(':').map(Number);return h*60+m};
-    const firstMinute=schedule.times.length?minuteOf(schedule.times[0]):null;
-    const lastMinute=schedule.times.length?minuteOf(schedule.times[schedule.times.length-1]):null;
-    const phase=firstMinute===null?'unknown':minute<firstMinute?'not-started':minute>lastMinute?'finished':'active';
-    const upcoming=phase==='active'?schedule.times.filter(time=>minuteOf(time)>=minute).slice(0,3):[];
-    const first=upcoming[0];
-    const minutes=first?Math.max(0,first.split(':').map(Number).reduce((h,m)=>h*60+m)-minute):null;
-    return{data,schedule,upcoming,minutes,phase,firstTime:schedule.times[0]||null,active:phase==='active'};
-  }
-
-  function minuteLabel(value){
-    if(value===null)return'Sefer bitti';
-    if(value===0)return'Şimdi';
-    return`${value} dk`;
-  }
-
-  function serviceLabel(info){
-    if(info.phase==='not-started')return'Başlamadı';
-    if(info.phase==='finished')return'Bitti';
-    if(info.phase==='unknown')return'—';
-    return minuteLabel(info.minutes);
-  }
-
-  function statusLabel(info){
-    if(info.phase==='not-started')return`${info.firstTime}’da başlar`;
-    if(info.phase==='finished')return'Bugün bitti';
-    if(info.phase==='unknown')return'Bilgi yok';
-    return'Tarifede';
-  }
-
-  function lineName(line){
-    if(line==='4 ALT')return'4 Numaralı Hat · Alt';
-    if(line==='4 ÜST')return'4 Numaralı Hat · Üst';
-    return`${line} Numaralı Hat`;
-  }
-
-  function visibleLines(){
-    let lines=LINES.filter(line=>lineName(line).toLocaleLowerCase('tr').includes(state.query.toLocaleLowerCase('tr'))||line.toLocaleLowerCase('tr').includes(state.query.toLocaleLowerCase('tr')));
-    if(state.filter==='active')lines=lines.filter(line=>liveInfo(line).active);
-    if(state.filter==='favorites')lines=lines.filter(line=>state.favorites.has(line));
+  function service(info){if(info.phase==='not-started')return'Başlamadı';if(info.phase==='finished')return'Bitti';if(info.phase==='unknown')return'—';if(info.phase==='scheduled')return info.first||'—';return info.minutes===0?'Şimdi':info.minutes+' dk'}
+  function status(info){if(info.phase==='not-started')return info.first+'’da başlar';if(info.phase==='finished')return'Bugün tamamlandı';if(info.phase==='unknown')return'Tarife yok';if(info.phase==='scheduled')return'İlk sefer';return'Tarifede'}
+  function visible(){
+    const q=state.query.toLocaleLowerCase('tr-TR');
+    let lines=state.data.lines.filter(line=>!q||[label(line),line.from,line.to,...line.stops.map(s=>s.name)].join(' ').toLocaleLowerCase('tr-TR').includes(q));
+    if(state.filter==='active')lines=lines.filter(line=>live(line).phase==='active');
+    if(state.filter==='favorites')lines=lines.filter(line=>state.favorites.has(line.id));
     if(state.sort==='desc')lines.reverse();
     return lines;
   }
-
-  function routeStrip(line,info){
-    const count=info.data?.stopCount;
-    const times=info.upcoming.length?info.upcoming.join(' · '):info.phase==='not-started'?`İlk sefer ${info.firstTime}`:info.phase==='finished'?'Bugünkü seferler tamamlandı':'Tarife bilgisi yok';
-    return `<section class="el-lines-detail" aria-label="${lineName(line)} ayrıntıları">
-      <div class="el-lines-direction" role="tablist" aria-label="Yön seçimi">
-        <button type="button" role="tab" data-direction="outbound" aria-selected="${state.direction==='outbound'}" class="${state.direction==='outbound'?'active':''}">Gidiş</button>
-        <button type="button" role="tab" data-direction="return" aria-selected="${state.direction==='return'}" class="${state.direction==='return'?'active':''}">Dönüş</button>
-        <span class="el-lines-next"><small>Sonraki seferler</small><b>${times}</b></span>
-      </div>
-      <div class="el-lines-stops" aria-hidden="true">
-        <span class="start"></span><i></i><span></span><i></i><span></span><i></i><span class="end"></span>
-      </div>
-      <div class="el-lines-stop-labels"><b>${state.direction==='outbound'?'Kalkış':'Dönüş'}</b><span>Ara duraklar</span><b>${state.direction==='outbound'?'Varış':'Kalkış'}</b></div>
-      <div class="el-lines-detail-foot">
-        <span class="el-lines-stop-count">${count?`${count} durak`:'Durak bilgisi hazırlanıyor'}</span>
-        <button type="button" class="el-lines-stops-action" data-open-route="${line}">Tüm durakları gör <span>›</span></button>
-      </div>
-      <button type="button" class="el-lines-open" data-open-route="${line}" ${DATA_LINES.has(line)?'':'disabled'}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19V5m0 2h8a4 4 0 0 1 0 8H6m0-3h12"/></svg>
-        ${DATA_LINES.has(line)?'Hattı aç':'Güzergâh yakında'} <span>›</span>
-      </button>
-    </section>`;
+  function dayButton(key,text){return'<button type="button" data-day="'+key+'" class="'+(state.day===key?'active':'')+'">'+text+'</button>'}
+  function schedule(line){
+    const info=live(line,state.day),now=new Date(),currentMinute=now.getHours()*60+now.getMinutes();
+    const headline=info.phase==='active'?(info.next+' · '+service(info)):info.phase==='not-started'?('İlk sefer '+info.first):info.phase==='finished'?'Bugünkü seferler tamamlandı':info.first?('İlk sefer '+info.first):'Tarife paylaşılmadı';
+    const times=info.times.length?info.times.map(time=>{const passed=state.day===todayKey()&&minuteOf(time)<currentMinute,current=info.next===time&&info.phase==='active';return'<span class="'+(current?'next ':passed?'passed ':'')+'">'+esc(time)+(current?'<small>sonraki</small>':'')+'</span>'}).join(''):'<div class="el-schedule-empty">Bu gün için sefer saati paylaşılmadı.</div>';
+    const stops=line.stops.map((stop,index)=>'<li><i>'+(index+1)+'</i><span><b>'+esc(stop.name)+'</b><small>Durak '+esc(stop.number)+'</small></span></li>').join('');
+    const body=state.detail==='times'?'<div class="el-day-tabs">'+dayButton('weekday','Hafta içi')+dayButton('saturday','Cumartesi')+dayButton('sundayHoliday','Pazar')+'</div><div class="el-times">'+times+'</div>':'<ol class="el-stop-list">'+stops+'</ol>';
+    return'<section class="el-schedule"><div class="el-schedule-hero"><span>SONRAKİ KALKIŞ</span><strong>'+esc(headline)+'</strong><small>'+info.times.length+' tarifeli sefer · '+line.stops.length+' durak</small></div><div class="el-detail-tabs"><button type="button" data-detail="times" class="'+(state.detail==='times'?'active':'')+'">Sefer saatleri</button><button type="button" data-detail="stops" class="'+(state.detail==='stops'?'active':'')+'">Duraklar</button></div>'+body+'</section>';
   }
-
-  function lineRow(line){
-    const info=liveInfo(line),open=state.open===line,favorite=state.favorites.has(line);
-    return `<article class="el-lines-item${open?' open':''}" data-line="${line}">
-      <div class="el-lines-row">
-        <button type="button" class="el-lines-summary" data-toggle-line="${line}" aria-expanded="${open}">
-          <span class="el-lines-number">${line==='4 ALT'?'4<small>ALT</small>':line==='4 ÜST'?'4<small>ÜST</small>':line}</span>
-          <span class="el-lines-route">
-            <span class="el-lines-track"><i></i><b></b><i></i></span>
-            <span class="el-lines-meta"><span>Gidiş</span><span>${info.data?.stopCount?`${info.data.stopCount} durak`:'Dönüş'}</span></span>
-          </span>
-          <span class="el-lines-live">
-            <b class="${info.phase!=='active'?'state-label':''}">${serviceLabel(info)}</b>
-            <small class="${info.active?'active':''}"><i></i>${statusLabel(info)}</small>
-          </span>
-          <span class="el-lines-chevron">${open?'⌃':'›'}</span>
-        </button>
-        <button type="button" class="el-lines-favorite${favorite?' active':''}" data-favorite="${line}" aria-label="${favorite?'Favorilerden çıkar':'Favorilere ekle'}" aria-pressed="${favorite}">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg>
-        </button>
-      </div>
-      ${open?routeStrip(line,info):''}
-    </article>`;
+  function row(line){
+    const info=live(line),open=state.open===line.id,favorite=state.favorites.has(line.id);
+    return'<article class="el-line-item '+(open?'open':'')+'"><div class="el-line-row"><button type="button" class="el-line-summary" data-toggle-line="'+esc(line.id)+'" aria-expanded="'+open+'"><span class="el-line-number">'+badge(line)+'</span><span class="el-line-route"><strong>'+esc(label(line))+'</strong><span class="el-line-track"><i></i><b></b><i></i></span><small><span>Gidiş</span><span>'+line.stops.length+' durak</span></small></span><span class="el-line-live"><b class="'+(info.phase!=='active'?'state':'')+'">'+esc(service(info))+'</b><small class="'+(info.phase==='active'?'active':'')+'"><i></i>'+esc(status(info))+'</small></span><span class="el-line-chevron">'+(open?'⌃':'›')+'</span></button><button type="button" class="el-line-favorite '+(favorite?'active':'')+'" data-favorite="'+esc(line.id)+'" aria-label="'+(favorite?'Favorilerden çıkar':'Favorilere ekle')+'"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg></button></div>'+(open?schedule(line):'')+'</article>';
   }
-
   function render(){
-    const root=document.getElementById('elmaLinesV2');
-    if(!root)return;
-    const lines=visibleLines();
-    root.querySelector('.el-lines-list').innerHTML=lines.length?lines.map(lineRow).join(''):`<div class="el-lines-empty"><b>Hat bulunamadı</b><span>Aramayı veya filtreyi değiştir.</span></div>`;
-    root.querySelectorAll('[data-filter]').forEach(button=>{const active=button.dataset.filter===state.filter;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
+    const root=document.getElementById('elmaLinesV3');if(!root||!state.data)return;
+    const lines=visible();
+    root.querySelector('.el-lines-list').innerHTML=lines.length?lines.map(row).join(''):'<div class="el-lines-empty"><b>Hat bulunamadı</b><span>Aramayı veya filtreyi değiştir.</span></div>';
+    root.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===state.filter));
   }
-
-  function openRoute(line){
-    if(!DATA_LINES.has(line))return;
-    const trigger=document.querySelector('[data-service-target="transport-routes"]');
-    if(trigger)trigger.click();
-  }
-
   function bind(root){
-    root.addEventListener('input',event=>{
-      if(!event.target.matches('#elmaLinesSearch'))return;
-      state.query=event.target.value.trim();
-      render();
-    });
-    root.addEventListener('click',event=>{
-      const filter=event.target.closest('[data-filter]');
-      if(filter){state.filter=filter.dataset.filter;render();return}
-      const favorite=event.target.closest('[data-favorite]');
-      if(favorite){const line=favorite.dataset.favorite;state.favorites.has(line)?state.favorites.delete(line):state.favorites.add(line);saveFavorites();render();return}
-      const toggle=event.target.closest('[data-toggle-line]');
-      if(toggle){state.open=state.open===toggle.dataset.toggleLine?null:toggle.dataset.toggleLine;render();return}
-      const direction=event.target.closest('[data-direction]');
-      if(direction){state.direction=direction.dataset.direction;render();return}
-      const sort=event.target.closest('[data-sort]');
-      if(sort){state.sort=state.sort==='asc'?'desc':'asc';sort.setAttribute('aria-label',state.sort==='asc'?'Hatları tersten sırala':'Hatları normal sırala');render();return}
-      const route=event.target.closest('[data-open-route]');
-      if(route)openRoute(route.dataset.openRoute);
+    root.addEventListener('input',e=>{if(e.target.matches('#elmaLinesSearch')){state.query=e.target.value.trim();render()}});
+    root.addEventListener('click',e=>{
+      const filter=e.target.closest('[data-filter]');if(filter){state.filter=filter.dataset.filter;render();return}
+      const favorite=e.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);saveFavorites();render();return}
+      const toggle=e.target.closest('[data-toggle-line]');if(toggle){state.open=state.open===toggle.dataset.toggleLine?null:toggle.dataset.toggleLine;state.day=todayKey();state.detail='times';render();return}
+      const detail=e.target.closest('[data-detail]');if(detail){state.detail=detail.dataset.detail;render();return}
+      const day=e.target.closest('[data-day]');if(day){state.day=day.dataset.day;render();return}
+      const sort=e.target.closest('[data-sort]');if(sort){state.sort=state.sort==='asc'?'desc':'asc';render();return}
     });
   }
-
-  function addStyles(){
-    if(document.getElementById('elmaLinesV2Style'))return;
-    const style=document.createElement('style');
-    style.id='elmaLinesV2Style';
-    style.textContent=`
-      .eg-panel[data-panel="transport-lines"]{padding-bottom:22px}.eg-panel[data-panel="transport-lines"]>.eg-service-back{margin:0 0 14px;padding:8px 2px;color:#555b64;font-size:13px}.eg-panel[data-panel="transport-lines"]>.eg-transport-lines-head,.eg-panel[data-panel="transport-lines"]>.eg-transport-lines-list{display:none!important}
-      .el-lines{color:#111216;font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif}.el-lines *{box-sizing:border-box}.el-lines button,.el-lines input{font:inherit}.el-lines-toolbar{position:sticky;top:0;z-index:5;margin:0 -2px;padding:0 2px 13px;background:linear-gradient(#fff 82%,rgba(255,255,255,0))}.el-lines-search{height:52px;display:flex;align-items:center;gap:11px;padding:0 15px;border:1px solid #e2e4e8;border-radius:17px;background:#f4f5f6}.el-lines-search svg{width:21px;height:21px;fill:none;stroke:#555b64;stroke-width:2;stroke-linecap:round}.el-lines-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#111216;font-size:15px;font-weight:650}.el-lines-search input::placeholder{color:#8a8f97}.el-lines-filters{display:flex;align-items:center;gap:7px;margin-top:10px}.el-lines-filter{height:38px;padding:0 14px;border:1px solid #e2e4e8;border-radius:13px;background:#fff;color:#656a73;font-size:12px;font-weight:760}.el-lines-filter.active{border-color:#17191d;background:#17191d;color:#fff}.el-lines-sort{width:38px;height:38px;margin-left:auto;display:grid;place-items:center;border:1px solid #e2e4e8;border-radius:13px;background:#fff;color:#34383e}.el-lines-sort svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.el-lines-list{border-top:1px solid #e6e7ea}.el-lines-item{border-bottom:1px solid #e6e7ea}.el-lines-row{position:relative}.el-lines-summary{width:100%;min-height:114px;display:grid;grid-template-columns:56px minmax(0,1fr) 65px 18px;align-items:center;gap:11px;padding:15px 43px 15px 3px;border:0;background:transparent;color:#111216;text-align:left}.el-lines-number{display:flex;flex-direction:column;align-items:flex-start;font-size:38px;font-weight:880;letter-spacing:-2px;line-height:.9}.el-lines-number small{margin-top:5px;padding:3px 5px;border-radius:5px;background:#17191d;color:#fff;font-size:8px;font-weight:850;letter-spacing:.4px;line-height:1}.el-lines-route{min-width:0}.el-lines-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:800;letter-spacing:-.25px}.el-lines-track{height:14px;display:grid;grid-template-columns:8px 1fr 8px;align-items:center;margin-top:9px}.el-lines-track i{width:8px;height:8px;border:2px solid #6f747c;border-radius:50%;background:#fff}.el-lines-track b{height:1px;background:#aeb2b8}.el-lines-meta{display:flex;justify-content:space-between;margin-top:2px;color:#747981;font-size:9px;font-weight:680}.el-lines-live{text-align:left}.el-lines-live>b{display:block;font-size:18px;font-weight:850;letter-spacing:-.6px}.el-lines-live small{display:flex;align-items:center;gap:5px;margin-top:5px;color:#989ca3;font-size:9px;font-weight:720}.el-lines-live small i{width:6px;height:6px;border-radius:50%;background:#b6bac0}.el-lines-live small.active{color:#555a62}.el-lines-live small.active i{background:#17191d;box-shadow:0 0 0 3px #e5e6e8}.el-lines-chevron{color:#777c84;font-size:22px}.el-lines-favorite{position:absolute;top:50%;right:11px;width:32px;height:38px;display:grid;place-items:center;transform:translateY(-50%);border:0;background:transparent;color:#9a9ea5}.el-lines-favorite svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}.el-lines-favorite.active{color:#111216}.el-lines-favorite.active svg{fill:currentColor}.el-lines-item.open{margin:0 -7px;padding:0 7px 8px;border-bottom:0;border-radius:22px;background:#f3f4f5}.el-lines-item.open+.el-lines-item{border-top:1px solid #e6e7ea}.el-lines-detail{margin:0 0 0;padding:14px;border:1px solid #e0e2e5;border-radius:18px;background:#fff;box-shadow:0 11px 30px rgba(22,25,30,.07)}.el-lines-direction{display:grid;grid-template-columns:1fr 1fr minmax(110px,1.2fr);align-items:center;gap:5px}.el-lines-direction>button{height:38px;border:0;border-radius:11px;background:#f0f1f2;color:#666b74;font-size:11px;font-weight:800}.el-lines-direction>button.active{background:#17191d;color:#fff}.el-lines-next{min-width:0;padding-left:8px;text-align:right}.el-lines-next small,.el-lines-next b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.el-lines-next small{color:#8a8f97;font-size:8px;font-weight:700}.el-lines-next b{margin-top:3px;font-size:11px}.el-lines-stops{display:grid;grid-template-columns:10px 1fr 10px 1fr 10px 1fr 10px;align-items:center;margin:24px 3px 0}.el-lines-stops span{width:10px;height:10px;border:2px solid #17191d;border-radius:50%;background:#fff}.el-lines-stops span.start{background:#17191d}.el-lines-stops i{height:2px;background:#17191d}.el-lines-stop-labels{display:flex;justify-content:space-between;margin-top:8px;color:#777c84;font-size:9px}.el-lines-stop-labels b{color:#26292e}.el-lines-detail-foot{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:12px;border-top:1px solid #eceef0}.el-lines-stop-count{color:#4e535b;font-size:10px;font-weight:750}.el-lines-stops-action{border:0;background:transparent;color:#6c7179;font-size:10px;font-weight:740}.el-lines-stops-action span{margin-left:4px;font-size:17px}.el-lines-open{width:100%;height:48px;margin-top:11px;display:flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:14px;background:#17191d;color:#fff;font-size:12px;font-weight:820}.el-lines-open svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.el-lines-open span{margin-left:auto;margin-right:4px;font-size:20px}.el-lines-open:disabled{background:#d9dbde;color:#777c84}.el-lines-empty{min-height:210px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.el-lines-empty b{font-size:15px}.el-lines-empty span{margin-top:6px;color:#888d95;font-size:11px}@media(max-width:359px){.el-lines-summary{grid-template-columns:45px minmax(0,1fr) 57px 14px;gap:8px;padding-right:39px}.el-lines-number{font-size:32px}.el-lines-name{font-size:12px}.el-lines-filter{padding:0 10px}.el-lines-direction{grid-template-columns:1fr 1fr}.el-lines-next{grid-column:1/-1;padding:7px 0 0;text-align:left}}
-      .el-lines-summary{min-height:96px;grid-template-columns:56px minmax(0,1fr) 76px 18px}.el-lines-track{margin-top:0}.el-lines-live>b{white-space:nowrap}.el-lines-live>b.state-label{font-size:12px;letter-spacing:-.2px}.el-lines-live small{white-space:nowrap}@media(max-width:359px){.el-lines-summary{grid-template-columns:45px minmax(0,1fr) 69px 14px}.el-lines-live>b.state-label{font-size:10px}}
-    `;
-    style.textContent+=`.el-lines-toolbar{padding:0 0 12px;background:#fff}.el-lines-search{height:48px;border:0;border-radius:15px;background:#f0f1f3;box-shadow:inset 0 1px 2px rgba(17,19,24,.06)}.el-lines-search input{font-size:16px}.el-lines-filters{gap:2px;padding:3px;border-radius:13px;background:#f0f1f3}.el-lines-filter{flex:1;min-width:0;height:32px;padding:0 7px;border:0;border-radius:10px;background:transparent;font-size:10.5px;white-space:nowrap}.el-lines-filter.active{border:0;background:#17191d;box-shadow:0 1px 3px rgba(17,19,24,.16)}.el-lines-sort{width:32px;height:32px;flex:0 0 32px;margin-left:1px;border:0;border-radius:10px;background:transparent}.el-lines-sort svg{width:17px;height:17px}@media(max-width:359px){.el-lines-filter{padding:0 4px;font-size:9.5px}}`;
+  function styles(){
+    if(document.getElementById('elmaLinesV3Style'))return;
+    const style=document.createElement('style');style.id='elmaLinesV3Style';
+    style.textContent='.eg-panel[data-panel="transport-lines"]{padding-bottom:24px}.eg-panel[data-panel="transport-lines"]>.eg-service-back{margin:0 0 12px;padding:8px 2px;color:#555b64;font-size:13px}.eg-panel[data-panel="transport-lines"]>.eg-transport-lines-head,.eg-panel[data-panel="transport-lines"]>.eg-transport-lines-list{display:none!important}.el-lines{color:#111216;font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif}.el-lines *{box-sizing:border-box}.el-lines button,.el-lines input{font:inherit}.el-lines-toolbar{position:sticky;top:0;z-index:5;padding-bottom:12px;background:#fff}.el-lines-search{height:48px;display:flex;align-items:center;gap:11px;padding:0 15px;border:0;border-radius:15px;background:#f0f1f3;box-shadow:inset 0 1px 2px #1113180f}.el-lines-search svg{width:20px;fill:none;stroke:#555b64;stroke-width:2}.el-lines-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#111216;font-size:16px;font-weight:650}.el-lines-search input::placeholder{color:#8a8f97}.el-lines-filters{display:flex;align-items:center;gap:2px;margin-top:9px;padding:3px;border-radius:13px;background:#f0f1f3}.el-lines-filter{flex:1;min-width:0;height:32px;padding:0 6px;border:0;border-radius:10px;background:transparent;color:#656a73;font-size:10.5px;font-weight:780;white-space:nowrap}.el-lines-filter.active{background:#17191d;color:#fff;box-shadow:0 1px 3px #11131829}.el-lines-sort{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;color:#34383e}.el-lines-sort svg{width:17px;fill:none;stroke:currentColor;stroke-width:1.8}.el-lines-list{border-top:1px solid #e6e7ea}.el-line-item{border-bottom:1px solid #e6e7ea}.el-line-row{position:relative}.el-line-summary{width:100%;min-height:102px;display:grid;grid-template-columns:53px minmax(0,1fr) 73px 15px;align-items:center;gap:10px;padding:14px 42px 14px 3px;border:0;background:transparent;color:#111216;text-align:left}.el-line-number{display:flex;flex-direction:column;align-items:flex-start;font-size:37px;font-weight:880;letter-spacing:-2px;line-height:.9}.el-line-number small{margin-top:5px;padding:3px 5px;border-radius:5px;background:#17191d;color:#fff;font-size:8px;letter-spacing:.4px}.el-line-route{min-width:0}.el-line-route>strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:820}.el-line-track{height:14px;display:grid;grid-template-columns:8px 1fr 8px;align-items:center;margin-top:8px}.el-line-track i{width:8px;height:8px;border:2px solid #6f747c;border-radius:50%;background:#fff}.el-line-track b{height:1px;background:#aeb2b8}.el-line-route>small{display:flex;justify-content:space-between;margin-top:2px;color:#747981;font-size:9px;font-weight:680}.el-line-live{text-align:left}.el-line-live>b{display:block;white-space:nowrap;font-size:17px;font-weight:850;letter-spacing:-.5px}.el-line-live>b.state{font-size:11px;letter-spacing:-.1px}.el-line-live small{display:flex;align-items:center;gap:5px;margin-top:5px;color:#989ca3;font-size:8.5px;font-weight:720;white-space:nowrap}.el-line-live small i{width:6px;height:6px;border-radius:50%;background:#b6bac0}.el-line-live small.active{color:#555a62}.el-line-live small.active i{background:#17191d;box-shadow:0 0 0 3px #e5e6e8}.el-line-chevron{color:#777c84;font-size:21px}.el-line-favorite{position:absolute;top:50%;right:8px;width:32px;height:38px;display:grid;place-items:center;transform:translateY(-50%);border:0;background:transparent;color:#9a9ea5}.el-line-favorite svg{width:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}.el-line-favorite.active{color:#111216}.el-line-favorite.active svg{fill:currentColor}.el-line-item.open{margin:0 -7px;padding:0 7px 9px;border:0;border-radius:22px;background:#f3f4f5}.el-schedule{padding:14px;border:1px solid #e0e2e5;border-radius:18px;background:#fff;box-shadow:0 11px 30px #16191e12}.el-schedule-hero{padding:15px;border-radius:15px;background:#17191d;color:#fff}.el-schedule-hero span,.el-schedule-hero small{display:block;color:#aeb2b8;font-size:8px;font-weight:800;letter-spacing:.7px}.el-schedule-hero strong{display:block;margin:6px 0 5px;font-size:20px;letter-spacing:-.5px}.el-detail-tabs,.el-day-tabs{display:grid;gap:3px;padding:3px;border-radius:12px;background:#eff0f2}.el-detail-tabs{grid-template-columns:1fr 1fr;margin:12px 0}.el-day-tabs{grid-template-columns:repeat(3,1fr);margin:0 0 11px}.el-detail-tabs button,.el-day-tabs button{height:34px;border:0;border-radius:9px;background:transparent;color:#777c84;font-size:9.5px;font-weight:800}.el-detail-tabs button.active,.el-day-tabs button.active{background:#fff;color:#111216;box-shadow:0 2px 8px #14161a17}.el-times{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;max-height:196px;overflow:auto;padding:1px}.el-times>span{position:relative;min-height:39px;display:grid;place-items:center;border:1px solid #e3e5e8;border-radius:10px;color:#34383e;font-size:11px;font-weight:780}.el-times>span.passed{color:#a7abb1;background:#f7f7f8}.el-times>span.next{border-color:#17191d;background:#17191d;color:#fff}.el-times>span small{position:absolute;bottom:2px;font-size:6px;color:#bfc2c7}.el-schedule-empty{grid-column:1/-1;padding:22px;text-align:center;color:#80858d;font-size:11px}.el-stop-list{max-height:260px;overflow:auto;margin:0;padding:0;list-style:none}.el-stop-list li{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid #eceef0}.el-stop-list li>i{width:27px;height:27px;display:grid;place-items:center;flex:0 0 27px;border-radius:9px;background:#17191d;color:#fff;font-size:9px;font-style:normal;font-weight:850}.el-stop-list li>span{min-width:0}.el-stop-list b,.el-stop-list small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.el-stop-list b{font-size:10px}.el-stop-list small{margin-top:3px;color:#858a92;font-size:8px}.el-lines-loading,.el-lines-empty{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.el-lines-loading span,.el-lines-empty span{margin-top:6px;color:#888d95;font-size:11px}@media(max-width:359px){.el-line-summary{grid-template-columns:44px minmax(0,1fr) 65px 13px;gap:7px;padding-right:38px}.el-line-number{font-size:32px}.el-line-route>strong{font-size:11px}.el-lines-filter{font-size:9.5px}.el-times{grid-template-columns:repeat(3,1fr)}}';
     document.head.appendChild(style);
   }
-
   async function mount(){
-    const panel=document.querySelector('.eg-panel[data-panel="transport-lines"]');
-    if(!panel)return false;
-    if(document.getElementById('elmaLinesV2'))return true;
-    await Promise.all([
-      loadScript('line-1-schedule.js?v=20260830'),
-      loadScript('line-2-schedule.js?v=20260830-line2'),
-      loadScript('line-6-schedule.js?v=20260830-line6')
-    ]);
-    addStyles();
-    const root=document.createElement('div');
-    root.id='elmaLinesV2';
-    root.className='el-lines';
-    root.innerHTML=`<div class="el-lines-toolbar">
-      <label class="el-lines-search" for="elmaLinesSearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg><input id="elmaLinesSearch" type="search" inputmode="search" autocomplete="off" placeholder="Hat veya durak ara" aria-label="Hat veya durak ara"></label>
-      <div class="el-lines-filters" aria-label="Hat filtreleri">
-        <button type="button" class="el-lines-filter active" data-filter="all">Tümü</button>
-        <button type="button" class="el-lines-filter" data-filter="active">Aktif hatlar</button>
-        <button type="button" class="el-lines-filter" data-filter="favorites">Favoriler</button>
-        <button type="button" class="el-lines-sort" data-sort aria-label="Hatları tersten sırala"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h10M8 12h7M8 18h4M4 5v14m0 0-2-2m2 2 2-2"/></svg></button>
-      </div>
-    </div><div class="el-lines-list" aria-live="polite"></div>`;
-    panel.appendChild(root);
-    bind(root);
-    render();
-    setInterval(render,60000);
+    const panel=document.querySelector('.eg-panel[data-panel="transport-lines"]');if(!panel)return false;if(document.getElementById('elmaLinesV3'))return true;
+    styles();
+    const root=document.createElement('div');root.id='elmaLinesV3';root.className='el-lines';
+    root.innerHTML='<div class="el-lines-toolbar"><label class="el-lines-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg><input id="elmaLinesSearch" type="search" inputmode="search" autocomplete="off" placeholder="Hat veya durak ara"></label><div class="el-lines-filters"><button type="button" class="el-lines-filter active" data-filter="all">Tümü</button><button type="button" class="el-lines-filter" data-filter="active">Aktif hatlar</button><button type="button" class="el-lines-filter" data-filter="favorites">Favoriler</button><button type="button" class="el-lines-sort" data-sort aria-label="Sıralamayı değiştir"><svg viewBox="0 0 24 24"><path d="M8 6h10M8 12h7M8 18h4M4 5v14m0 0-2-2m2 2 2-2"/></svg></button></div></div><div class="el-lines-list"><div class="el-lines-loading"><b>Hatlar yükleniyor</b><span>Sefer ve durak verileri hazırlanıyor.</span></div></div>';
+    panel.appendChild(root);bind(root);
+    try{const response=await fetch(DATA_URL);if(!response.ok)throw new Error('Hat verisi yüklenemedi');state.data=await response.json();window.elmaTransitData=state.data;window.dispatchEvent(new CustomEvent('elma:transit-data',{detail:state.data}));render();setInterval(render,60000)}
+    catch(error){root.querySelector('.el-lines-list').innerHTML='<div class="el-lines-empty"><b>Hatlar yüklenemedi</b><span>Bağlantını kontrol edip tekrar dene.</span></div>';console.error(error)}
     return true;
   }
-
-  let attempts=0;
-  function boot(){mount().then(done=>{if(!done&&++attempts<80)setTimeout(boot,100)});}
+  let attempts=0;function boot(){mount().then(done=>{if(!done&&++attempts<100)setTimeout(boot,100)})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
