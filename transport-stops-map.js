@@ -2,8 +2,7 @@
   const PANEL='.eg-panel[data-panel="transport-trips"]';
   const DATA_URL='assets/amasya-transit-data.json?v=20260922-map1';
   const TILE_URL='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-  let lines=[],selected='',map,libPromise,previewObserver;
-  const previews=new Map();
+  let lines=[],selected='',map,previewObserver;
   const root=()=>document.getElementById('elmaStopsMap');
   const number=line=>line.id==='4-alt'?'4 ALT':line.id==='4-ust'?'4 ÜST':String(line.number);
   const numberHTML=line=>line.id==='4-alt'?'4<small>ALT</small>':line.id==='4-ust'?'4<small>ÜST</small>':String(line.number);
@@ -11,16 +10,7 @@
   const current=()=>lines.find(line=>line.id===selected);
   const style={version:8,sources:{osm:{type:'raster',tiles:[TILE_URL],tileSize:256,attribution:'© OpenStreetMap contributors'}},layers:[{id:'osm',type:'raster',source:'osm'}]};
   const feature=points=>({type:'FeatureCollection',features:[{type:'Feature',properties:{},geometry:{type:'LineString',coordinates:points.map(p=>[p[1],p[0]])}}]});
-  function library(){
-    if(window.maplibregl)return Promise.resolve(window.maplibregl);
-    if(libPromise)return libPromise;
-    libPromise=new Promise((resolve,reject)=>{
-      if(!document.getElementById('estMapCSS')){const css=document.createElement('link');css.id='estMapCSS';css.rel='stylesheet';css.href='https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.css';document.head.appendChild(css)}
-      const script=document.createElement('script');script.src='https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js';
-      script.onload=()=>window.maplibregl?resolve(window.maplibregl):reject(Error('MapLibre'));
-      script.onerror=()=>reject(Error('MapLibre'));document.head.appendChild(script);
-    }).catch(error=>{libPromise=null;throw error});return libPromise;
-  }
+  const library=()=>window.elmaGetMapLibre();
   function fit(instance,points,padding=22){
     if(!instance||!points.length)return;
     const xs=points.map(p=>p[1]),ys=points.map(p=>p[0]);instance.resize();
@@ -39,15 +29,8 @@
     instance.getSource('stops').setData({type:'FeatureCollection',features:line.stops.map(stop=>({type:'Feature',properties:{name:stop.name,number:stop.number},geometry:{type:'Point',coordinates:[stop.lng,stop.lat]}}))});
     fit(instance,line.route,showStops?38:14);
   }
-  async function preview(element,line){
-    if(!element.isConnected||previews.has(line.id))return;
-    try{
-      const GL=await library();if(!element.isConnected||previews.has(line.id))return;
-      const instance=new GL.Map({container:element,style,center:[35.83,40.65],zoom:11,interactive:false,attributionControl:false,fadeDuration:0});
-      previews.set(line.id,instance);instance.on('load',()=>draw(instance,line,false));
-    }catch(error){console.warn('Durak önizlemesi:',error)}
-  }
-  function clearPreviews(){previewObserver?.disconnect();for(const instance of previews.values())instance.remove();previews.clear()}
+  function preview(element,line){window.elmaRenderMapPreview?.(element,line.route,line.stops)}
+  function clearPreviews(){previewObserver?.disconnect()}
   function renderList(){
     const wrap=root();if(!wrap||!lines.length)return;
     const query=wrap.querySelector('input').value.trim().toLocaleLowerCase('tr-TR');
@@ -100,8 +83,8 @@
     wrap.querySelector('.est-cards').onclick=event=>{const button=event.target.closest('[data-line]');if(button)select(button.dataset.line)};
     wrap.querySelector('.est-back').onclick=()=>{selected='';wrap.querySelector('.est-detail').hidden=true;wrap.querySelector('.est-list').hidden=false;renderList()};
     wrap.querySelector('.est-fit').onclick=()=>current()&&fit(map,current().route,38);
-    new MutationObserver(()=>{if(target.classList.contains('active')&&map&&current())fit(map,current().route,38)}).observe(target,{attributes:true,attributeFilter:['class']});
-    fetch(DATA_URL).then(response=>{if(!response.ok)throw Error(response.status);return response.json()}).then(data=>{lines=data.lines.filter(line=>line.route?.length&&line.stops?.length);renderList()}).catch(()=>{wrap.querySelector('.est-cards').innerHTML='<div class="est-empty">Duraklar yüklenemedi. Tekrar deneyin.</div>'});
+    new MutationObserver(()=>{if(target.classList.contains('active')){library().catch(()=>{});if(map&&current())fit(map,current().route,38)}}).observe(target,{attributes:true,attributeFilter:['class']});
+    window.elmaGetTransitData().then(data=>{lines=data.lines.filter(line=>line.route?.length&&line.stops?.length);renderList()}).catch(()=>{wrap.querySelector('.est-cards').innerHTML='<div class="est-empty">Duraklar yüklenemedi. Tekrar deneyin.</div>'});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
   window.addEventListener('elma-home-widgets-ready',mount);
