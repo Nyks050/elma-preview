@@ -16,7 +16,7 @@ service cloud.firestore {
 
     function hasConsent(uid) {
       return exists(/databases/$(database)/documents/privacyConsents/$(uid))
-        && get(/databases/$(database)/documents/privacyConsents/$(uid)).data.policyVersion == 'pending';
+        && get(/databases/$(database)/documents/privacyConsents/$(uid)).data.policyVersion == '2026-09-24-v1';
     }
 
     function isBlocked() {
