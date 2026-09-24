@@ -6,7 +6,7 @@ service firebase.storage {
       allow create, update: if request.auth != null
         && request.auth.uid == userId
         && !firestore.exists(/databases/(default)/documents/accountDeletionLocks/$(userId))
-        && firestore.get(/databases/(default)/documents/privacyConsents/$(userId)).data.policyVersion == 'pending'
+        && firestore.get(/databases/(default)/documents/privacyConsents/$(userId)).data.policyVersion == '2026-09-24-v1'
         && request.resource.size < 8 * 1024 * 1024
         && request.resource.contentType.matches('image/(jpeg|png|webp)');
       allow delete: if request.auth != null && request.auth.uid == userId;
