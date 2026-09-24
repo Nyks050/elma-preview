@@ -56,9 +56,8 @@
     const wrap=root(),line=current();if(!wrap||!line)return;
     wrap.querySelector('.erm-list').hidden=true;wrap.querySelector('.erm-detail').hidden=false;
     wrap.querySelector('.erm-detail-number').textContent=number(line);
-    wrap.querySelector('.erm-detail-name').textContent='Güzergâh';
+    wrap.querySelector('.erm-detail-name').textContent=title(line);
     wrap.querySelectorAll('[data-direction]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.direction===direction)));
-    wrap.querySelector('.erm-distance').textContent=distance(halves(line)[direction]);
     try{
       const GL=await library();if(selected!==id||!wrap.isConnected)return;
       if(!map){
@@ -70,6 +69,37 @@
   function drawDetail(){
     if(!map||!map.isStyleLoaded()||!current())return;
     const points=halves(current())[direction];trace(map,points);fit(map,points,38);
+  }
+  let locationMarker,locationNoticeTimer;
+  function locationNotice(message){
+    const status=root()?.querySelector('.erm-location-status');if(!status)return;
+    clearTimeout(locationNoticeTimer);
+    status.textContent=message;status.hidden=!message;
+    if(message)locationNoticeTimer=setTimeout(()=>{status.textContent='';status.hidden=true},5000);
+  }
+  function showLocation(){
+    const wrap=root(),button=wrap?.querySelector('.erm-fit'),requestedLine=selected;
+    if(!navigator.geolocation){locationNotice('Bu cihazda konum kullanılamıyor.');return}
+    if(!map){locationNotice('Harita henüz hazır değil.');return}
+    button.disabled=true;
+    navigator.geolocation.getCurrentPosition(async position=>{
+      button.disabled=false;
+      if(!wrap.isConnected||wrap.querySelector('.erm-detail').hidden||selected!==requestedLine||!map)return;
+      try{
+        const GL=await library();
+        const coords=[position.coords.longitude,position.coords.latitude];
+        if(!locationMarker){
+          const element=document.createElement('span');element.className='erm-user-pin';
+          element.setAttribute('aria-label','Konumum');
+          locationMarker=new GL.Marker({element,anchor:'center'}).setLngLat(coords).addTo(map);
+        }else locationMarker.setLngLat(coords);
+        map.flyTo({center:coords,zoom:Math.max(map.getZoom(),15),duration:650});
+        locationNotice('');
+      }catch(error){locationNotice('Konum haritada gösterilemedi.')}
+    },error=>{
+      button.disabled=false;
+      locationNotice(error.code===1?'Konumunu görmek için konum izni ver.':'Konum alınamadı. Tekrar dene.');
+    },{enableHighAccuracy:true,timeout:12000,maximumAge:30000});
   }
   function styles(){
     if(document.getElementById('elmaRouteMapStyle'))return;
@@ -84,22 +114,22 @@
       .erm-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.erm-card{position:relative;min-width:0;overflow:hidden;border:1px solid var(--border);border-radius:17px;background:var(--surface)}.erm-card-open{display:block;width:100%;padding:10px;border:0;background:transparent;color:var(--ink);text-align:left}.erm-card-head{display:grid;grid-template-columns:1fr 1fr;align-items:center;height:55px;border-left:4px solid var(--ink)}.erm-card-number{display:flex;width:100%;height:43px;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--border);color:var(--ink);font-size:29px;font-weight:850;line-height:1}.erm-card-metric{min-width:0;color:var(--ink);font-size:12px;font-weight:800;text-align:center;white-space:nowrap}.erm-card-number small{margin-top:1px;font-size:9px;letter-spacing:.4px}
       .erm-thumb{display:block;height:98px;margin:9px 0 10px;overflow:hidden;border-radius:10px;background:#eef0ec;pointer-events:none}.erm-thumb .maplibregl-canvas{pointer-events:none}.erm-no-results{grid-column:1/-1;padding:35px;color:var(--muted);text-align:center}
       .erm-back{display:block;margin:0 0 15px;padding:4px 0;border:0;background:none;color:var(--muted);font-size:13px!important;font-weight:750!important}.erm-detail-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}.erm-detail-number{display:grid;min-width:43px;height:43px;place-items:center;padding:0 8px;border-radius:11px;background:#171719;color:#fff;font-size:17px;font-weight:850}.erm-detail-name{min-width:0;flex:1;font-size:15px;font-weight:800}.erm-fit{width:38px;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--ink);font-size:23px!important}.erm-map{height:min(62dvh,550px);min-height:310px;overflow:hidden;border:1px solid var(--border);border-radius:15px;background:#e9e9e9}.erm-map .maplibregl-ctrl-attrib{font-size:10px}
-      .erm-detail-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}.erm-dir{display:grid;grid-template-columns:1fr 1fr;gap:3px;min-width:170px;padding:3px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}.erm-dir button{height:35px;border:0;border-radius:7px;background:none;color:var(--muted);font-size:12px!important;font-weight:750!important}.erm-dir button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}.erm-distance{font-size:13px;font-weight:800}
+      .erm-detail-foot{width:100%;margin-top:12px}.erm-dir{display:grid;width:100%;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border:1px solid var(--border);border-radius:13px;background:var(--surface)}.erm-dir button{min-height:56px;border:0;border-radius:10px;background:none;color:var(--muted);font-size:15px!important;font-weight:750!important}.erm-dir button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}.erm-fit{display:grid;place-items:center}.erm-fit svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.erm-fit:disabled{opacity:.5}.erm-user-pin{width:17px;height:17px;border:3px solid #fff;border-radius:50%;background:#171719;box-shadow:0 0 0 2px #171719}.erm-location-status{margin:0 0 10px;color:var(--muted);font-size:12px}
       @media(max-width:370px){.erm{padding-right:10px;padding-left:10px}.erm-cards{gap:7px}.erm-card-open{padding:8px}.erm-card-number{height:37px;font-size:25px}.erm-card-number small{font-size:8px}.erm-card-metric{font-size:10px}.erm-thumb{height:85px}}
     `;document.head.appendChild(css);
   }
   function mount(){
     const target=panel();if(!target||root())return;
     styles();const wrap=document.createElement('div');wrap.id='elmaRouteMap';wrap.className='erm';
-    wrap.innerHTML='<div class="erm-list"><div class="erm-tools"><label class="erm-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" aria-label="Hat ara" placeholder="Hat numarası ara"></label></div><div class="erm-cards"><div class="erm-no-results">Hatlar yükleniyor…</div></div></div><div class="erm-detail" hidden><button class="erm-back" type="button">‹ Güzergâhlar</button><div class="erm-detail-head"><b class="erm-detail-number"></b><strong class="erm-detail-name"></strong><button class="erm-fit" type="button" aria-label="Güzergâhın tamamını göster">⌖</button></div><div class="erm-map" aria-label="OpenStreetMap güzergâh haritası"></div><div class="erm-detail-foot"><div class="erm-dir" role="group" aria-label="Güzergâh yönü"><button type="button" data-direction="outbound" aria-pressed="true">Gidiş</button><button type="button" data-direction="return" aria-pressed="false">Dönüş</button></div><b class="erm-distance"></b></div></div>';
+    wrap.innerHTML='<div class="erm-list"><div class="erm-tools"><label class="erm-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" aria-label="Hat ara" placeholder="Hat numarası ara"></label></div><div class="erm-cards"><div class="erm-no-results">Hatlar yükleniyor…</div></div></div><div class="erm-detail" hidden><button class="erm-back" type="button">‹ Güzergâhlar</button><div class="erm-detail-head"><b class="erm-detail-number"></b><strong class="erm-detail-name"></strong><button class="erm-fit" type="button" aria-label="Konumumu göster" title="Konumumu göster"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4 4 11l7 2 2 7 7-16Z"/><path d="m11 13 9-9"/></svg></button></div><p class="erm-location-status" role="status" aria-live="polite" hidden></p><div class="erm-map" aria-label="OpenStreetMap güzergâh haritası"></div><div class="erm-detail-foot"><div class="erm-dir" role="group" aria-label="Güzergâh yönü"><button type="button" data-direction="outbound" aria-pressed="true">Gidiş</button><button type="button" data-direction="return" aria-pressed="false">Dönüş</button></div></div></div>';
     target.appendChild(wrap);
     wrap.querySelector('input').oninput=event=>{query=event.target.value;renderList()};
     wrap.querySelector('.erm-cards').onclick=event=>{
       const button=event.target.closest('[data-line]');if(button)showDetail(button.dataset.line);
     };
     wrap.querySelector('.erm-back').onclick=()=>{selected='';wrap.querySelector('.erm-detail').hidden=true;wrap.querySelector('.erm-list').hidden=false;renderList()};
-    wrap.querySelector('.erm-fit').onclick=()=>current()&&fit(map,halves(current())[direction],38);
-    wrap.querySelector('.erm-dir').onclick=event=>{const button=event.target.closest('[data-direction]');if(!button||!current())return;direction=button.dataset.direction;wrap.querySelectorAll('[data-direction]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));wrap.querySelector('.erm-distance').textContent=distance(halves(current())[direction]);drawDetail()};
+    wrap.querySelector('.erm-fit').onclick=showLocation;
+    wrap.querySelector('.erm-dir').onclick=event=>{const button=event.target.closest('[data-direction]');if(!button||!current())return;direction=button.dataset.direction;wrap.querySelectorAll('[data-direction]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));drawDetail()};
     new MutationObserver(()=>{if(target.classList.contains('active')){library().catch(()=>{});if(map&&current())fit(map,halves(current())[direction],38)}}).observe(target,{attributes:true,attributeFilter:['class']});
     window.elmaGetTransitData().then(data=>{lines=data.lines.filter(line=>Array.isArray(line.route)&&line.route.length>1);renderList()}).catch(()=>{wrap.querySelector('.erm-cards').innerHTML='<div class="erm-no-results">Hatlar yüklenemedi. Tekrar deneyin.</div>'});
   }
