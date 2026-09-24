@@ -10,6 +10,15 @@ service cloud.firestore {
         && request.auth.token.email == 'admin@elmago.com.tr';
     }
 
+    function accountActive(uid) {
+      return !exists(/databases/$(database)/documents/accountDeletionLocks/$(uid));
+    }
+
+    function hasConsent(uid) {
+      return exists(/databases/$(database)/documents/privacyConsents/$(uid))
+        && get(/databases/$(database)/documents/privacyConsents/$(uid)).data.policyVersion == 'pending';
+    }
+
     function isBlocked() {
       return signedIn()
         && exists(/databases/$(database)/documents/adminUserFlags/$(request.auth.uid))
@@ -18,22 +27,25 @@ service cloud.firestore {
 
     match /lostFoundListings/{listingId} {
       allow read: if true;
-      allow create: if signedIn() && !isBlocked()
+      allow create: if signedIn() && !isBlocked() && accountActive(request.auth.uid) && hasConsent(request.auth.uid)
         && request.resource.data.ownerUid == request.auth.uid;
-      allow update: if isAdmin() || (signedIn() && !isBlocked()
+      allow update: if signedIn() && hasConsent(request.auth.uid) && accountActive(resource.data.ownerUid)
+        && (isAdmin() || (signedIn() && !isBlocked()
         && resource.data.ownerUid == request.auth.uid
-        && request.resource.data.ownerUid == request.auth.uid);
+        && request.resource.data.ownerUid == request.auth.uid));
       allow delete: if isAdmin() || (signedIn()
         && resource.data.ownerUid == request.auth.uid);
     }
 
     match /lostFoundContacts/{requestId} {
       allow create: if signedIn() && !isBlocked()
+        && accountActive(request.auth.uid) && hasConsent(request.auth.uid) && accountActive(request.resource.data.ownerUid)
         && request.resource.data.requesterUid == request.auth.uid;
       allow read: if isAdmin() || (signedIn()
         && (resource.data.ownerUid == request.auth.uid
           || resource.data.requesterUid == request.auth.uid));
-      allow update: if isAdmin() || (signedIn() && !isBlocked()
+      allow update: if signedIn() && hasConsent(request.auth.uid) && accountActive(resource.data.ownerUid) && accountActive(resource.data.requesterUid)
+        && (isAdmin() || (signedIn() && !isBlocked()
         && (resource.data.ownerUid == request.auth.uid
           || ((resource.data.ownerUid == request.auth.uid
               || resource.data.requesterUid == request.auth.uid)
@@ -41,7 +53,7 @@ service cloud.firestore {
               .hasOnly(['typingUid', 'typingAt'])
             && (request.resource.data.typingUid == request.auth.uid
               || request.resource.data.typingUid == null)
-            && request.resource.data.typingAt is timestamp)));
+            && request.resource.data.typingAt is timestamp))));
       allow delete: if isAdmin() || (signedIn()
         && resource.data.ownerUid == request.auth.uid);
 
@@ -55,7 +67,8 @@ service cloud.firestore {
               || contact().requesterUid == request.auth.uid);
         }
         allow read: if isAdmin() || isParticipant();
-        allow create: if !isBlocked() && isParticipant()
+        allow create: if !isBlocked() && isParticipant() && hasConsent(request.auth.uid)
+          && accountActive(contact().ownerUid) && accountActive(contact().requesterUid)
           && contact().status != 'rejected'
           && request.resource.data.senderUid == request.auth.uid
           && request.resource.data.text is string
@@ -67,27 +80,39 @@ service cloud.firestore {
     }
 
     match /lostFoundReports/{reportId} {
-      allow create: if signedIn() && !isBlocked()
-        && request.resource.data.reporterUid == request.auth.uid;
+      allow create: if signedIn() && !isBlocked() && accountActive(request.auth.uid) && hasConsent(request.auth.uid)
+        && request.resource.data.reporterUid == request.auth.uid
+        && exists(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId));
       allow read, update, delete: if isAdmin();
+    }
+
+    match /privacyConsents/{userId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+      allow create, update: if signedIn() && accountActive(userId)
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['policyVersion', 'acceptedAt'])
+        && request.resource.data.policyVersion is string
+        && request.resource.data.acceptedAt == request.time;
+      allow delete: if false;
     }
 
     match /announcements/{announcementId} {
       allow read: if resource.data.published == true || isAdmin();
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if isAdmin() && accountActive(request.auth.uid) && hasConsent(request.auth.uid);
     }
 
     match /adminUserFlags/{userId} {
-      allow read, create, update, delete: if isAdmin();
+      allow read: if isAdmin();
+      allow create, update, delete: if isAdmin() && accountActive(request.auth.uid) && hasConsent(request.auth.uid);
     }
 
     match /adminSettings/{settingId} {
       allow read: if isAdmin() || settingId == 'public';
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if isAdmin() && accountActive(request.auth.uid) && hasConsent(request.auth.uid);
     }
 
     match /adminAudit/{auditId} {
-      allow read, create: if isAdmin();
+      allow read, create: if isAdmin() && accountActive(request.auth.uid) && hasConsent(request.auth.uid);
       allow update, delete: if false;
     }
   }
