@@ -7,7 +7,7 @@
     if(window.elmaTransitData)return Promise.resolve(window.elmaTransitData);
     if(!window.elmaTransitDataPromise)window.elmaTransitDataPromise=fetch(dataURL)
       .then(response=>{if(!response.ok)throw Error('Hat verisi yüklenemedi');return response.json()})
-      .then(data=>(window.elmaTransitData=data))
+      .then(data=>{data.lines=(data.lines||[]).filter(line=>line.id!=='11');return(window.elmaTransitData=data)})
       .catch(error=>{window.elmaTransitDataPromise=null;throw error});
     return window.elmaTransitDataPromise;
   };
