@@ -2,7 +2,7 @@
   if(window.elmaRenderMapPreview)return;
   const NS='http://www.w3.org/2000/svg';
   const tile='https://tile.openstreetmap.org/';
-  const dataURL='assets/amasya-transit-data.json?v=20260922-map1';
+  const dataURL='assets/amasya-transit-data.json?v=20260925-line6-last2235';
   window.elmaGetTransitData=()=>{
     if(window.elmaTransitData)return Promise.resolve(window.elmaTransitData);
     if(!window.elmaTransitDataPromise)window.elmaTransitDataPromise=fetch(dataURL)
