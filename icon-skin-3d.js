@@ -57,10 +57,10 @@ body .elma-main-tab.active:not(.elma-qr-tab) svg{transform:translateY(-1px)}
 /* The raised QR icon is the only surface; its tab never gets an active card. */
 body .elma-main-tab.elma-qr-tab,body .elma-main-tab.elma-qr-tab.active{position:relative;justify-content:flex-end;padding:0 1px 7px;border:0;background:transparent;box-shadow:none;color:#111;overflow:visible}
 body .elma-main-tab.elma-qr-tab::before,body .elma-main-tab.elma-qr-tab::after{content:none;display:none}
-body .elma-main-tab.elma-qr-tab .elma-qr-icon{position:absolute;left:50%;top:-26px;transform:translateX(-50%);width:66px;height:66px;margin:0;border:0;outline:0;border-radius:13px;background:#111;color:#fff;box-shadow:0 6px 14px #0000001f}
-body .elma-main-tab.elma-qr-tab .elma-qr-icon svg{width:39px;height:39px;transform:none}
+body .elma-main-tab.elma-qr-tab .elma-qr-icon{position:absolute;left:50%;top:-10px;transform:translateX(-50%);width:58px;height:58px;margin:0;border:0;outline:0;border-radius:13px;background:#111;color:#fff;box-shadow:0 6px 14px #0000001f}
+body .elma-main-tab.elma-qr-tab .elma-qr-icon svg{width:34px;height:34px;transform:none}
 body .elma-main-tab.elma-qr-tab>span:last-child{margin:0;line-height:1;font-size:10px}
-@media(max-width:350px){body .elma-main-tab.elma-qr-tab .elma-qr-icon{top:-22px;width:60px;height:60px;border-radius:12px}body .elma-main-tab.elma-qr-tab .elma-qr-icon svg{width:35px;height:35px}}
+@media(max-width:350px){body .elma-main-tab.elma-qr-tab .elma-qr-icon{top:-8px;width:54px;height:54px;border-radius:12px}body .elma-main-tab.elma-qr-tab .elma-qr-icon svg{width:31px;height:31px}}
 body .elma-main-tab:active{transform:scale(.96)}
 body .elma-main-tab:focus-visible{outline:2px solid #17191d;outline-offset:2px}
 .elma-tab-curtain{position:fixed;z-index:870;inset:0;width:100%;max-width:520px;margin:0 auto;background:#fff;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .72s cubic-bezier(.22,1,.36,1),visibility 0s .72s}
