@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>Elma Go Yönetim</title>
   <link rel="icon" href="assets/elmago-icon-v2.png">
-  <link rel="stylesheet" href="admin.css?v=20260920-admin1">
+  <link rel="stylesheet" href="admin.css?v=20260926-admin-actions1">
 </head>
 <body>
   <section id="adminLogin" class="login-shell">
@@ -44,7 +44,7 @@
       <header class="topbar">
         <button id="adminMenu" class="menu" type="button" aria-label="Menüyü aç">☰</button>
         <div><span class="eyebrow">YÖNETİM PANELİ</span><h1 id="viewTitle">Genel Bakış</h1></div>
-        <div class="top-actions"><button id="refreshAdmin" type="button">Yenile</button><button id="exportAdmin" class="dark" type="button">Veriyi dışa aktar</button></div>
+        <div class="top-actions"><button class="quick" data-go="listings" type="button">İlanları Yönet</button><button class="quick dark" data-go="announcements" type="button">Duyuru Ekle</button><button id="refreshAdmin" type="button">Yenile</button><button id="exportAdmin" class="dark" type="button">Veriyi dışa aktar</button></div>
       </header>
 
       <section id="view-dashboard" class="view active">
@@ -94,6 +94,6 @@
 
   <div id="adminToast" class="toast" role="status"></div>
   <div id="adminModal" class="modal" hidden><div class="modal-card"><button id="modalClose" class="modal-close" type="button">×</button><div id="modalContent"></div></div></div>
-  <script type="module" src="admin.js?v=20260926-moderation1"></script>
+  <script type="module" src="admin.js?v=20260926-listing-actions1"></script>
 </body>
 </html>

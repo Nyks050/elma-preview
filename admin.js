@@ -14,7 +14,7 @@ const short=value=>{const text=String(value||'—');return text.length>16?text.s
 const isAdmin=user=>user?.emailVerified===true&&ADMIN_EMAILS.includes(String(user.email||'').toLowerCase());
 function toast(message,error=false){const node=$('#adminToast');node.textContent=message;node.className='toast show'+(error?' error':'');clearTimeout(toast.timer);toast.timer=setTimeout(()=>node.className='toast',2600)}
 function showLogin(message=''){state.unsubs.splice(0).forEach(stop=>stop());$('#adminApp').hidden=true;$('#adminLogin').hidden=false;$('#adminLoginStatus').textContent=message}
-function showApp(user){state.user=user;$('#adminLogin').hidden=true;$('#adminApp').hidden=false;$('#adminIdentity').textContent=user.email||user.uid;subscribeAll()}
+function showApp(user){state.user=user;$('#adminLogin').hidden=true;$('#adminApp').hidden=false;$('#adminIdentity').textContent=user.email||user.uid;openView('listings');subscribeAll()}
 async function login(){const button=$('#adminLoginButton');button.disabled=true;try{const result=await signInWithPopup(auth,new GoogleAuthProvider());if(!isAdmin(result.user)){await signOut(auth);showLogin('Bu hesap yönetici olarak yetkilendirilmemiş.')}}catch(error){showLogin(error?.code==='auth/popup-closed-by-user'?'Giriş penceresi kapatıldı.':'Yönetici girişi tamamlanamadı.')}finally{button.disabled=false}}
 onAuthStateChanged(auth,user=>{if(!user)return showLogin();if(!isAdmin(user)){signOut(auth);return showLogin('Bu hesap yönetici değil.')}showApp(user)});
 
