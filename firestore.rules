@@ -7,6 +7,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return signedIn()
+        && request.auth.token.email_verified == true
         && request.auth.token.email == 'admin@elmago.com.tr';
     }
 
@@ -17,31 +18,70 @@ service cloud.firestore {
     }
 
     match /lostFoundListings/{listingId} {
-      allow read: if true;
+      allow read: if isAdmin() || (signedIn() && resource.data.ownerUid == request.auth.uid)
+        || resource.data.status == 'active';
       allow create: if signedIn() && !isBlocked()
-        && request.resource.data.ownerUid == request.auth.uid;
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() > 0
+        && request.resource.data.description.size() <= 800
+        && request.resource.data.keys().hasOnly([
+          'kind', 'title', 'category', 'line', 'city', 'district', 'address',
+          'location', 'coords', 'happenedAt', 'description', 'urgent',
+          'ownerUid', 'ownerName', 'status', 'createdAt', 'updatedAt', 'expiresAt'
+        ]);
       allow update: if isAdmin() || (signedIn() && !isBlocked()
         && resource.data.ownerUid == request.auth.uid
-        && request.resource.data.ownerUid == request.auth.uid);
+        && request.resource.data.ownerUid == request.auth.uid
+        && (request.resource.data.status == resource.data.status
+          || (resource.data.status == 'active' && request.resource.data.status == 'solved'))
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() > 0
+        && request.resource.data.description.size() <= 800
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'kind', 'title', 'category', 'line', 'city', 'district', 'address',
+          'location', 'coords', 'happenedAt', 'description', 'urgent',
+          'ownerName', 'status', 'updatedAt', 'expiresAt'
+        ]));
       allow delete: if isAdmin() || (signedIn()
         && resource.data.ownerUid == request.auth.uid);
     }
 
     match /lostFoundContacts/{requestId} {
       allow create: if signedIn() && !isBlocked()
-        && request.resource.data.requesterUid == request.auth.uid;
+        && request.resource.data.requesterUid == request.auth.uid
+        && request.resource.data.status == 'chat'
+        && request.resource.data.listingId is string
+        && exists(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId))
+        && get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.status == 'active'
+        && request.resource.data.ownerUid == get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.ownerUid
+        && request.resource.data.ownerUid != request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'listingId', 'listingTitle', 'ownerUid', 'requesterUid',
+          'requesterName', 'status', 'typingUid', 'createdAt'
+        ]);
       allow read: if isAdmin() || (signedIn()
         && (resource.data.ownerUid == request.auth.uid
           || resource.data.requesterUid == request.auth.uid));
       allow update: if isAdmin() || (signedIn() && !isBlocked()
         && (resource.data.ownerUid == request.auth.uid
-          || ((resource.data.ownerUid == request.auth.uid
-              || resource.data.requesterUid == request.auth.uid)
-            && request.resource.data.diff(resource.data).affectedKeys()
+          || resource.data.requesterUid == request.auth.uid)
+        && ((request.resource.data.diff(resource.data).affectedKeys()
               .hasOnly(['typingUid', 'typingAt'])
             && (request.resource.data.typingUid == request.auth.uid
               || request.resource.data.typingUid == null)
-            && request.resource.data.typingAt is timestamp)));
+            && request.resource.data.typingAt is timestamp)
+          || (resource.data.ownerUid == request.auth.uid
+            && request.resource.data.status == 'rejected'
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['status', 'typingUid', 'typingAt', 'rejectedAt']))));
       allow delete: if isAdmin() || (signedIn()
         && resource.data.ownerUid == request.auth.uid);
 
@@ -60,7 +100,8 @@ service cloud.firestore {
           && request.resource.data.senderUid == request.auth.uid
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0
-          && request.resource.data.text.size() <= 500;
+          && request.resource.data.text.size() <= 500
+          && request.resource.data.keys().hasOnly(['senderUid', 'text', 'createdAt']);
         allow update: if false;
         allow delete: if isAdmin();
       }
@@ -68,13 +109,27 @@ service cloud.firestore {
 
     match /lostFoundReports/{reportId} {
       allow create: if signedIn() && !isBlocked()
-        && request.resource.data.reporterUid == request.auth.uid;
+        && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.listingId is string
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && request.resource.data.reason.size() <= 500
+        && request.resource.data.keys().hasOnly([
+          'listingId', 'listingTitle', 'reporterUid', 'reason', 'createdAt'
+        ]);
       allow read, update, delete: if isAdmin();
     }
 
     match /announcements/{announcementId} {
       allow read: if resource.data.published == true || isAdmin();
-      allow create, update, delete: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 80
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 500;
+      allow update, delete: if isAdmin();
     }
 
     match /adminUserFlags/{userId} {

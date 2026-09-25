@@ -10,7 +10,7 @@
   const core=document.createElement('script');
   // Use the same URL as the preload so runtime and preload cannot drift apart.
   const preloadedCore=document.querySelector('link[rel="preload"][href^="maps-core-soft-route.js"]');
-  core.src=preloadedCore?.getAttribute('href')||'maps-core-soft-route.js?v=20260925-qr-position2';
+  core.src=preloadedCore?.getAttribute('href')||'maps-core-soft-route.js?v=20260925-security1';
   core.defer=true;
   document.head.appendChild(core);
 })();
