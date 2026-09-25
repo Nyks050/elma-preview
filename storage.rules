@@ -2,7 +2,8 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /lost-found/{userId}/{fileName} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if false;
       allow create, update: if request.auth != null
         && request.auth.uid == userId
         && request.resource.size < 8 * 1024 * 1024
