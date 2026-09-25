@@ -1,6 +1,6 @@
 (()=>{
   const PANEL='.eg-panel[data-panel="transport-routes"]';
-  const DATA_URL='assets/amasya-transit-data.json?v=20260922-map1';
+  const DATA_URL='assets/amasya-transit-data.json?v=20260925-line6-last2235';
   const TILE_URL='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   let lines=[],selected='',direction='outbound',query='',map;
   const panel=()=>document.querySelector(PANEL),root=()=>document.getElementById('elmaRouteMap');
@@ -105,7 +105,7 @@
     if(document.getElementById('elmaRouteMapStyle'))return;
     const css=document.createElement('style');css.id='elmaRouteMapStyle';
     css.textContent=`
-      ${PANEL}{padding:0 0 110px!important}
+      ${PANEL}{padding:0 0 calc(150px + env(safe-area-inset-bottom))!important}
       .erm{--ink:#111215;--muted:#767988;--border:#e2e3e9;--surface:#fff;min-height:70vh;padding:14px 14px 30px;background:#fff;color:var(--ink);font-family:inherit}
       html:not([data-theme="light"]) .erm{--ink:#f5f5f5;--muted:#aaabb3;--border:#36363a;--surface:#1a1a1d;background:#111113}
       .erm *{box-sizing:border-box}.erm button{font:inherit;cursor:pointer}.erm-list[hidden],.erm-detail[hidden]{display:none}
