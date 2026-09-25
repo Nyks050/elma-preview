@@ -197,7 +197,7 @@
     new MutationObserver(()=>{if(panel.classList.contains('active')){map?.resize();draw()}}).observe(panel,{attributes:true,attributeFilter:['class']});
     fetch(DATA_URL).then(response=>{if(!response.ok)throw new Error(response.status);return response.json()}).then(result=>{
       if(!result.lines?.length)throw new Error('Hat bulunamadı');
-      data=result;id=result.lines[0].id;
+      result.lines=(result.lines||[]).filter(item=>item.id!=='11');data=result;id=result.lines[0]?.id||'';
       screen.querySelector('.rx-lines').innerHTML=result.lines.map(item=>`<button class="rx-line" type="button" data-line="${item.id}" aria-pressed="false">${label(item)}</button>`).join('');
       render();
     }).catch(error=>console.warn('Güzergâh verisi:',error));
