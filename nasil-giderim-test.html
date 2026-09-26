@@ -129,7 +129,7 @@ async function search(id){
  const url='https://photon.komoot.io/api/?q='+encodeURIComponent(q+' Amasya')+'&lat=40.65&lon=35.83&limit=8';
  const response=await fetch(url,{signal:ctl.signal});if(!response.ok)throw Error();const data=await response.json();
  const places=(data.features||[]).map(f=>({lat:f.geometry.coordinates[1],lng:f.geometry.coordinates[0],name:f.properties.name||f.properties.street||q,detail:[f.properties.street,f.properties.district,f.properties.city].filter(Boolean).join(', ')})).filter(p=>p.lat>=40.2&&p.lat<=41.1&&p.lng>=35.1&&p.lng<=36.6);
- const seen=new Set(),items=[...places,...local].filter(p=>{const key=p.name+p.lat.toFixed(4);if(seen.has(key))return false;seen.add(key);return true});
+ const seen=new Set(),items=[...local,...places].filter(p=>{const key=p.name+p.lat.toFixed(4);if(seen.has(key))return false;seen.add(key);return true});
  showSuggestions(items,id,token);if(!items.length&&token===searchRun){const n=document.createElement('p');n.textContent='Adres bulunamadı. Mahalle/sokak adı ekle veya haritada seç.';$('suggestions').appendChild(n)}
  }catch{if(token===searchRun&&!local.length){const n=document.createElement('p');n.textContent='Adres önerileri alınamadı. Durak adı yazabilir veya haritaya dokunabilirsin.';$('suggestions').replaceChildren(n)}}finally{clearTimeout(timer)}
 }
