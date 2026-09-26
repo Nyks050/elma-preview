@@ -718,7 +718,7 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
   pharmacy.dataset.elmaPharmacyService='1';
   document.head.appendChild(pharmacy);
   const lostFound=document.createElement('script');
-  lostFound.src='lost-found-service.js?v=20260925-admin-moderation1';
+  lostFound.src='lost-found-service.js?v=20260927-expire24h1';
   lostFound.defer=true;
   lostFound.dataset.elmaLostFoundService='1';
   document.head.appendChild(lostFound);
@@ -733,7 +733,7 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
   helpCenter.dataset.elmaHelpCenter='1';
   document.head.appendChild(helpCenter);
   const accountProfile=document.createElement('script');
-  accountProfile.src='account-profile.js?v=20260830-email-auth';
+  accountProfile.src='account-profile.js?v=20260927-account-delete1';
   accountProfile.type='module';
   accountProfile.fetchPriority='high';
   accountProfile.dataset.elmaAccountProfile='1';
