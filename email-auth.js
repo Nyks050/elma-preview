@@ -1,5 +1,5 @@
 import { getApp, getApps } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
-import { createUserWithEmailAndPassword, getAuth, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+import { createUserWithEmailAndPassword, deleteUser, getAuth, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
 
 const AUTH_API = 'https://elma-go-auth.purple-hill-3b24.workers.dev';
 const style = document.createElement('style');
@@ -18,7 +18,51 @@ function configureRegister(auth){
  let msg=document.getElementById('registerMsg');if(!msg){msg=document.createElement('div');msg.id='registerMsg';msg.className='msg';register.querySelector('.back')?.before(msg);}
  const verify=document.createElement('section');verify.id='emailCodeVerify';verify.className='register';verify.innerHTML=`<div class="box"><div class="brand wordmark"><span class="elma">elma</span><span class="go">go</span></div><h1>E-postanı doğrula</h1><p class="desc" id="emailCodeDesc">E-posta adresine gönderilen 6 haneli kodu gir.</p><div class="field"><input id="emailCodeInput" class="email-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div><button id="emailCodeSubmit" class="primary" type="button">Kodu doğrula</button><div id="emailCodeMsg" class="msg" aria-live="polite"></div><div class="email-auth-actions"><button id="emailCodeBack" class="email-auth-link" type="button">← Geri dön</button><button id="emailCodeResend" class="email-auth-link" type="button">Kodu tekrar gönder</button></div><p class="email-auth-note">Kod 10 dakika geçerlidir.</p></div>`;
  register.after(verify);let pending=null;
- async function sendCode(){const button=document.getElementById('registerBtn');const fullName=name.value.trim().replace(/\s+/g,' ');const mail=email.value.trim().toLowerCase();const pass=password.value;const again=document.getElementById('registerPasswordAgain').value;setMessage('registerMsg','');if(fullName.length<2)return setMessage('registerMsg','Adını ve soyadını gir.');if(!mail)return setMessage('registerMsg','E-posta adresini gir.');if(pass.length<8)return setMessage('registerMsg','Şifre en az 8 karakter olmalı.');if(pass!==again)return setMessage('registerMsg','Şifreler birbiriyle aynı değil.');if(!privacy?.checked)return setMessage('registerMsg','Gizlilik Politikasını okuyup onayla.');button.disabled=true;button.textContent='Kod gönderiliyor…';try{await api('/send-code',{email:mail});pending={fullName,email:mail,password:pass};document.getElementById('emailCodeDesc').textContent=`${mail} adresine gönderilen 6 haneli kodu gir.`;register.classList.remove('show');verify.classList.add('show');setTimeout(()=>document.getElementById('emailCodeInput')?.focus(),50);}catch(e){setMessage('registerMsg',e.message);}finally{button.disabled=!privacy?.checked;button.textContent='Hesap oluştur';}}
+ async function sendCode(){
+  const button=document.getElementById('registerBtn');
+  const fullName=name.value.trim().replace(/\s+/g,' ');
+  const mail=email.value.trim().toLowerCase();
+  const pass=password.value;
+  const again=document.getElementById('registerPasswordAgain').value;
+  setMessage('registerMsg','');
+  if(fullName.length<2)return setMessage('registerMsg','Adını ve soyadını gir.');
+  if(!mail)return setMessage('registerMsg','E-posta adresini gir.');
+  if(pass.length<8)return setMessage('registerMsg','Şifre en az 8 karakter olmalı.');
+  if(pass!==again)return setMessage('registerMsg','Şifreler birbiriyle aynı değil.');
+  if(!privacy?.checked)return setMessage('registerMsg','Gizlilik Politikasını okuyup onayla.');
+  button.disabled=true;
+  button.textContent='Hesap oluşturuluyor…';
+  let credential=null;
+  try{
+    credential=await createUserWithEmailAndPassword(auth,mail,pass);
+    await updateProfile(credential.user,{displayName:fullName});
+    try{
+      await credential.user.getIdToken(true);
+      await sendEmailVerification(credential.user,{
+        url:'https://elmago.com.tr/',
+        handleCodeInApp:false
+      });
+    }catch(emailError){
+      try{await deleteUser(credential.user);}catch(rollbackError){
+        console.error('Yarım hesap temizlenemedi',rollbackError);
+      }
+      const deliveryError=new Error('Doğrulama e-postası gönderilemedi. Lütfen tekrar dene.');
+      deliveryError.code='elma/email-delivery-failed';
+      throw deliveryError;
+    }
+    window.dispatchEvent(new CustomEvent('elma-user-profile-updated',{detail:credential.user}));
+    register.classList.remove('show');
+    document.getElementById('login')?.classList.add('hide');
+    alert('Hesabın oluşturuldu. Doğrulama bağlantısını e-posta adresine gönderdik.');
+  }catch(e){
+    setMessage('registerMsg',e?.code==='elma/email-delivery-failed'
+      ? e.message
+      : messageFor(e,'register'));
+  }finally{
+    button.disabled=!privacy?.checked;
+    button.textContent='Hesap oluştur';
+  }
+ }
  document.getElementById('emailCodeSubmit').onclick=async()=>{if(!pending)return;const button=document.getElementById('emailCodeSubmit');const code=document.getElementById('emailCodeInput').value.replace(/\D/g,'').slice(0,6);setMessage('emailCodeMsg','');if(code.length!==6)return setMessage('emailCodeMsg','6 haneli doğrulama kodunu gir.');button.disabled=true;button.textContent='Doğrulanıyor…';try{await api('/verify-code',{email:pending.email,code});const credential=await createUserWithEmailAndPassword(auth,pending.email,pending.password);await updateProfile(credential.user,{displayName:pending.fullName});window.dispatchEvent(new CustomEvent('elma-user-profile-updated',{detail:credential.user}));verify.classList.remove('show');document.getElementById('login')?.classList.add('hide');pending=null;}catch(e){setMessage('emailCodeMsg',e.code?messageFor(e,'register'):e.message);}finally{button.disabled=false;button.textContent='Kodu doğrula';}};
  document.getElementById('emailCodeInput').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6);});document.getElementById('emailCodeInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('emailCodeSubmit').click();});document.getElementById('emailCodeBack').onclick=()=>{verify.classList.remove('show');register.classList.add('show');};document.getElementById('emailCodeResend').onclick=async()=>{if(!pending)return;setMessage('emailCodeMsg','');try{await api('/send-code',{email:pending.email});setMessage('emailCodeMsg','Yeni kod gönderildi.',true);}catch(e){setMessage('emailCodeMsg',e.message);}};
  window.finishRegister=sendCode;const button=document.getElementById('registerBtn');if(button)button.onclick=sendCode;
