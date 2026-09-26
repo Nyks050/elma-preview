@@ -61,7 +61,11 @@ function arrivals(l,start){
 function fallbackCandidates(from,to){
  const found=[];
  for(const l of lines){let best=null;for(let a=0;a<l.stops.length-1;a++)for(let b=a+1;b<l.stops.length;b++){const access=distance(from,l.stops[a]),exit=distance(l.stops[b],to),score=access/75+ride(l,a,b)+exit/75;if(!best||score<best.score)best={score,legs:[{l,a,b}],access,exit,transfer:0,fallback:true}}if(best)found.push(best)}
- return found.sort((a,b)=>a.score-b.score);
+ if(!found.length)return found;
+ const nearestExit=Math.min(...found.map(r=>r.exit));
+ const nearestAccess=Math.min(...found.map(r=>r.access));
+ const useful=found.filter(r=>r.exit<=nearestExit+600&&r.access<=Math.max(1800,nearestAccess+1200));
+ return (useful.length?useful:found).sort((a,b)=>a.legs.length-b.legs.length||a.exit-b.exit||a.score-b.score);
 }
 function candidates(from,to){
  const first=lines.map(l=>arrivals(l,from)),found=[];
@@ -160,7 +164,7 @@ function resolveAccessPoint(p){
 }
 function choose(p,id=active){p=resolveAccessPoint(p);run++;points[id]=p;$(id).value=p.name;$('suggestions').replaceChildren();searchRun++;searchAbort?.abort();if(id==='from'&&!points.to){active='to';$('to').focus()}if(map)map.setView([p.lat,p.lng],14);calculate()}
 const norm=s=>s.toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
-const knownPlaces=[];
+const knownPlaces=[{lat:40.588551,lng:35.784988,name:'15. Piyade Eğitim Tugayı',detail:'General Hikmet Akıncı Kışlası ana giriş, Kışla Caddesi',aliases:'15. Eğitim Tugayı 15 Piyade Eğitim Tugay Komutanlığı General Hikmet Akıncı Kışlası'}];
 function showSuggestions(items,id,token){
  if(token!==searchRun)return;$('suggestions').replaceChildren();
  for(const p of items.slice(0,8)){const b=document.createElement('button');b.type='button';b.textContent=p.name+(p.detail?' · '+p.detail:' · Amasya');b.onclick=()=>choose(p,id);$('suggestions').appendChild(b)}
