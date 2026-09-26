@@ -47,7 +47,8 @@ function prepare(data){
  }
  stops=[...unique.values()];
 }
-const ride=(l,a,b)=>Math.max(.5,(l.prefix[l.stops[b].ri]-l.prefix[l.stops[a].ri])/300+(b-a)*.3);
+const BUS_METERS_PER_MINUTE=30000/60;
+const ride=(l,a,b)=>Math.max(.5,(l.prefix[l.stops[b].ri]-l.prefix[l.stops[a].ri])/BUS_METERS_PER_MINUTE);
 function arrivals(l,start){
  let best=null;return l.stops.map((s,i)=>{
   if(i&&best)best={...best,cost:best.cost+ride(l,i-1,i)};
@@ -121,8 +122,10 @@ function draw(r){
  r.legs.forEach((g,i)=>{
   const a=g.l.stops[g.a],b=g.l.stops[g.b],path=g.l.route.slice(a.ri,b.ri+1);paths.push(path);
   if(map){layers.push(L.polyline(path,{color:'#111',weight:5}).addTo(map));label(path[Math.floor(path.length/2)]||[a.lat,a.lng],icon('bus')+esc(g.l.label),'route-label');layers.push(L.circleMarker([a.lat,a.lng],{radius:5,color:'#111',weight:2,fillColor:'#fff',fillOpacity:1}).addTo(map))}
-  rows.push(['bus',a.name+' durağından '+g.l.label+' otobüsüne bin',g.l.label+' · '+g.l.direction+' · '+b.name+' yönü\n'+Math.ceil(ride(g.l,g.a,g.b))+' dk · '+(g.b-g.a)+' durak',stamp()]);elapsed+=ride(g.l,g.a,g.b);
-  if(i===0&&r.legs.length>1){addWalk(r.walks[2],b.name+' durağında aktarma yap','transfer');label([b.lat,b.lng],icon('transfer')+'1 aktarma')}
+  const rideMinutes=ride(g.l,g.a,g.b);
+  rows.push(['bus','Gösterilen durakta '+g.l.label+' numaralı hatta bin',Math.ceil(rideMinutes)+' dk · '+(g.b-g.a)+' durak',stamp()]);elapsed+=rideMinutes;
+  rows.push(['bus','Gösterilen durakta in','Otobüs yolculuğu tamamlandı',stamp()]);
+  if(i===0&&r.legs.length>1){addWalk(r.walks[2],'Gösterilen durakta aktarma yap','transfer');label([b.lat,b.lng],icon('transfer')+'1 aktarma')}
  });
  addWalk(r.walks[1],'Varış noktasına yürü');rows.push(['pin','Varış noktasına ulaş',r.to.name,stamp()]);label([r.to.lat,r.to.lng],icon('pin'),'route-pin');
  $('steps').innerHTML=rows.map(x=>'<div class="step '+(x[0]==='walk'?'walk':'')+'"><time>'+x[3]+'</time><span class="node"></span>'+icon(x[0])+'<div><b>'+esc(x[1])+'</b><small>'+esc(x[2]).replace(/\n/g,'<br>')+'</small></div></div>').join('');
