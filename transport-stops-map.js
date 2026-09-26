@@ -81,8 +81,19 @@
     target.appendChild(wrap);
     wrap.querySelector('input').oninput=renderList;
     wrap.querySelector('.est-cards').onclick=event=>{const button=event.target.closest('[data-line]');if(button)select(button.dataset.line)};
-    wrap.querySelector('.est-back').onclick=()=>{selected='';wrap.querySelector('.est-detail').hidden=true;wrap.querySelector('.est-list').hidden=false;renderList()};
-    wrap.querySelector('.est-fit').onclick=()=>current()&&fit(map,current().route,38);
+    wrap.querySelector('.est-back').onclick=()=>{selected='';wrap.querySelector('.est-detail').hidden=true;wrap.querySelector('.est-list').hidden=false;renderList()};    const locationButton=wrap.querySelector('.est-fit');
+    locationButton.setAttribute('aria-label','Konumuma git');
+    locationButton.onclick=()=>{
+      if(!navigator.geolocation){alert('Bu cihaz konum hizmetini desteklemiyor.');return;}
+      locationButton.disabled=true;
+      navigator.geolocation.getCurrentPosition(position=>{
+        locationButton.disabled=false;if(!map)return;
+        map.flyTo({center:[position.coords.longitude,position.coords.latitude],zoom:16,essential:true});
+      },error=>{
+        locationButton.disabled=false;
+        alert(error.code===1?'Konum izni kapalı. iPhone Ayarlar’dan ElmaGo için konum iznini aç.':'Konumun alınamadı. Konum servislerini ve internet bağlantını kontrol et.');
+      },{enableHighAccuracy:true,timeout:12000,maximumAge:30000});
+    };
     new MutationObserver(()=>{if(target.classList.contains('active')){library().catch(()=>{});if(map&&current())fit(map,current().route,38)}}).observe(target,{attributes:true,attributeFilter:['class']});
     window.elmaGetTransitData().then(data=>{lines=data.lines.filter(line=>line.route?.length&&line.stops?.length);renderList()}).catch(()=>{wrap.querySelector('.est-cards').innerHTML='<div class="est-empty">Duraklar yüklenemedi. Tekrar deneyin.</div>'});
   }
