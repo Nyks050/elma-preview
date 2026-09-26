@@ -141,7 +141,7 @@ function draw(r){
 }
 function choose(p,id=active){run++;points[id]=p;$(id).value=p.name;$('suggestions').replaceChildren();searchRun++;searchAbort?.abort();if(id==='from'&&!points.to){active='to';$('to').focus()}if(map)map.setView([p.lat,p.lng],14);calculate()}
 const norm=s=>s.toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
-const knownPlaces=[{lat:40.61779,lng:35.77882,name:'15. Piyade Eğitim Tugayı',detail:'General Hikmet Akıncı Kışlası, Yazıbağları',aliases:'15. Eğitim Tugayı 15 Piyade Eğitim Tugay Komutanlığı General Hikmet Akıncı Kışlası'}];
+const knownPlaces=[{lat:40.588551,lng:35.784988,name:'15. Piyade Eğitim Tugayı',detail:'General Hikmet Akıncı Kışlası ana giriş, Kışla Caddesi',aliases:'15. Eğitim Tugayı 15 Piyade Eğitim Tugay Komutanlığı General Hikmet Akıncı Kışlası'}];
 function showSuggestions(items,id,token){
  if(token!==searchRun)return;$('suggestions').replaceChildren();
  for(const p of items.slice(0,8)){const b=document.createElement('button');b.type='button';b.textContent=p.name+(p.detail?' · '+p.detail:' · Amasya');b.onclick=()=>choose(p,id);$('suggestions').appendChild(b)}
