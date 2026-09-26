@@ -74,7 +74,7 @@ function candidates(from,to){
    })});
   });
  });
- const seen=new Set();return found.sort((a,b)=>a.score-b.score).filter(r=>{const key=r.legs.map(x=>x.l.key+':'+x.a+':'+x.b).join('|');if(seen.has(key))return false;seen.add(key);return true});
+ const seen=new Set();return found.sort((a,b)=>a.legs.length-b.legs.length||a.score-b.score).filter(r=>{const key=r.legs.map(x=>x.l.key+':'+x.a+':'+x.b).join('|');if(seen.has(key))return false;seen.add(key);return true});
 }
 const walkCache=new Map();
 function cachedWalk(a,b){const key=[a.lat,a.lng,b.lat,b.lng].join(',');if(!walkCache.has(key))walkCache.set(key,walking(a,b).catch(e=>{walkCache.delete(key);throw e}));return walkCache.get(key)}
@@ -104,7 +104,7 @@ async function calculate(){
  if(unavailable&&!checked.length)break;
  }
  if(token!==run)return;
- results=checked.sort((a,b)=>a.minutes-b.minutes).slice(0,2);
+ results=checked.sort((a,b)=>a.legs.length-b.legs.length||a.minutes-b.minutes).slice(0,2);
  if(!results.length){empty('');toast('Rota bağlantısı doğrulanamadı. Başlangıç veya varış noktasını yeniden seç.');return}
  $('options').innerHTML=results.map((r,i)=>'<button class="option '+(!i?'selected':'')+'" data-route="'+i+'">'+(!i?'<span class="badge">En hızlı</span>':'')+'<strong>'+r.minutes+' dk</strong><span class="arrow">'+icon('arrow')+'</span><span class="lines">'+esc(r.legs.map(g=>g.l.label).join(' → '))+'</span><span class="meta">'+icon('walk')+Math.ceil(r.walks.reduce((s,w)=>s+w.seconds/60,0))+' dk yürü<span class="divider"></span>'+icon('transfer')+(r.legs.length-1)+' aktarma</span></button>').join('');
  document.querySelectorAll('[data-route]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-route]').forEach(x=>x.classList.toggle('selected',x===b));draw(results[+b.dataset.route])});draw(results[0]);
@@ -136,7 +136,8 @@ function showSuggestions(items,id,token){
 }
 async function search(id){
  const token=++searchRun,q=$(id).value.trim();searchAbort?.abort();
- const local=stops.filter(s=>norm(s.name).includes(norm(q))).slice(0,6);showSuggestions(local,id,token);
+ if(!q){showSuggestions([],id,token);return}
+ const local=stops.filter(s=>!/^Durak\s+\d+$/i.test(s.name)&&norm(s.name).includes(norm(q))).slice(0,6);showSuggestions(local,id,token);
  if(q.length<2)return;
  searchAbort=new AbortController();const ctl=searchAbort,timer=setTimeout(()=>ctl.abort(),8000);
  try{
