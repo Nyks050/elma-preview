@@ -1,5 +1,7 @@
 import { getApp, getApps } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+import { deleteUser, getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+import { collection, deleteDoc, doc, getDocs, getFirestore, query, where } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+import { deleteObject, getStorage, ref } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js';
 
 const style = document.createElement('style');
 style.textContent = `
@@ -11,6 +13,9 @@ style.textContent = `
   .eg-user-copy strong{display:block;color:#0b0b0c;font-size:17px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .eg-user-copy small{display:block;margin-top:4px;color:#6b6e74;font-size:12px}
   .profile img{width:100%;height:100%;display:block;object-fit:cover;border-radius:50%}
+  .eg-delete-account{width:100%;margin-top:16px;padding:15px;border:1px solid #f1b8b8;border-radius:17px;background:#fff5f5;color:#b42323;font:800 14px/1 Inter,-apple-system,sans-serif}
+  .eg-delete-account:disabled{opacity:.5}
+  .eg-delete-account-status{min-height:18px;margin:8px 4px 0;color:#b42323;font-size:12px;text-align:center}
 `;
 document.head.appendChild(style);
 
@@ -72,10 +77,82 @@ function renderWhenReady(user) {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
+function ensureDeleteAccount(auth) {
+  const settings = document.querySelector('.eg-panel[data-panel="account"] .eg-settings');
+  if (!settings || document.getElementById('egDeleteAccount')) return Boolean(settings);
+  const button = document.createElement('button');
+  button.id = 'egDeleteAccount';
+  button.className = 'eg-delete-account';
+  button.type = 'button';
+  button.textContent = 'Hesabımı sil';
+  const status = document.createElement('div');
+  status.id = 'egDeleteAccountStatus';
+  status.className = 'eg-delete-account-status';
+  settings.append(button, status);
+  button.onclick = () => removeCurrentAccount(auth, button, status);
+  return true;
+}
+
+async function deleteSnapshotDocuments(snapshot, db, storage, seen) {
+  for (const record of snapshot.docs) {
+    const key = record.ref.path;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const data = record.data();
+    if (data.photoPath) await deleteObject(ref(storage, data.photoPath)).catch(() => {});
+    if (record.ref.parent.id === 'lostFoundContacts') {
+      const messages = await getDocs(collection(db, 'lostFoundContacts', record.id, 'messages')).catch(() => null);
+      if (messages) for (const message of messages.docs) await deleteDoc(message.ref);
+    }
+    await deleteDoc(record.ref);
+  }
+}
+
+async function removeCurrentAccount(auth, button, status) {
+  const user = auth.currentUser;
+  if (!user) { status.textContent = 'Önce hesabına giriş yap.'; return; }
+  const lastSignIn = Date.parse(user.metadata?.lastSignInTime || '');
+  if (!Number.isFinite(lastSignIn) || Date.now() - lastSignIn > 5 * 60 * 1000) {
+    status.textContent = 'Güvenlik için çıkış yapıp tekrar giriş yaptıktan sonra yeniden dene.';
+    return;
+  }
+  if (prompt('Hesabın ve ilişkili verilerin kalıcı olarak silinecek. Onaylamak için SİL yaz.') !== 'SİL') return;
+  button.disabled = true;
+  button.textContent = 'Hesap siliniyor…';
+  status.textContent = '';
+  try {
+    const db = getFirestore(getApp());
+    const storage = getStorage(getApp());
+    const uid = user.uid;
+    const seen = new Set();
+    const targets = [
+      ['lostFoundListings', 'ownerUid'],
+      ['lostFoundContacts', 'ownerUid'],
+      ['lostFoundContacts', 'requesterUid'],
+      ['lostFoundReports', 'reporterUid']
+    ];
+    for (const [name, field] of targets) {
+      const snapshot = await getDocs(query(collection(db, name), where(field, '==', uid)));
+      await deleteSnapshotDocuments(snapshot, db, storage, seen);
+    }
+    await deleteDoc(doc(db, 'users', uid)).catch(() => {});
+    await deleteUser(user);
+    document.getElementById('login')?.classList.remove('hide');
+    alert('Hesabın ve ilişkili verilerin kalıcı olarak silindi.');
+  } catch (error) {
+    console.error('Hesap silinemedi:', error);
+    status.textContent = error?.code === 'auth/requires-recent-login'
+      ? 'Çıkış yapıp tekrar giriş yaptıktan sonra yeniden dene.'
+      : 'Hesap silinemedi. Lütfen tekrar dene.';
+    button.disabled = false;
+    button.textContent = 'Hesabımı sil';
+  }
+}
+
 function start() {
   if (!getApps().length) return setTimeout(start, 50);
   const auth = getAuth(getApp());
-  onAuthStateChanged(auth, renderWhenReady);
+  onAuthStateChanged(auth, user => { renderWhenReady(user); const observer = new MutationObserver(() => { if (ensureDeleteAccount(auth)) observer.disconnect(); }); if (!ensureDeleteAccount(auth)) observer.observe(document.body, { childList: true, subtree: true }); });
   window.addEventListener('elma-user-profile-updated', event => renderWhenReady(event.detail));
 }
 
