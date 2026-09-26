@@ -132,6 +132,28 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    match /pushDevices/{deviceId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.platform == 'ios'
+        && request.resource.data.city == 'Amasya'
+        && request.resource.data.enabled == true
+        && request.resource.data.token is string
+        && request.resource.data.token.size() > 20
+        && request.resource.data.keys().hasOnly([
+          'ownerUid', 'token', 'platform', 'city', 'latitude', 'longitude',
+          'enabled', 'updatedAt'
+        ]);
+      allow update: if signedIn()
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'token', 'city', 'latitude', 'longitude', 'enabled', 'updatedAt'
+        ]);
+      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+      allow read: if false;
+    }
+
     match /adminUserFlags/{userId} {
       allow read, create, update, delete: if isAdmin();
     }
