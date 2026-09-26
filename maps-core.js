@@ -706,7 +706,7 @@ body.elma-white-flow #elmaHomeWidgets,body.elma-white-flow .hero,body.elma-white
   accountProfile.dataset.elmaAccountProfile='1';
   document.head.appendChild(accountProfile);
   const emailAuth=document.createElement('script');
-  emailAuth.src='email-auth.js?v=20260830-email-auth';
+  emailAuth.src='email-auth.js?v=20260926-firebase-email1';
   emailAuth.type='module';
   emailAuth.dataset.elmaEmailAuth='1';
   document.head.appendChild(emailAuth);
