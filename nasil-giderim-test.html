@@ -21,25 +21,127 @@
 <symbol id="account" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M3 22a9 9 0 0 1 18 0Z"/></symbol></defs></svg>
 <main class="app"><h1>Nasıl giderim?</h1><div class="fields"><div class="inputs"><label class="field"><svg><use href="#origin"/></svg><input id="from" aria-label="Başlangıç konumu" placeholder="Bulunduğun konum" autocomplete="off"><button class="clear" data-clear="from" aria-label="Başlangıcı temizle">×</button></label><label class="field"><svg><use href="#pin"/></svg><input id="to" aria-label="Varış konumu" placeholder="Varış noktası" autocomplete="off"><button class="clear" data-clear="to" aria-label="Varışı temizle">×</button></label></div><button class="swap" id="swapButton" aria-label="Konumları değiştir"><svg><use href="#swap"/></svg></button></div><div class="suggestions" id="suggestions"></div>
 <div class="mapbox"><div id="map" aria-label="Rota haritası"></div><button class="locate" id="locateButton" aria-label="Mevcut konumumu seç"><svg><use href="#locate"/></svg></button></div>
-<div class="options" id="options"></div><section class="journey"><header class="journey-head"><strong id="duration">28 dk</strong><span class="badge" id="badge">En hızlı</span></header><div id="steps"></div></section>
-<button class="start" id="start"><svg><use href="#locate"/></svg>Yolculuğu başlat</button><p class="notice" id="notice">Görsel örneği: Bursa, 12A ve 6B temsili tasarım verileridir. Gerçek Amasya durakları için üstteki alanlardan seçim yap. <button id="demo">Görsel örneğine dön</button></p>
+<div class="options" id="options"></div><section class="journey"><header class="journey-head"><strong id="duration">Rotanı seç</strong><span class="badge" id="badge">Amasya</span></header><div id="steps"></div></section>
+<button class="start" id="start"><svg><use href="#locate"/></svg>Yolculuğu başlat</button><p class="notice" id="notice"></p>
 </main><nav class="nav" aria-label="Alt menü"></nav><div class="toast" role="status" id="toast" hidden></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
-const $=id=>document.getElementById(id),icon=name=>'<svg aria-hidden="true"><use href="#'+name+'"/></svg>',esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let lines=[],points={from:null,to:null},active='from',map,layers=[],results=[],demoMode=true;
-function toast(s){$('toast').textContent=s;$('toast').hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').hidden=true,4500)}
-document.querySelector('.nav').innerHTML=['Ulaşım','Şehir','QR','İlanlar','Hesap'].map((n,i)=>'<button class="'+(!i?'active':'')+'" type="button">'+icon(['bus','city','qr','ads','account'][i])+n+'</button>').join('');
-document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>toast('Bu bağımsız sayfada yalnızca rota tasarımını test ediyoruz.'));
-function cards(items){$('options').innerHTML=items.map((r,i)=>'<button class="option '+(!i?'selected':'')+'" data-route="'+i+'">'+(!i?'<span class="badge">'+(demoMode?'En hızlı':'Tahmini')+'</span>':'')+'<strong>'+r.minutes+' dk</strong><span class="lines">'+esc(r.label)+'</span>'+icon('arrow').replace('<svg','<svg class="arrow"')+'<span class="meta">'+icon('walk')+r.walk+' dk yürü<span class="divider"></span>'+icon('transfer')+(r.transfer?'1 aktarma':'Aktarmasız')+'</span></button>').join('');document.querySelectorAll('[data-route]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-route]').forEach(x=>x.classList.toggle('selected',x===b));if(!demoMode)drawReal(results[+b.dataset.route]);else{$('duration').textContent=items[+b.dataset.route].minutes+' dk'}})}
-function timeline(rows){$('steps').innerHTML=rows.map(r=>'<div class="step '+(r[1]==='walk'?'walk':'')+'"><time>'+esc(r[0])+'</time><span class="node"></span>'+icon(r[1])+'<div><b>'+esc(r[2])+'</b><small>'+esc(r[3])+(r[4]?'<br>'+esc(r[4]):'')+'</small></div></div>').join('')}
-function clearMap(){layers.forEach(x=>x.remove());layers=[]}function line(path,walk=false){if(map)layers.push(L.polyline(path,{color:'#111',weight:walk?4:5,dashArray:walk?'1 7':null,lineCap:'round'}).addTo(map))}function label(p,s,cls='route-label'){if(map)layers.push(L.marker(p,{icon:L.divIcon({className:cls,html:esc(s),iconSize:null})}).addTo(map))}
-function demo(){demoMode=true;cards([{minutes:28,label:'12A → 6B',walk:5,transfer:true},{minutes:34,label:'12A → 6B',walk:5,transfer:true}]);$('duration').textContent='28 dk';$('badge').textContent='En hızlı';timeline([['09:41','walk','Bulunduğun konumdan yürü','5 dk · 350 m'],['09:46','bus','Görükle Meydan durağından 12A otobüsüne bin','12A · Uludağ Üniversitesi yönü','12 dk · 8 durak'],['09:58','transfer','Küçük Sanayi durağında aktarma yap','4 dk bekleme'],['10:02','bus','6B otobüsüne bin','6B · Bursa Merkez yönü','14 dk · 10 durak'],['10:16','pin','Varış noktasına ulaş','Varış']]);if(!map)return;clearMap();const p=[[40.223,28.855],[40.227,28.87],[40.216,28.90],[40.212,28.941],[40.217,28.968],[40.206,28.993],[40.205,29.03],[40.217,29.06]];line(p.slice(0,3),true);line(p.slice(2,6));line(p.slice(5),true);label(p[2],'▣ 12A');label(p[5],'▣ 6B');label([40.238,28.87],'♟ 5 dk yürü','map-hint');label([40.237,28.969],'⇆ 1 aktarma','map-hint');[p[0],p[4],p[7]].forEach(x=>layers.push(L.circleMarker(x,{radius:6,color:'#fff',weight:3,fillColor:'#111',fillOpacity:1}).addTo(map)));map.fitBounds(p,{padding:[25,35]})}
-const dist=(a,b)=>{const rad=Math.PI/180,x=(b.lat-a.lat)*rad,y=(b.lng-a.lng)*rad,h=Math.sin(x/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(y/2)**2;return 12742000*Math.atan2(Math.sqrt(h),Math.sqrt(1-h))};
-function route(){if(!points.from||!points.to)return;results=[];for(const l of lines){const stops=l.stops||[],prefix=[0];for(let i=1;i<stops.length;i++)prefix.push(prefix[i-1]+dist(stops[i-1],stops[i]));let best;for(let a=0;a<stops.length-1;a++){const access=dist(points.from,stops[a]);if(access>700)continue;for(let b=a+1;b<stops.length;b++){const exit=dist(stops[b],points.to);if(exit>700)continue;const minutes=Math.ceil((access+exit)/75+(prefix[b]-prefix[a])/300+(b-a)*.3);if(!best||minutes<best.minutes)best={l,a,b,access,exit,minutes,label:'Hat '+(l.id==='4-alt'?'4 ALT':l.id==='4-ust'?'4 ÜST':l.number),walk:Math.ceil((access+exit)/75),transfer:false}}}if(best)results.push(best)}results.sort((a,b)=>a.minutes-b.minutes);results=results.slice(0,2);demoMode=false;if(!results.length){$('options').innerHTML='';$('steps').innerHTML='<p>Bu iki nokta için kayıtlı veride uygun direkt hat bulunamadı. Aktarmalı rota henüz hesaplanmıyor.</p>';$('duration').textContent='Rota yok';$('badge').textContent='';clearMap();return}cards(results);drawReal(results[0])}
-function drawReal(r){$('duration').textContent=r.minutes+' dk';$('badge').textContent='Tahmini';const a=r.l.stops[r.a],b=r.l.stops[r.b];timeline([['—','walk','Bulunduğun konumdan yürü',Math.ceil(r.access/75)+' dk · yaklaşık '+Math.round(r.access)+' m'],['—','bus',a.name+' durağından '+r.label+' aracına bin',(r.b-r.a)+' durak · Kayıtlı durak sırası'],['—','walk',b.name+' durağında in',Math.ceil(r.exit/75)+' dk · yaklaşık '+Math.round(r.exit)+' m'],['—','pin','Varış noktasına ulaş',points.to.name]]);$('notice').textContent='Amasya kayıtlı hat verisi · Süreler yaklaşık; bekleme süresi dahil değil. Kesikli yürüme bağlantıları kuş uçuşudur. Canlı sefer ve aktarma hesaplaması henüz yok.';clearMap();const path=r.l.route||[],nearest=(p,start=0)=>{let at=start,d=Infinity;for(let i=start;i<path.length;i++){let v=dist(p,{lat:path[i][0],lng:path[i][1]});if(v<d){d=v;at=i}}return at};const i=nearest(a),j=nearest(b,i),segment=path.slice(i,j+1);line(segment);line([[points.from.lat,points.from.lng],[a.lat,a.lng]],true);line([[b.lat,b.lng],[points.to.lat,points.to.lng]],true);label([a.lat,a.lng],r.label);if(map)map.fitBounds([[points.from.lat,points.from.lng],[points.to.lat,points.to.lng],...segment],{padding:[25,25]})}
-function choose(p){points[active]=p;$(active).value=p.name;$('suggestions').replaceChildren();if(active==='from'&&!points.to)active='to';route()}
-for(const id of ['from','to']){$(id).onfocus=()=>{active=id;search()};$(id).oninput=()=>{active=id;points[id]=null;search()}}function search(){let q=$(active).value.toLocaleLowerCase('tr');let seen=new Set();const stops=lines.flatMap(l=>l.stops).filter(s=>{if(seen.has(s.id))return false;seen.add(s.id);return s.name.toLocaleLowerCase('tr').includes(q)}).slice(0,8);$('suggestions').replaceChildren();for(const s of stops){const b=document.createElement('button');b.textContent=s.name+' · Amasya';b.onclick=()=>choose(s);$('suggestions').appendChild(b)}}
-document.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>{const id=b.dataset.clear;points[id]=null;$(id).value='';active=id;$(id).focus()});$('swapButton').onclick=()=>{[points.from,points.to]=[points.to,points.from];[$('from').value,$('to').value]=[$('to').value,$('from').value];route()};$('locateButton').onclick=()=>{if(!navigator.geolocation)return toast('Konum desteklenmiyor. Haritadan seçebilirsin.');navigator.geolocation.getCurrentPosition(p=>{active='from';choose({lat:p.coords.latitude,lng:p.coords.longitude,name:'Mevcut konumum'});map?.setView([p.coords.latitude,p.coords.longitude],14)},()=>toast('Konum alınamadı. İzin ver veya haritadan seç.'))};$('start').onclick=()=>toast(demoMode?'Bu ekran görsel örnektir. Amasya duraklarını seçerek rota dene.':'Rota özeti hazır. Canlı navigasyon bu testte henüz etkin değil.');$('demo').onclick=demo;
-if(window.L){map=L.map('map',{zoomControl:false}).setView([40.215,28.96],12);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);map.on('click',e=>choose({lat:e.latlng.lat,lng:e.latlng.lng,name:active==='from'?'Haritadan seçilen başlangıç':'Haritadan seçilen varış'}))}else toast('Harita yüklenemedi. İnternet bağlantını kontrol et.');demo();
-fetch('assets/amasya-transit-data.json').then(r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{lines=d.lines.filter(l=>l.id!=='11');$('from').addEventListener('focus',()=>{if(demoMode&&map)map.setView([40.65,35.83],13)})}).catch(()=>toast('Amasya hat verileri yüklenemedi; yalnızca görsel örneği gösteriliyor.'));
+
+const $=id=>document.getElementById(id), icon=n=>'<svg aria-hidden="true"><use href="#'+n+'"/></svg>', esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const distance=(a,b)=>{const r=Math.PI/180,h=Math.sin((b.lat-a.lat)*r/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin((b.lng-a.lng)*r/2)**2;return 12742000*Math.atan2(Math.sqrt(h),Math.sqrt(1-h))};
+let lines=[],stops=[],points={from:null,to:null},active='from',map,layers=[],results=[],selected=null,run=0,searchRun=0,searchTimer,searchAbort;
+function toast(s){$('toast').textContent=s;$('toast').hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').hidden=true,5500)}
+function clearMap(){layers.forEach(l=>l.remove());layers=[]}
+function empty(message){selected=null;results=[];$('options').replaceChildren();$('duration').textContent='Rotanı seç';$('badge').textContent='Amasya';$('steps').textContent=message;$('start').disabled=true;clearMap()}
+function reset(){run++;empty('Başlangıç ve varış konumunu seç. Uygun hatlar otomatik hesaplanacak.')}
+function prepare(data){
+ const unique=new Map();
+ for(const l of data.lines.filter(l=>l.id!=='11')){
+  const route=l.route||[],all=l.stops||[];if(route.length<2||all.length<2)continue;
+  let cursor=0;const indexed=all.map(s=>{let best=cursor,d=Infinity;for(let i=cursor;i<route.length;i++){const v=distance(s,{lat:route[i][0],lng:route[i][1]});if(v<d){d=v;best=i}}cursor=best;unique.set(s.id,s);return {...s,ri:best}});
+  const pivot=l.returnStartIndex;
+  const groups=Number.isInteger(pivot)&&pivot>0&&pivot<indexed.length-1?[indexed.slice(0,pivot+1),indexed.slice(pivot)]:[indexed];
+  const prefix=[0];for(let i=1;i<route.length;i++)prefix.push(prefix[i-1]+distance({lat:route[i-1][0],lng:route[i-1][1]},{lat:route[i][0],lng:route[i][1]}));
+  groups.forEach((ss,i)=>lines.push({id:l.id,key:l.id+'-'+i,label:l.id==='4-alt'?'4 ALT':l.id==='4-ust'?'4 ÜST':l.number,direction:i?'Dönüş':'Gidiş',stops:ss,route,prefix}));
+ }
+ stops=[...unique.values()];
+}
+const ride=(l,a,b)=>Math.max(.5,(l.prefix[l.stops[b].ri]-l.prefix[l.stops[a].ri])/300+(b-a)*.3);
+function arrivals(l,start){
+ let best=null;return l.stops.map((s,i)=>{
+  if(i&&best)best={...best,cost:best.cost+ride(l,i-1,i)};
+  const here=best?{...best,end:i}:null,walk=distance(start,s);
+  if(walk<=700&&(!best||walk/75<best.cost))best={cost:walk/75,board:i,access:walk};
+  return here;
+ });
+}
+function candidates(from,to){
+ const first=lines.map(l=>arrivals(l,from)),found=[];
+ lines.forEach((l,li)=>l.stops.forEach((s,b)=>{
+  const a=first[li][b],exit=distance(s,to);if(a&&exit<=700)found.push({score:a.cost+exit/75,legs:[{l,a:a.board,b}],access:a.access,exit,transfer:0});
+ }));
+ lines.forEach((second,si)=>{
+  let best=null;
+  second.stops.forEach((s,b)=>{
+   if(b&&best)best={...best,cost:best.cost+ride(second,b-1,b)};
+   const exit=distance(s,to);
+   if(best&&exit<=700)found.push({score:best.cost+exit/75,legs:[best.leg,{l:second,a:best.board,b}],access:best.access,exit,transfer:best.transfer});
+   lines.forEach((one,oi)=>{if(one.id===second.id)return;one.stops.forEach((t,j)=>{
+    const before=first[oi][j];if(!before)return;const transfer=distance(t,s);if(transfer>200)return;
+    const cost=before.cost+transfer/75+4;
+    if(!best||cost<best.cost)best={cost,board:b,leg:{l:one,a:before.board,b:j},access:before.access,transfer};
+   })});
+  });
+ });
+ const seen=new Set();return found.sort((a,b)=>a.score-b.score).filter(r=>{const key=r.legs.map(x=>x.l.key).join('|');if(seen.has(key))return false;seen.add(key);return true}).slice(0,3);
+}
+async function walking(a,b){
+ if(distance(a,b)<20)return {path:[[a.lat,a.lng],[b.lat,b.lng]],meters:distance(a,b),seconds:distance(a,b)/1.25};
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
+ try{const r=await fetch('https://routing.openstreetmap.de/routed-foot/route/v1/driving/'+a.lng+','+a.lat+';'+b.lng+','+b.lat+'?overview=full&geometries=geojson',{signal:controller.signal});if(!r.ok)throw Error();const d=await r.json(),v=d.routes?.[0];if(!v?.geometry?.coordinates?.length)throw Error();return {path:v.geometry.coordinates.map(p=>[p[1],p[0]]),meters:v.distance,seconds:v.duration}}finally{clearTimeout(timer)}
+}
+async function calculate(){
+ if(!points.from||!points.to)return;
+ if(!lines.length)return toast('Hat verileri henüz hazır değil.');
+ const token=++run,from={...points.from},to={...points.to};empty('Uygun hatlar ve yürüyüş bağlantıları hesaplanıyor…');
+ const choices=candidates(from,to);
+ if(!choices.length){empty('Kayıtlı Amasya hatlarında bu iki noktayı bağlayan direkt veya tek aktarmalı rota bulunamadı. Başka bir nokta seç.');return}
+ const checked=await Promise.all(choices.map(async r=>{try{
+  const first=r.legs[0],last=r.legs.at(-1);
+  const tasks=[walking(from,first.l.stops[first.a]),walking(last.l.stops[last.b],to)];
+  if(r.legs.length===2)tasks.push(walking(first.l.stops[first.b],last.l.stops[last.a]));
+  const walks=await Promise.all(tasks);if(walks[0].meters>1000||walks[1].meters>1000||(walks[2]&&walks[2].meters>350))return null;
+  return {...r,walks,minutes:Math.ceil(walks.reduce((s,w)=>s+w.seconds/60,0)+r.legs.reduce((s,g)=>s+ride(g.l,g.a,g.b),0)),from,to};
+ }catch{return null}}));
+ if(token!==run)return;
+ results=checked.filter(Boolean).sort((a,b)=>a.minutes-b.minutes);
+ if(!results.length){empty('Hat adayları bulundu ancak yürüyüş bağlantıları doğrulanamadı. Bağlantını kontrol edip yeniden hesapla.');toast('Yaya rota servisi yanıt vermemiş veya yürüyüş mesafesi sınırı aşılmış olabilir.');return}
+ $('options').innerHTML=results.map((r,i)=>'<button class="option '+(!i?'selected':'')+'" data-route="'+i+'">'+(!i?'<span class="badge">Önerilen</span>':'')+'<strong>≈ '+r.minutes+' dk</strong><span class="lines">'+esc(r.legs.map(g=>g.l.label).join(' → '))+'</span><span class="meta">'+icon('walk')+Math.ceil(r.walks.reduce((s,w)=>s+w.seconds/60,0))+' dk yürü<span class="divider"></span>'+icon('transfer')+(r.legs.length-1)+' aktarma</span></button>').join('');
+ document.querySelectorAll('[data-route]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-route]').forEach(x=>x.classList.toggle('selected',x===b));draw(results[+b.dataset.route])});draw(results[0]);
+}
+function draw(r){
+ selected=r;clearMap();$('duration').textContent='≈ '+r.minutes+' dk';$('badge').textContent='Tahmini';$('start').disabled=false;
+ const rows=[],paths=[];
+ const addWalk=(w,title)=>{rows.push(['walk',title,Math.ceil(w.seconds/60)+' dk · '+Math.round(w.meters)+' m']);paths.push(w.path);if(map)layers.push(L.polyline(w.path,{color:'#111',weight:4,dashArray:'1 7',lineCap:'round'}).addTo(map))};
+ addWalk(r.walks[0],r.legs[0].l.stops[r.legs[0].a].name+' durağına yürü');
+ r.legs.forEach((g,i)=>{
+  const a=g.l.stops[g.a],b=g.l.stops[g.b],path=g.l.route.slice(a.ri,b.ri+1);paths.push(path);
+  if(map){layers.push(L.polyline(path,{color:'#111',weight:5}).addTo(map));layers.push(L.marker([a.lat,a.lng],{icon:L.divIcon({className:'route-label',html:'Hat '+esc(g.l.label),iconSize:null})}).addTo(map))}
+  rows.push(['bus',a.name+' durağından '+g.l.label+' numaralı hatta bin',g.l.direction+' · '+(g.b-g.a)+' durak · '+b.name+' durağında in']);
+  if(i===0&&r.legs.length>1)addWalk(r.walks[2],r.legs[1].l.stops[r.legs[1].a].name+' durağına aktarma yap');
+ });
+ addWalk(r.walks[1],'Varış noktasına yürü');rows.push(['pin',r.to.name,'Varış']);
+ $('steps').innerHTML=rows.map(x=>'<div class="step '+(x[0]==='walk'?'walk':'')+'"><time>—</time><span class="node"></span>'+icon(x[0])+'<div><b>'+esc(x[1])+'</b><small>'+esc(x[2])+'</small></div></div>').join('');
+ $('notice').textContent='Amasya kayıtlı hatları ve yaya yol ağı kullanılır. Süre tahminidir; otobüs bekleme ve trafik dahil değildir. Canlı sefer saati mevcut değil.';
+ if(map&&paths.flat().length)map.fitBounds(paths.flat(),{padding:[25,25],maxZoom:16});
+}
+function choose(p,id=active){run++;points[id]=p;$(id).value=p.name;$('suggestions').replaceChildren();searchRun++;searchAbort?.abort();if(id==='from'&&!points.to){active='to';$('to').focus()}if(map)map.setView([p.lat,p.lng],14);calculate()}
+const norm=s=>s.toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
+function showSuggestions(items,id,token){
+ if(token!==searchRun)return;$('suggestions').replaceChildren();
+ for(const p of items.slice(0,8)){const b=document.createElement('button');b.type='button';b.textContent=p.name+(p.detail?' · '+p.detail:' · Amasya');b.onclick=()=>choose(p,id);$('suggestions').appendChild(b)}
+}
+async function search(id){
+ const token=++searchRun,q=$(id).value.trim();searchAbort?.abort();
+ const local=stops.filter(s=>norm(s.name).includes(norm(q))).slice(0,6);showSuggestions(local,id,token);
+ if(q.length<2)return;
+ searchAbort=new AbortController();const ctl=searchAbort,timer=setTimeout(()=>ctl.abort(),8000);
+ try{
+ const url='https://photon.komoot.io/api/?q='+encodeURIComponent(q+' Amasya')+'&lat=40.65&lon=35.83&limit=8';
+ const response=await fetch(url,{signal:ctl.signal});if(!response.ok)throw Error();const data=await response.json();
+ const places=(data.features||[]).map(f=>({lat:f.geometry.coordinates[1],lng:f.geometry.coordinates[0],name:f.properties.name||f.properties.street||q,detail:[f.properties.street,f.properties.district,f.properties.city].filter(Boolean).join(', ')})).filter(p=>p.lat>=40.2&&p.lat<=41.1&&p.lng>=35.1&&p.lng<=36.6);
+ const seen=new Set(),items=[...places,...local].filter(p=>{const key=p.name+p.lat.toFixed(4);if(seen.has(key))return false;seen.add(key);return true});
+ showSuggestions(items,id,token);if(!items.length&&token===searchRun){const n=document.createElement('p');n.textContent='Adres bulunamadı. Mahalle/sokak adı ekle veya haritada seç.';$('suggestions').appendChild(n)}
+ }catch{if(token===searchRun&&!local.length){const n=document.createElement('p');n.textContent='Adres önerileri alınamadı. Durak adı yazabilir veya haritaya dokunabilirsin.';$('suggestions').replaceChildren(n)}}finally{clearTimeout(timer)}
+}
+for(const id of ['from','to']){$(id).onfocus=()=>{active=id;search(id)};$(id).oninput=()=>{active=id;points[id]=null;reset();searchRun++;searchAbort?.abort();clearTimeout(searchTimer);searchTimer=setTimeout(()=>search(id),400)}}
+document.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>{const id=b.dataset.clear;points[id]=null;$(id).value='';reset();$(id).focus()});
+$('swapButton').onclick=()=>{[points.from,points.to]=[points.to,points.from];[$('from').value,$('to').value]=[$('to').value,$('from').value];reset();calculate()};
+$('locateButton').onclick=()=>{if(!navigator.geolocation)return toast('Konum desteklenmiyor. Haritadan seç.');toast('Konumun alınıyor…');navigator.geolocation.getCurrentPosition(p=>choose({lat:p.coords.latitude,lng:p.coords.longitude,name:'Mevcut konumum'},'from'),()=>toast('Konum alınamadı. Konum izni ver veya başlangıç noktasını haritadan seç.'),{enableHighAccuracy:true,timeout:12000,maximumAge:30000})};
+$('start').onclick=()=>{if(!selected)return;document.querySelector('.journey').scrollIntoView({behavior:'smooth',block:'start'});toast('Yolculuk adımları aşağıda. Canlı araç takibi ve sesli navigasyon yok.')};
+document.querySelector('.nav').innerHTML=['Ulaşım','Şehir','QR','İlanlar','Hesap'].map((n,i)=>'<button class="'+(!i?'active':'')+'">'+icon(['bus','city','qr','ads','account'][i])+n+'</button>').join('');
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>toast('Bu bağımsız test sayfasında rota planlamayı deniyoruz.'));
+if(window.L){map=L.map('map',{zoomControl:false}).setView([40.65,35.83],13);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);map.on('click',e=>choose({lat:e.latlng.lat,lng:e.latlng.lng,name:active==='from'?'Haritadan başlangıç':'Haritadan varış'}))}else toast('Harita yüklenemedi. Sayfayı yenile.');
+reset();$('notice').textContent='Adres yazıp önerilerden seçebilir veya ilgili kutuya dokunduktan sonra haritadan nokta seçebilirsin.';
+fetch('assets/amasya-transit-data.json').then(r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{prepare(d);calculate()}).catch(()=>{empty('Hat verileri yüklenemedi. Sayfayı yenile.');toast('Hat verileri alınamadı.')});
+
 </script></body></html>
