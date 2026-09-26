@@ -736,7 +736,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
   accountProfile.dataset.elmaAccountProfile='1';
   document.head.appendChild(accountProfile);
   const emailAuth=document.createElement('script');
-  emailAuth.src='email-auth.js?v=20260830-email-auth';
+  emailAuth.src='email-auth.js?v=20260927-unified1';
   emailAuth.type='module';
   emailAuth.dataset.elmaEmailAuth='1';
   document.head.appendChild(emailAuth);
