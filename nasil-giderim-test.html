@@ -38,7 +38,7 @@ function empty(message){selected=null;results=[];$('options').replaceChildren();
 function reset(){run++;empty('')}
 function prepare(data){
  const unique=new Map();
- for(const l of data.lines.filter(l=>l.id!=='11')){
+ for(const l of data.lines){
   const route=l.route||[],all=l.stops||[];if(route.length<2||all.length<2)continue;
   let cursor=0;const indexed=all.map(s=>{let best=cursor,d=Infinity;for(let i=cursor;i<route.length;i++){const v=distance(s,{lat:route[i][0],lng:route[i][1]});if(v<d){d=v;best=i}}cursor=best;unique.set(s.id,s);return {...s,ri:best}});
   const pivot=l.returnStartIndex;
