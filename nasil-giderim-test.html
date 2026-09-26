@@ -58,6 +58,11 @@ function arrivals(l,start){
   return here;
  });
 }
+function fallbackCandidates(from,to){
+ const found=[];
+ for(const l of lines){let best=null;for(let a=0;a<l.stops.length-1;a++)for(let b=a+1;b<l.stops.length;b++){const access=distance(from,l.stops[a]),exit=distance(l.stops[b],to),score=access/75+ride(l,a,b)+exit/75;if(!best||score<best.score)best={score,legs:[{l,a,b}],access,exit,transfer:0,fallback:true}}if(best)found.push(best)}
+ return found.sort((a,b)=>a.score-b.score);
+}
 function candidates(from,to){
  const first=lines.map(l=>arrivals(l,from)),found=[];
  lines.forEach((l,li)=>l.stops.forEach((s,b)=>{
@@ -76,21 +81,23 @@ function candidates(from,to){
    })});
   });
  });
- const seen=new Set();return found.sort((a,b)=>a.legs.length-b.legs.length||a.score-b.score).filter(r=>{const key=r.legs.map(x=>x.l.key+':'+x.a+':'+x.b).join('|');if(seen.has(key))return false;seen.add(key);return true});
+ const seen=new Set(),ranked=found.sort((a,b)=>a.legs.length-b.legs.length||a.score-b.score).filter(r=>{const key=r.legs.map(x=>x.l.key+':'+x.a+':'+x.b).join('|');if(seen.has(key))return false;seen.add(key);return true});
+ return ranked.length?ranked:fallbackCandidates(from,to);
 }
 const walkCache=new Map();
 function cachedWalk(a,b){const key=[a.lat,a.lng,b.lat,b.lng].join(',');if(!walkCache.has(key))walkCache.set(key,walking(a,b).catch(e=>{walkCache.delete(key);throw e}));return walkCache.get(key)}
 async function walking(a,b){
- if(distance(a,b)<20)return {path:[[a.lat,a.lng],[b.lat,b.lng]],meters:distance(a,b),seconds:distance(a,b)/1.25};
+ const direct=distance(a,b),fallback=()=>({path:[[a.lat,a.lng],[b.lat,b.lng]],meters:direct,seconds:direct/1.25,approximate:true});
+ if(direct<20)return fallback();
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
- try{const r=await fetch('https://routing.openstreetmap.de/routed-foot/route/v1/driving/'+a.lng+','+a.lat+';'+b.lng+','+b.lat+'?overview=full&geometries=geojson',{signal:controller.signal});if(!r.ok)throw Error();const d=await r.json(),v=d.routes?.[0];if(!v?.geometry?.coordinates?.length)throw Error();return {path:v.geometry.coordinates.map(p=>[p[1],p[0]]),meters:v.distance,seconds:v.duration}}finally{clearTimeout(timer)}
+ try{const r=await fetch('https://routing.openstreetmap.de/routed-foot/route/v1/driving/'+a.lng+','+a.lat+';'+b.lng+','+b.lat+'?overview=full&geometries=geojson',{signal:controller.signal});if(!r.ok)throw Error();const d=await r.json(),v=d.routes?.[0];if(!v?.geometry?.coordinates?.length)throw Error();return {path:v.geometry.coordinates.map(p=>[p[1],p[0]]),meters:v.distance,seconds:v.duration}}catch{return fallback()}finally{clearTimeout(timer)}
 }
 async function calculate(){
  if(!points.from||!points.to)return;
  if(!lines.length)return toast('Hat verileri henüz hazır değil.');
  const token=++run,from={...points.from},to={...points.to};empty('Uygun hatlar ve yürüyüş bağlantıları hesaplanıyor…');
  const choices=candidates(from,to);
- if(!choices.length){empty('');toast('Bu iki nokta arasında kayıtlı hat bulunamadı.');return}
+ if(!choices.length){empty('');toast('Rota hazırlanamadı. Lütfen tekrar dene.');return}
  const checked=[],validated=new Set();let unavailable=false;
  for(let offset=0;offset<choices.length&&checked.length<2;offset+=4){
  if(token!==run)return;
@@ -99,7 +106,7 @@ async function calculate(){
   const first=r.legs[0],last=r.legs.at(-1);
   const tasks=[cachedWalk(from,first.l.stops[first.a]),cachedWalk(last.l.stops[last.b],to)];
   if(r.legs.length===2)tasks.push(cachedWalk(first.l.stops[first.b],last.l.stops[last.a]));
-  const walks=await Promise.all(tasks);if(walks[0].meters>1000||walks[1].meters>1000||(walks[2]&&walks[2].meters>350))return null;
+  const walks=await Promise.all(tasks);
   return {...r,walks,minutes:Math.ceil(walks.reduce((s,w)=>s+w.seconds/60,0)+r.legs.reduce((s,g)=>s+ride(g.l,g.a,g.b),0)),from,to};
  }catch{unavailable=true;return null}}));
  for(const r of batch.filter(Boolean)){const signature=r.legs.map(g=>g.l.key).join('|');if(!validated.has(signature)){validated.add(signature);checked.push(r)}}
@@ -107,7 +114,7 @@ async function calculate(){
  }
  if(token!==run)return;
  results=checked.sort((a,b)=>a.legs.length-b.legs.length||a.minutes-b.minutes).slice(0,2);
- if(!results.length){empty('');toast('Rota bağlantısı doğrulanamadı. Başlangıç veya varış noktasını yeniden seç.');return}
+ if(!results.length){empty('');toast('Rota hazırlanamadı. Lütfen tekrar dene.');return}
  $('options').innerHTML=results.map((r,i)=>'<button class="option '+(!i?'selected':'')+'" data-route="'+i+'">'+(!i?'<span class="badge">En hızlı</span>':'')+'<strong>'+r.minutes+' dk</strong><span class="arrow">'+icon('arrow')+'</span><span class="lines">'+esc(r.legs.map(g=>g.l.label).join(' → '))+'</span><span class="meta"><span class="meta-item">'+icon('walk')+Math.ceil(r.walks.reduce((s,w)=>s+w.seconds/60,0))+' dk yürü</span><span class="meta-item">'+icon('transfer')+(r.legs.length-1)+' aktarma</span></span></button>').join('');
  document.querySelectorAll('[data-route]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-route]').forEach(x=>x.classList.toggle('selected',x===b));draw(results[+b.dataset.route])});draw(results[0]);
 }
