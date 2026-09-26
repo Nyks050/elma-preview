@@ -24,8 +24,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}body{overflow-x:hidden}
 <symbol id="account" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M3 22a9 9 0 0 1 18 0Z"/></symbol></defs></svg>
 <main class="app"><h1>Nasıl giderim?</h1><div class="fields"><div class="inputs"><label class="field"><svg><use href="#origin"/></svg><input id="from" aria-label="Başlangıç konumu" placeholder="Bulunduğun konum" autocomplete="off"><button class="clear" data-clear="from" aria-label="Başlangıcı temizle">×</button></label><label class="field"><svg><use href="#pin"/></svg><input id="to" aria-label="Varış konumu" placeholder="Varış noktası" autocomplete="off"><button class="clear" data-clear="to" aria-label="Varışı temizle">×</button></label></div><button class="swap" id="swapButton" aria-label="Konumları değiştir"><svg><use href="#swap"/></svg></button></div><div class="suggestions" id="suggestions"></div>
 <div class="mapbox"><div id="map" aria-label="Rota haritası"></div><button class="locate" id="locateButton" aria-label="Mevcut konumumu seç"><svg><use href="#locate"/></svg></button></div>
-<div class="options" id="options"></div><section class="journey"><header class="journey-head"><strong id="duration">Rotanı seç</strong><span class="badge" id="badge">Amasya</span></header><div id="steps"></div></section>
-<p class="notice" id="notice"></p>
+<div class="options" id="options"></div><section class="journey" hidden><header class="journey-head"><strong id="duration"></strong><span class="badge" id="badge"></span></header><div id="steps"></div></section>
 </main><nav class="nav" aria-label="Alt menü"></nav><div class="toast" role="status" id="toast" hidden></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
 
@@ -34,8 +33,8 @@ const distance=(a,b)=>{const r=Math.PI/180,h=Math.sin((b.lat-a.lat)*r/2)**2+Math
 let lines=[],stops=[],points={from:null,to:null},active='from',map,layers=[],results=[],selected=null,run=0,searchRun=0,searchTimer,searchAbort;
 function toast(s){$('toast').textContent=s;$('toast').hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').hidden=true,5500)}
 function clearMap(){layers.forEach(l=>l.remove());layers=[]}
-function empty(message){selected=null;results=[];$('options').replaceChildren();$('duration').textContent='Rotanı seç';$('badge').textContent='Amasya';$('steps').textContent=message;clearMap()}
-function reset(){run++;empty('Başlangıç ve varış konumunu seç. Uygun hatlar otomatik hesaplanacak.')}
+function empty(message){selected=null;results=[];$('options').replaceChildren();$('duration').textContent='';$('badge').textContent='';$('steps').textContent=message||'';document.querySelector('.journey').hidden=true;clearMap()}
+function reset(){run++;empty('')}
 function prepare(data){
  const unique=new Map();
  for(const l of data.lines.filter(l=>l.id!=='11')){
@@ -89,7 +88,7 @@ async function calculate(){
  if(!lines.length)return toast('Hat verileri henüz hazır değil.');
  const token=++run,from={...points.from},to={...points.to};empty('Uygun hatlar ve yürüyüş bağlantıları hesaplanıyor…');
  const choices=candidates(from,to);
- if(!choices.length){empty('Kayıtlı Amasya hatlarında bu iki noktayı bağlayan direkt veya tek aktarmalı rota bulunamadı. Başka bir nokta seç.');return}
+ if(!choices.length){empty('');toast('Bu iki nokta arasında kayıtlı hat bulunamadı.');return}
  const checked=[],validated=new Set();let unavailable=false;
  for(let offset=0;offset<choices.length&&checked.length<2;offset+=4){
  if(token!==run)return;
@@ -106,12 +105,12 @@ async function calculate(){
  }
  if(token!==run)return;
  results=checked.sort((a,b)=>a.minutes-b.minutes).slice(0,2);
- if(!results.length){empty('Hat adayları bulundu ancak yürüyüş bağlantıları doğrulanamadı. Bağlantını kontrol edip yeniden hesapla.');toast('Yaya rota servisi yanıt vermemiş veya yürüyüş mesafesi sınırı aşılmış olabilir.');return}
+ if(!results.length){empty('');toast('Rota bağlantısı doğrulanamadı. Başlangıç veya varış noktasını yeniden seç.');return}
  $('options').innerHTML=results.map((r,i)=>'<button class="option '+(!i?'selected':'')+'" data-route="'+i+'">'+(!i?'<span class="badge">En hızlı</span>':'')+'<strong>'+r.minutes+' dk</strong><span class="arrow">'+icon('arrow')+'</span><span class="lines">'+esc(r.legs.map(g=>g.l.label).join(' → '))+'</span><span class="meta">'+icon('walk')+Math.ceil(r.walks.reduce((s,w)=>s+w.seconds/60,0))+' dk yürü<span class="divider"></span>'+icon('transfer')+(r.legs.length-1)+' aktarma</span></button>').join('');
  document.querySelectorAll('[data-route]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-route]').forEach(x=>x.classList.toggle('selected',x===b));draw(results[+b.dataset.route])});draw(results[0]);
 }
 function draw(r){
- selected=r;clearMap();$('duration').textContent=r.minutes+' dk';$('badge').textContent=r===results[0]?'En hızlı':'Alternatif';
+ selected=r;clearMap();document.querySelector('.journey').hidden=false;$('duration').textContent=r.minutes+' dk';$('badge').textContent=r===results[0]?'En hızlı':'Alternatif';
  const rows=[],paths=[];let elapsed=0;const departure=Date.now();
  const stamp=()=>new Date(departure+elapsed*60000).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Istanbul'});
  const label=(point,html,cls='map-hint')=>{if(map)layers.push(L.marker(point,{interactive:false,icon:L.divIcon({className:cls,html,iconSize:null})}).addTo(map))};
@@ -127,7 +126,6 @@ function draw(r){
  });
  addWalk(r.walks[1],'Varış noktasına yürü');rows.push(['pin','Varış noktasına ulaş',r.to.name,stamp()]);label([r.to.lat,r.to.lng],icon('pin'),'route-pin');
  $('steps').innerHTML=rows.map(x=>'<div class="step '+(x[0]==='walk'?'walk':'')+'"><time>'+x[3]+'</time><span class="node"></span>'+icon(x[0])+'<div><b>'+esc(x[1])+'</b><small>'+esc(x[2]).replace(/\n/g,'<br>')+'</small></div></div>').join('');
- $('notice').textContent='Süre ve saatler tahminidir; otobüs bekleme ve trafik dahil değildir. Canlı sefer saati değildir.';
  if(map&&paths.flat().length)map.fitBounds(paths.flat(),{padding:[25,25],maxZoom:16});
 }
 function choose(p,id=active){run++;points[id]=p;$(id).value=p.name;$('suggestions').replaceChildren();searchRun++;searchAbort?.abort();if(id==='from'&&!points.to){active='to';$('to').focus()}if(map)map.setView([p.lat,p.lng],14);calculate()}
@@ -156,7 +154,7 @@ $('locateButton').onclick=()=>{if(!navigator.geolocation)return toast('Konum des
 document.querySelector('.nav').innerHTML=['Ulaşım','Şehir','QR','İlanlar','Hesap'].map((n,i)=>'<button class="'+(!i?'active':'')+'">'+icon(['bus','city','qr','ads','account'][i])+n+'</button>').join('');
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>toast('Bu bağımsız test sayfasında rota planlamayı deniyoruz.'));
 if(window.L){map=L.map('map',{zoomControl:false}).setView([40.65,35.83],13);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);map.on('click',e=>choose({lat:e.latlng.lat,lng:e.latlng.lng,name:active==='from'?'Haritadan başlangıç':'Haritadan varış'}))}else toast('Harita yüklenemedi. Sayfayı yenile.');
-reset();$('notice').textContent='Adres yazıp önerilerden seçebilir veya ilgili kutuya dokunduktan sonra haritadan nokta seçebilirsin.';
+reset();
 fetch('assets/amasya-transit-data.json').then(r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{prepare(d);calculate()}).catch(()=>{empty('Hat verileri yüklenemedi. Sayfayı yenile.');toast('Hat verileri alınamadı.')});
 
 </script></body></html>
