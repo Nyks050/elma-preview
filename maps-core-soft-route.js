@@ -289,8 +289,11 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
 .elma-flow-arrow{font-size:20px}
 @media(max-width:390px){.elma-flow-result{min-height:51px;grid-template-columns:35px minmax(0,1fr) 13px;gap:8px}.elma-flow-icon{width:33px;height:33px}.elma-flow-icon svg{width:18px;height:18px}.elma-flow-copy b{font-size:14.5px}.elma-flow-copy small{font-size:12px}}
 
-/* Alt menü planlama ekranında da erişilebilir */
+/* Alt menü planlama ekranında da erişilebilir ve diğer ekranlarla birebir aynı kalır */
 .elma-main-nav{z-index:880}
+body.elma-white-flow #elmaMainNav{display:grid!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+body.elma-white-flow #elmaMainNav .elma-main-tab{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaMainNav .elma-main-tab span{visibility:visible!important;opacity:1!important}
 .elma-search-screen{padding-bottom:calc(108px + env(safe-area-inset-bottom))}
 .elma-flow-results{padding-bottom:8px}
 
@@ -385,7 +388,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       pickNote.classList.remove('show');
       home?.classList.remove('hide');
       nav.style.display='grid';
-      setNavActive('lost');
+      setNavActive('transport');
 
     }
     function showMap(){
@@ -394,7 +397,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       document.body.classList.remove('elma-white-flow');
       hideWhiteScreens();
       nav.style.display='grid';
-      setNavActive('lost');
+      setNavActive('transport');
       wrapper.classList.remove('elma-map-open');
       document.getElementById('elmaFlowBootGuard')?.remove();
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
@@ -484,7 +487,7 @@ body:not(.elma-white-flow) #elmaHomeWidgets:not(.home-active){display:block!impo
       home?.classList.add('hide');
       searchScreen.classList.add('show');
       nav.style.display='grid';
-      setNavActive('lost');
+      setNavActive('transport');
       renderDefaults();
       $('#elmaTo').value='';
       $('#elmaTo').focus();
