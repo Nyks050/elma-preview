@@ -1,0 +1,11 @@
+{
+  "name": "elmago-notifications",
+  "private": true,
+  "engines": { "node": "20" },
+  "main": "index.js",
+  "dependencies": {
+    "@parse/node-apn": "^6.0.1",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.4.0"
+  }
+}
