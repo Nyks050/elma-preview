@@ -332,8 +332,8 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
     const searchScreen=document.createElement('section');
     searchScreen.id='elmaSearchScreen';
     searchScreen.className='elma-search-screen';
-    searchScreen.hidden=true;
-    searchScreen.innerHTML='<button id="elmaSearchBack" type="button" hidden></button><input id="elmaFrom" type="hidden"><input id="elmaTo" type="hidden"><div id="elmaFlowResults" hidden></div>';
+    searchScreen.hidden=false;
+    searchScreen.innerHTML=`<div class="elma-search-inner"><header class="elma-search-head"><button id="elmaSearchBack" class="elma-back" type="button" aria-label="Geri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg></button><h1 class="elma-search-title">Nasıl giderim?</h1><span></span></header><div class="elma-search-body"><div class="elma-route-wrap"><div class="elma-route-fields"><label class="elma-route-row elma-row-origin"><span class="elma-route-point elma-route-origin"></span><input id="elmaFrom" type="text" autocomplete="off" placeholder="Bulunduğun konum"></label><label class="elma-route-row elma-row-destination"><span class="elma-route-point elma-route-destination"></span><input id="elmaTo" type="text" autocomplete="off" placeholder="Varış noktası"></label></div></div><div id="elmaFlowResults" class="elma-flow-results" aria-live="polite"></div></div></div>`;
     wrapper.appendChild(searchScreen);
     document.querySelectorAll('.elma-go-icon,.elma-go-logo-crop').forEach(element=>element.remove());
     searchScreen.querySelectorAll('.elma-mode-card').forEach(button=>button.onclick=()=>{
