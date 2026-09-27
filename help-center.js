@@ -32,7 +32,7 @@
     document.getElementById('elmaHomeWidgets')?.classList.remove('home-active');setNavAccount();
   }
 
-  function goAccount(){const main=document.querySelector('.elma-main-tab[data-elma-tab="account"]');if(main)main.click();else document.querySelector('.eg-tab[data-tab="account"]')?.click()}
+  function goAccount(){const tab=document.querySelector('.eg-tab[data-tab="account"]');if(tab){tab.click();return}document.querySelector('.elma-main-tab[data-elma-tab="account"]')?.click()}
 
   function openService(target){
     if(target==='account')return goAccount();
