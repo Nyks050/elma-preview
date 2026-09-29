@@ -1,4 +1,5 @@
 const { onDocumentWritten } = require('firebase-functions/v2/firestore');
+const { HttpsError, onCall } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const apn = require('@parse/node-apn');
@@ -7,6 +8,43 @@ admin.initializeApp();
 const APNS_KEY_ID = defineSecret('APNS_KEY_ID');
 const APNS_TEAM_ID = defineSecret('APNS_TEAM_ID');
 const APNS_PRIVATE_KEY = defineSecret('APNS_PRIVATE_KEY');
+
+async function deleteQueryRecursively(db, query) {
+  const snapshot = await query.get();
+  for (const document of snapshot.docs) {
+    await db.recursiveDelete(document.ref);
+  }
+}
+
+exports.deleteMyAccount = onCall({ region: 'europe-west1' }, async request => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Oturum gerekli.');
+  const authTime = Number(request.auth.token.auth_time || 0) * 1000;
+  if (!authTime || Date.now() - authTime > 5 * 60 * 1000) {
+    throw new HttpsError('failed-precondition', 'RECENT_LOGIN_REQUIRED');
+  }
+  if (request.data?.confirmation !== 'DELETE') {
+    throw new HttpsError('invalid-argument', 'Silme onayı eksik.');
+  }
+
+  const uid = request.auth.uid;
+  const db = admin.firestore();
+  const targets = [
+    ['lostFoundListings', 'ownerUid'],
+    ['lostFoundContacts', 'ownerUid'],
+    ['lostFoundContacts', 'requesterUid'],
+    ['lostFoundReports', 'reporterUid'],
+    ['pushDevices', 'ownerUid']
+  ];
+
+  for (const [collectionName, field] of targets) {
+    await deleteQueryRecursively(db, db.collection(collectionName).where(field, '==', uid));
+  }
+  await db.recursiveDelete(db.collection('users').doc(uid));
+  await db.recursiveDelete(db.collection('adminUserFlags').doc(uid));
+  await admin.storage().bucket().deleteFiles({ prefix: `lost-found/${uid}/` });
+  await admin.auth().deleteUser(uid);
+  return { deleted: true };
+});
 
 exports.notifyAmasyaLostListing = onDocumentWritten({
   document: 'lostFoundListings/{listingId}',
