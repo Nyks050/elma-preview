@@ -1,6 +1,7 @@
 (() => {
   const AMASYA_BOUNDS = { minLat: 39.85, maxLat: 41.05, minLng: 34.85, maxLng: 36.65 };
   if (!/ElmaGo-iOS\//.test(navigator.userAgent)) return;
+  try { localStorage.removeItem('elma_ios_push_device_v1'); } catch {}
   function inAmasya({ latitude, longitude }) {
     return latitude >= AMASYA_BOUNDS.minLat && latitude <= AMASYA_BOUNDS.maxLat && longitude >= AMASYA_BOUNDS.minLng && longitude <= AMASYA_BOUNDS.maxLng;
   }
@@ -28,7 +29,6 @@
     if (!position) return;
     const detail = { token, platform: 'ios', city: 'Amasya', ...position };
     window.dispatchEvent(new CustomEvent('elma-ios-push-ready', { detail }));
-    try { localStorage.setItem('elma_ios_push_device_v1', JSON.stringify({ ...detail, updatedAt: Date.now() })); } catch {}
   }
   window.addEventListener('elmaNativePushToken', saveDevice);
   if (window.__elmaPushToken) saveDevice({ detail: { token: window.__elmaPushToken } });

@@ -43,4 +43,13 @@ window.elmaDisableIOSPush = async () => {
   const token = pendingDevice?.token;
   if (!token || !currentUser) return;
   await deleteDoc(doc(db, 'pushDevices', await tokenID(token)));
+  pendingDevice = null;
 };
+
+const originalSignOut = window.elmaSignOut;
+if (typeof originalSignOut === 'function') {
+  window.elmaSignOut = async (...args) => {
+    try { await window.elmaDisableIOSPush(); } catch {}
+    return originalSignOut(...args);
+  };
+}

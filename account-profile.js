@@ -1,7 +1,6 @@
 import { getApp, getApps } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
-import { deleteUser, getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
-import { collection, deleteDoc, doc, getDocs, getFirestore, query, where } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
-import { deleteObject, getStorage, ref } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
 
 const style = document.createElement('style');
 style.textContent = `
@@ -93,21 +92,6 @@ function ensureDeleteAccount(auth) {
   return true;
 }
 
-async function deleteSnapshotDocuments(snapshot, db, storage, seen) {
-  for (const record of snapshot.docs) {
-    const key = record.ref.path;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    const data = record.data();
-    if (data.photoPath) await deleteObject(ref(storage, data.photoPath)).catch(() => {});
-    if (record.ref.parent.id === 'lostFoundContacts') {
-      const messages = await getDocs(collection(db, 'lostFoundContacts', record.id, 'messages')).catch(() => null);
-      if (messages) for (const message of messages.docs) await deleteDoc(message.ref);
-    }
-    await deleteDoc(record.ref);
-  }
-}
-
 async function removeCurrentAccount(auth, button, status) {
   const user = auth.currentUser;
   if (!user) { status.textContent = 'Önce hesabına giriş yap.'; return; }
@@ -121,27 +105,16 @@ async function removeCurrentAccount(auth, button, status) {
   button.textContent = 'Hesap siliniyor…';
   status.textContent = '';
   try {
-    const db = getFirestore(getApp());
-    const storage = getStorage(getApp());
-    const uid = user.uid;
-    const seen = new Set();
-    const targets = [
-      ['lostFoundListings', 'ownerUid'],
-      ['lostFoundContacts', 'ownerUid'],
-      ['lostFoundContacts', 'requesterUid'],
-      ['lostFoundReports', 'reporterUid']
-    ];
-    for (const [name, field] of targets) {
-      const snapshot = await getDocs(query(collection(db, name), where(field, '==', uid)));
-      await deleteSnapshotDocuments(snapshot, db, storage, seen);
-    }
-    await deleteDoc(doc(db, 'users', uid)).catch(() => {});
-    await deleteUser(user);
-    document.getElementById('login')?.classList.remove('hide');
+    const functions = getFunctions(getApp(), 'europe-west1');
+    await httpsCallable(functions, 'deleteMyAccount')({ confirmation: 'DELETE' });
+    await signOut(auth).catch(() => {});
+    try { localStorage.removeItem('elma_ios_push_device_v1'); } catch {}
     alert('Hesabın ve ilişkili verilerin kalıcı olarak silindi.');
+    location.replace('/');
   } catch (error) {
-    console.error('Hesap silinemedi:', error);
-    status.textContent = error?.code === 'auth/requires-recent-login'
+    const requiresLogin = error?.code === 'functions/failed-precondition' ||
+      error?.code === 'auth/requires-recent-login';
+    status.textContent = requiresLogin
       ? 'Çıkış yapıp tekrar giriş yaptıktan sonra yeniden dene.'
       : 'Hesap silinemedi. Lütfen tekrar dene.';
     button.disabled = false;
