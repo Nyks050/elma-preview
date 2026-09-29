@@ -181,12 +181,15 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
+      allow read, delete: if signedIn() && userId == request.auth.uid;
+      allow create, update: if false;
+    }
+
+    match /e2eeKeys/{userId} {
       allow read: if signedIn();
-      allow delete: if signedIn() && userId == request.auth.uid;
-      allow create: if signedIn() && userId == request.auth.uid
+      allow create, update: if signedIn() && userId == request.auth.uid
         && request.resource.data.keys().hasOnly(['e2eePublicKey', 'e2eeVersion']);
-      allow update: if signedIn() && userId == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['e2eePublicKey', 'e2eeVersion']);
+      allow delete: if signedIn() && userId == request.auth.uid;
     }
 
     match /adminUserFlags/{userId} {
