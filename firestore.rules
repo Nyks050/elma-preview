@@ -29,6 +29,9 @@ service cloud.firestore {
         && request.resource.data.description is string
         && request.resource.data.description.size() > 0
         && request.resource.data.description.size() <= 800
+        && request.resource.data.city == 'Amasya'
+        && request.resource.data.createdAt == request.time
+        && getAfter(/databases/$(database)/documents/listingRateLimits/$(request.auth.uid)).data.lastCreatedAt == request.time
         && request.resource.data.keys().hasOnly([
           'kind', 'title', 'category', 'line', 'city', 'district', 'address',
           'location', 'coords', 'happenedAt', 'description', 'urgent',
@@ -51,7 +54,20 @@ service cloud.firestore {
           'ownerName', 'status', 'updatedAt', 'expiresAt'
         ]));
       allow delete: if isAdmin() || (signedIn()
-        && resource.data.ownerUid == request.auth.uid);
+        && (resource.data.ownerUid == request.auth.uid
+          || resource.data.requesterUid == request.auth.uid));
+    }
+
+    match /listingRateLimits/{userId} {
+      allow read: if signedIn() && userId == request.auth.uid;
+      allow create: if signedIn() && userId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['lastCreatedAt'])
+        && request.resource.data.lastCreatedAt == request.time;
+      allow update: if signedIn() && userId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['lastCreatedAt'])
+        && request.resource.data.lastCreatedAt == request.time
+        && resource.data.lastCreatedAt <= request.time - duration.value(24, 'h');
+      allow delete: if false;
     }
 
     match /lostFoundContacts/{requestId} {
@@ -94,16 +110,24 @@ service cloud.firestore {
             && (contact().ownerUid == request.auth.uid
               || contact().requesterUid == request.auth.uid);
         }
-        allow read: if isAdmin() || isParticipant();
+        allow read: if isParticipant();
         allow create: if !isBlocked() && isParticipant()
           && contact().status != 'rejected'
           && request.resource.data.senderUid == request.auth.uid
-          && request.resource.data.text is string
-          && request.resource.data.text.size() > 0
-          && request.resource.data.text.size() <= 500
-          && request.resource.data.keys().hasOnly(['senderUid', 'text', 'createdAt']);
-        allow update: if false;
-        allow delete: if isAdmin();
+          && request.resource.data.ciphertext is string
+          && request.resource.data.ciphertext.size() > 0
+          && request.resource.data.ciphertext.size() <= 4096
+          && request.resource.data.iv is string
+          && request.resource.data.encryption == 'e2ee-v1'
+          && request.resource.data.deliveredAt == null
+          && request.resource.data.readAt == null
+          && request.resource.data.keys().hasOnly(['senderUid', 'ciphertext', 'iv', 'encryption', 'createdAt', 'deliveredAt', 'readAt']);
+        allow update: if isParticipant()
+          && resource.data.senderUid != request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deliveredAt', 'readAt'])
+          && (request.resource.data.deliveredAt == resource.data.deliveredAt || request.resource.data.deliveredAt == request.time)
+          && (request.resource.data.readAt == resource.data.readAt || request.resource.data.readAt == request.time);
+        allow delete: if isParticipant();
       }
     }
 
@@ -117,7 +141,9 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           'listingId', 'listingTitle', 'reporterUid', 'reason', 'createdAt'
         ]);
-      allow read, update, delete: if isAdmin();
+      allow read, delete: if isAdmin() || (signedIn()
+        && resource.data.reporterUid == request.auth.uid);
+      allow update: if isAdmin();
     }
 
     match /announcements/{announcementId} {
@@ -151,7 +177,16 @@ service cloud.firestore {
           'token', 'city', 'latitude', 'longitude', 'enabled', 'updatedAt'
         ]);
       allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
-      allow read: if false;
+      allow read: if signedIn() && resource.data.ownerUid == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn();
+      allow delete: if signedIn() && userId == request.auth.uid;
+      allow create: if signedIn() && userId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['e2eePublicKey', 'e2eeVersion']);
+      allow update: if signedIn() && userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['e2eePublicKey', 'e2eeVersion']);
     }
 
     match /adminUserFlags/{userId} {

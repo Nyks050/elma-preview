@@ -1,6 +1,7 @@
 import { getApp, getApps } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
-import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
-import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
+import { deleteUser, getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+import { collection, deleteDoc, doc, getDocs, getFirestore, query, where } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+import { deleteObject, getStorage, ref } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js';
 
 const style = document.createElement('style');
 style.textContent = `
@@ -92,7 +93,7 @@ function ensureDeleteAccount(auth) {
   return true;
 }
 
-async function removeCurrentAccount(auth, button, status) {
+async function removeCurrentAccount(auth, button, status, confirmed = false) {
   const user = auth.currentUser;
   if (!user) { status.textContent = 'Önce hesabına giriş yap.'; return; }
   const lastSignIn = Date.parse(user.metadata?.lastSignInTime || '');
@@ -100,20 +101,50 @@ async function removeCurrentAccount(auth, button, status) {
     status.textContent = 'Güvenlik için çıkış yapıp tekrar giriş yaptıktan sonra yeniden dene.';
     return;
   }
-  if (prompt('Hesabın ve ilişkili verilerin kalıcı olarak silinecek. Onaylamak için SİL yaz.') !== 'SİL') return;
+  if (!confirmed && prompt('Hesabın ve ilişkili verilerin kalıcı olarak silinecek. Onaylamak için SİL yaz.') !== 'SİL') return;
   button.disabled = true;
   button.textContent = 'Hesap siliniyor…';
   status.textContent = '';
   try {
-    const functions = getFunctions(getApp(), 'europe-west1');
-    await httpsCallable(functions, 'deleteMyAccount')({ confirmation: 'DELETE' });
-    await signOut(auth).catch(() => {});
+    const app = getApp();
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const uid = user.uid;
+    const deletedContacts = new Set();
+
+    async function deleteContactSnapshot(snapshot) {
+      for (const record of snapshot.docs) {
+        if (deletedContacts.has(record.id)) continue;
+        deletedContacts.add(record.id);
+        const messages = await getDocs(collection(db, 'lostFoundContacts', record.id, 'messages'));
+        for (const message of messages.docs) await deleteDoc(message.ref);
+        await deleteDoc(record.ref);
+      }
+    }
+
+    const listings = await getDocs(query(collection(db, 'lostFoundListings'), where('ownerUid', '==', uid)));
+    for (const record of listings.docs) {
+      const data = record.data();
+      if (data.photoPath) await deleteObject(ref(storage, data.photoPath)).catch(() => {});
+      await deleteDoc(record.ref);
+    }
+
+    await deleteContactSnapshot(await getDocs(query(collection(db, 'lostFoundContacts'), where('ownerUid', '==', uid))));
+    await deleteContactSnapshot(await getDocs(query(collection(db, 'lostFoundContacts'), where('requesterUid', '==', uid))));
+
+    const reports = await getDocs(query(collection(db, 'lostFoundReports'), where('reporterUid', '==', uid)));
+    for (const record of reports.docs) await deleteDoc(record.ref);
+
+    const devices = await getDocs(query(collection(db, 'pushDevices'), where('ownerUid', '==', uid)));
+    for (const record of devices.docs) await deleteDoc(record.ref);
+
+    await deleteDoc(doc(db, 'users', uid)).catch(() => {});
+    await deleteUser(user);
     try { localStorage.removeItem('elma_ios_push_device_v1'); } catch {}
     alert('Hesabın ve ilişkili verilerin kalıcı olarak silindi.');
     location.replace('/');
   } catch (error) {
-    const requiresLogin = error?.code === 'functions/failed-precondition' ||
-      error?.code === 'auth/requires-recent-login';
+    const requiresLogin = error?.code === 'auth/requires-recent-login';
     status.textContent = requiresLogin
       ? 'Çıkış yapıp tekrar giriş yaptıktan sonra yeniden dene.'
       : 'Hesap silinemedi. Lütfen tekrar dene.';
@@ -125,6 +156,14 @@ async function removeCurrentAccount(auth, button, status) {
 function start() {
   if (!getApps().length) return setTimeout(start, 50);
   const auth = getAuth(getApp());
+  window.elmaDeleteCurrentAccount = () => {
+    const button = document.getElementById('egDeleteAccount') || { disabled: false, textContent: '' };
+    const status = document.getElementById('egDeleteAccountStatus') || { textContent: '' };
+    return removeCurrentAccount(auth, button, status, true);
+  };
+  window.elmaClearNativePreferences = () => {
+    ['elma_location_onboarding_seen_v1','elma_location_enabled_v1','elma_notifications_v1','elma_large_text_v1','elma_reduce_motion_v1'].forEach(key => localStorage.removeItem(key));
+  };
   onAuthStateChanged(auth, user => { renderWhenReady(user); const observer = new MutationObserver(() => { if (ensureDeleteAccount(auth)) observer.disconnect(); }); if (!ensureDeleteAccount(auth)) observer.observe(document.body, { childList: true, subtree: true }); });
   window.addEventListener('elma-user-profile-updated', event => renderWhenReady(event.detail));
 }
