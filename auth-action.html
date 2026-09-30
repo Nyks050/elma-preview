@@ -35,6 +35,7 @@
     const preview=params.get('preview');
     const code=params.get('oobCode');
     const continueUrl=params.get('continueUrl');
+    history.replaceState(null,'','/auth-action.html');
     const $=id=>document.getElementById(id);
     function view(title,description,{success=false,error=false}={}){$('title').textContent=title;$('description').textContent=description;$('badge').textContent=success?'✓':error?'!':'…';$('status').className='status'+(success?' success':error?' error':'');}
     function fail(error){console.error(error);view('Bağlantı kullanılamıyor','Bu bağlantının süresi dolmuş veya bağlantı daha önce kullanılmış olabilir.',{error:true});$('status').textContent='Uygulamadan yeni bir bağlantı isteyebilirsin.';}
