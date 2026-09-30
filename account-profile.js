@@ -95,11 +95,13 @@ function ensureDeleteAccount(auth) {
 
 async function removeCurrentAccount(auth, button, status, confirmed = false) {
   const user = auth.currentUser;
-  if (!user) { status.textContent = 'Önce hesabına giriş yap.'; return; }
+  window.__elmaLastAccountDeleteError = '';
+  if (!user) { status.textContent = 'Önce hesabına giriş yap.'; window.__elmaLastAccountDeleteError = 'auth/no-current-user'; return { ok: false, error: 'auth/no-current-user' }; }
   const lastSignIn = Date.parse(user.metadata?.lastSignInTime || '');
   if (!Number.isFinite(lastSignIn) || Date.now() - lastSignIn > 5 * 60 * 1000) {
     status.textContent = 'Güvenlik için çıkış yapıp tekrar giriş yaptıktan sonra yeniden dene.';
-    return;
+    window.__elmaLastAccountDeleteError = 'auth/requires-recent-login';
+    return { ok: false, error: 'auth/requires-recent-login' };
   }
   if (!confirmed && prompt('Hesabın ve ilişkili verilerin kalıcı olarak silinecek. Onaylamak için SİL yaz.') !== 'SİL') return;
   button.disabled = true;
@@ -143,15 +145,16 @@ async function removeCurrentAccount(auth, button, status, confirmed = false) {
     try { localStorage.removeItem('elma_ios_push_device_v1'); } catch {}
     alert('Hesabın ve ilişkili verilerin kalıcı olarak silindi.');
     setTimeout(() => location.replace('/'), 0);
-    return true;
+    return { ok: true };
   } catch (error) {
+    window.__elmaLastAccountDeleteError = error?.code || error?.message || 'unknown';
     const requiresLogin = error?.code === 'auth/requires-recent-login';
     status.textContent = requiresLogin
       ? 'Çıkış yapıp tekrar giriş yaptıktan sonra yeniden dene.'
       : 'Hesap silinemedi. Lütfen tekrar dene.';
     button.disabled = false;
     button.textContent = 'Hesabımı sil';
-    return false;
+    return { ok: false, error: window.__elmaLastAccountDeleteError };
   }
 }
 
