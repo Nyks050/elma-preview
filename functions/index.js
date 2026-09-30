@@ -1,6 +1,7 @@
 const { onDocumentWritten } = require('firebase-functions/v2/firestore');
 const { HttpsError, onCall } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
+const functionsV1 = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 const apn = require('@parse/node-apn');
 
@@ -16,17 +17,7 @@ async function deleteQueryRecursively(db, query) {
   }
 }
 
-exports.deleteMyAccount = onCall({ region: 'europe-west1' }, async request => {
-  if (!request.auth) throw new HttpsError('unauthenticated', 'Oturum gerekli.');
-  const authTime = Number(request.auth.token.auth_time || 0) * 1000;
-  if (!authTime || Date.now() - authTime > 5 * 60 * 1000) {
-    throw new HttpsError('failed-precondition', 'RECENT_LOGIN_REQUIRED');
-  }
-  if (request.data?.confirmation !== 'DELETE') {
-    throw new HttpsError('invalid-argument', 'Silme onayı eksik.');
-  }
-
-  const uid = request.auth.uid;
+async function cleanupUserData(uid) {
   const db = admin.firestore();
   const targets = [
     ['lostFoundListings', 'ownerUid'],
@@ -39,11 +30,34 @@ exports.deleteMyAccount = onCall({ region: 'europe-west1' }, async request => {
   for (const [collectionName, field] of targets) {
     await deleteQueryRecursively(db, db.collection(collectionName).where(field, '==', uid));
   }
-  await db.recursiveDelete(db.collection('users').doc(uid));
-  await db.recursiveDelete(db.collection('adminUserFlags').doc(uid));
-  await admin.storage().bucket().deleteFiles({ prefix: `lost-found/${uid}/` });
+  await Promise.all([
+    db.recursiveDelete(db.collection('users').doc(uid)),
+    db.recursiveDelete(db.collection('adminUserFlags').doc(uid)),
+    db.recursiveDelete(db.collection('listingRateLimits').doc(uid)),
+    db.recursiveDelete(db.collection('e2eeKeys').doc(uid)),
+    admin.storage().bucket().deleteFiles({ prefix: `lost-found/${uid}/` })
+  ]);
+}
+
+exports.deleteMyAccount = onCall({ region: 'europe-west1' }, async request => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Oturum gerekli.');
+  const authTime = Number(request.auth.token.auth_time || 0) * 1000;
+  if (!authTime || Date.now() - authTime > 5 * 60 * 1000) {
+    throw new HttpsError('failed-precondition', 'RECENT_LOGIN_REQUIRED');
+  }
+  if (request.data?.confirmation !== 'DELETE') {
+    throw new HttpsError('invalid-argument', 'Silme onayı eksik.');
+  }
+
+  const uid = request.auth.uid;
+  await cleanupUserData(uid);
   await admin.auth().deleteUser(uid);
   return { deleted: true };
+});
+
+// Konsol veya başka bir yönetim aracı hesabı silerse veri kalıntısı bırakma.
+exports.cleanupDeletedUser = functionsV1.region('europe-west1').auth.user().onDelete(async user => {
+  await cleanupUserData(user.uid);
 });
 
 exports.notifyAmasyaLostListing = onDocumentWritten({
