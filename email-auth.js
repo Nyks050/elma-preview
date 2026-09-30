@@ -3,7 +3,7 @@ import { createUserWithEmailAndPassword, deleteUser, getAuth, OAuthProvider, sen
 
 const AUTH_API = 'https://elma-go-auth.purple-hill-3b24.workers.dev';
 const style = document.createElement('style');
-style.textContent = `.email-auth-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px}.email-auth-link{border:0;background:none;color:#85888e;padding:4px 0;font-size:13px;font-weight:700}.email-auth-note{text-align:center;color:#777b82;font-size:11px;line-height:1.4;margin:11px 12px 0}.email-code{letter-spacing:10px;text-align:center!important;font-size:25px!important;font-weight:800}html[data-theme="light"] .email-auth-link{color:#4f5258}`;
+style.textContent = `.email-auth-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px}.email-auth-link{border:0;background:none;color:#85888e;padding:4px 0;font-size:13px;font-weight:700}.email-reset-link{display:block;width:max-content;margin:8px auto 2px;padding:4px 8px;text-align:center;font-size:12px;line-height:1.25;opacity:.9}.email-reset-link:active{opacity:.55}.email-auth-note{text-align:center;color:#777b82;font-size:11px;line-height:1.4;margin:11px 12px 0}.email-code{letter-spacing:10px;text-align:center!important;font-size:25px!important;font-weight:800}html[data-theme="light"] .email-auth-link{color:#4f5258}`;
 document.head.appendChild(style);
 
 function setMessage(id,text,success=false){const e=document.getElementById(id);if(!e)return;e.textContent=text||'';e.style.color=success?'#39845c':'';}
@@ -83,8 +83,8 @@ function createEmailLogin(auth){
  const oldEmailButton=[...login.querySelectorAll('.authbtn')].find(button=>button.textContent.includes('E-posta'));
  oldEmailButton?.remove();
  const reset=document.createElement('button');
- reset.id='emailResetPassword';reset.className='email-auth-link';reset.type='button';reset.textContent='Şifremi unuttum';
- message.after(reset);
+ reset.id='emailResetPassword';reset.className='email-auth-link email-reset-link';reset.type='button';reset.textContent='Şifreni mi unuttun?';
+ submit.after(reset);
  const performLogin=async()=>{
   const email=document.getElementById('emailLoginAddress').value.trim();
   const password=document.getElementById('emailLoginPassword').value;
