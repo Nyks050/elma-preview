@@ -142,7 +142,8 @@ async function removeCurrentAccount(auth, button, status, confirmed = false) {
     await deleteUser(user);
     try { localStorage.removeItem('elma_ios_push_device_v1'); } catch {}
     alert('Hesabın ve ilişkili verilerin kalıcı olarak silindi.');
-    location.replace('/');
+    setTimeout(() => location.replace('/'), 0);
+    return true;
   } catch (error) {
     const requiresLogin = error?.code === 'auth/requires-recent-login';
     status.textContent = requiresLogin
@@ -150,6 +151,7 @@ async function removeCurrentAccount(auth, button, status, confirmed = false) {
       : 'Hesap silinemedi. Lütfen tekrar dene.';
     button.disabled = false;
     button.textContent = 'Hesabımı sil';
+    return false;
   }
 }
 
