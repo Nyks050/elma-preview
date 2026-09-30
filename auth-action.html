@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Elma Go | Hesap işlemi</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:24px;background:#f5f5f6;color:#111;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}.card{width:min(100%,430px);padding:34px 26px 28px;background:#fff;border:1px solid #e5e5e7;border-radius:28px;box-shadow:0 22px 65px rgba(0,0,0,.09);text-align:center}.logo{display:inline-flex;align-items:baseline;margin-bottom:28px;font-size:36px;font-weight:900;letter-spacing:-2.2px}.logo span:last-child{margin-left:3px;color:#73757a}.badge{width:70px;height:70px;margin:0 auto 20px;display:grid;place-items:center;border-radius:22px;background:#111;color:#fff;font-size:31px;font-weight:800}h1{margin:0;font-size:29px;letter-spacing:-1px}p{margin:12px 0 0;color:#6f7176;font-size:15px;line-height:1.55}.field{width:100%;margin-top:22px;padding:15px 17px;border:1px solid #d9dadd;border-radius:15px;font:600 16px inherit;outline:none}.field:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.08)}button,.button{width:100%;display:block;margin-top:14px;padding:15px;border:0;border-radius:15px;background:#111;color:#fff;text-decoration:none;font-size:16px;font-weight:800;cursor:pointer}.button.secondary{background:#efeff1;color:#111}.hidden{display:none}.status{min-height:23px;margin-top:15px;font-size:14px;font-weight:650}.status.error{color:#b42318}.status.success{color:#16804b}.foot{margin-top:24px;color:#a0a1a5;font-size:12px}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo"><span>elma</span><span>go</span></div>
+    <div id="badge" class="badge">✓</div>
+    <h1 id="title">Bağlantı kontrol ediliyor</h1>
+    <p id="description">Hesap işlemin güvenli şekilde tamamlanıyor.</p>
+    <section id="passwordForm" class="hidden">
+      <input id="newPassword" class="field" type="password" minlength="8" autocomplete="new-password" placeholder="Yeni şifre (en az 8 karakter)">
+      <input id="newPasswordAgain" class="field" type="password" minlength="8" autocomplete="new-password" placeholder="Yeni şifreyi tekrar gir">
+      <button id="savePassword" type="button">Şifreyi güncelle</button>
+    </section>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <a id="continueButton" class="button secondary hidden" href="https://elmago.com.tr/">Elma Go’ya dön</a>
+    <div class="foot">Bu sayfa Elma Go tarafından güvenli şekilde sunulur.</div>
+  </main>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
+    import { getAuth, applyActionCode, checkActionCode, confirmPasswordReset, verifyPasswordResetCode } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+
+    const config={apiKey:'AIzaSyBWic36WVTPG5oWUtSCJ-6MWrKWbO_w9aQ',authDomain:'elma-bd38c.firebaseapp.com',projectId:'elma-bd38c'};
+    const auth=getAuth(initializeApp(config));
+    auth.languageCode='tr';
+    const params=new URLSearchParams(location.search);
+    const mode=params.get('mode');
+    const code=params.get('oobCode');
+    const continueUrl=params.get('continueUrl');
+    const $=id=>document.getElementById(id);
+    const safeContinue=()=>{try{const url=new URL(continueUrl||'https://elmago.com.tr/');return url.hostname==='elmago.com.tr'||url.hostname.endsWith('.elmago.com.tr')?url.href:'https://elmago.com.tr/';}catch{return'https://elmago.com.tr/';}};
+    function view(title,description,{success=false,error=false,button=true}={}){$('title').textContent=title;$('description').textContent=description;$('badge').textContent=success?'✓':error?'!':'…';$('status').className='status'+(success?' success':error?' error':'');$('continueButton').href=safeContinue();$('continueButton').classList.toggle('hidden',!button);}
+    function fail(error){console.error(error);view('Bağlantı kullanılamıyor','Bu bağlantının süresi dolmuş veya bağlantı daha önce kullanılmış olabilir.',{error:true});$('status').textContent='Uygulamadan yeni bir bağlantı isteyebilirsin.';}
+
+    async function run(){
+      if(!code)return fail(new Error('missing-code'));
+      try{
+        if(mode==='verifyEmail'){
+          await applyActionCode(auth,code);
+          view('E-postan doğrulandı','Hesabın hazır. Artık Elma Go’ya giriş yapabilirsin.',{success:true});
+          $('status').textContent='Doğrulama başarıyla tamamlandı.';
+        }else if(mode==='resetPassword'){
+          await verifyPasswordResetCode(auth,code);
+          view('Yeni şifreni oluştur','Elma Go hesabın için en az 8 karakterli yeni bir şifre belirle.',{button:false});
+          $('passwordForm').classList.remove('hidden');
+        }else if(mode==='recoverEmail'){
+          await checkActionCode(auth,code);
+          await applyActionCode(auth,code);
+          view('E-posta adresin geri alındı','Hesabındaki e-posta değişikliği güvenli şekilde geri çevrildi.',{success:true});
+        }else fail(new Error('unsupported-mode'));
+      }catch(error){fail(error);}
+    }
+
+    $('savePassword').addEventListener('click',async()=>{
+      const first=$('newPassword').value,second=$('newPasswordAgain').value;
+      $('status').className='status error';
+      if(first.length<8){$('status').textContent='Şifre en az 8 karakter olmalı.';return;}
+      if(first!==second){$('status').textContent='Şifreler birbiriyle aynı değil.';return;}
+      $('savePassword').disabled=true;$('status').textContent='';
+      try{await confirmPasswordReset(auth,code,first);$('passwordForm').classList.add('hidden');view('Şifren güncellendi','Yeni şifrenle Elma Go’ya giriş yapabilirsin.',{success:true});$('status').textContent='Şifre değişikliği tamamlandı.';}catch(error){$('savePassword').disabled=false;fail(error);}
+    });
+    run();
+  </script>
+</body>
+</html>
