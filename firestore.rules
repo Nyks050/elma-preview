@@ -31,6 +31,10 @@ service cloud.firestore {
         && request.resource.data.description.size() <= 800
         && request.resource.data.city == 'Amasya'
         && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt >= request.time + duration.value(23, 'h')
+        && request.resource.data.expiresAt <= request.time + duration.value(25, 'h')
         && getAfter(/databases/$(database)/documents/listingRateLimits/$(request.auth.uid)).data.lastCreatedAt == request.time
         && request.resource.data.keys().hasOnly([
           'kind', 'title', 'category', 'line', 'city', 'district', 'address',
@@ -50,14 +54,17 @@ service cloud.firestore {
         && request.resource.data.description is string
         && request.resource.data.description.size() > 0
         && request.resource.data.description.size() <= 800
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['expiresAt'])
+          || (request.resource.data.expiresAt is timestamp
+            && request.resource.data.expiresAt >= request.time + duration.value(23, 'h')
+            && request.resource.data.expiresAt <= request.time + duration.value(25, 'h')))
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'kind', 'title', 'category', 'line', 'city', 'district', 'address',
           'location', 'coords', 'happenedAt', 'description', 'urgent',
           'ownerName', 'status', 'updatedAt', 'expiresAt'
         ]));
       allow delete: if isAdmin() || (signedIn()
-        && (resource.data.ownerUid == request.auth.uid
-          || resource.data.requesterUid == request.auth.uid));
+        && resource.data.ownerUid == request.auth.uid);
     }
 
     match /listingRateLimits/{userId} {
@@ -69,7 +76,8 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['lastCreatedAt'])
         && request.resource.data.lastCreatedAt == request.time
         && resource.data.lastCreatedAt <= request.time - duration.value(24, 'h');
-      allow delete: if signedIn() && userId == request.auth.uid;
+      // Kullanıcı bu kaydı silerek 24 saatlik ilan sınırını aşamamalı.
+      allow delete: if false;
     }
 
     match /lostFoundContacts/{requestId} {

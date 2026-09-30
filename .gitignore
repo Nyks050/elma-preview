@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+node_modules/
+firebase-debug.log
+firebase-debug.*.log
+*.local
+*.pem
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.DS_Store
+Thumbs.db
