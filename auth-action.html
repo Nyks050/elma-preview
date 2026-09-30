@@ -42,6 +42,7 @@
 
     async function run(){
       if(preview==='success'){view('E-postan doğrulandı','Hesabın hazır. Artık Elma Go’ya güvenle giriş yapabilirsin.',{success:true});$('status').textContent='Doğrulama başarıyla tamamlandı.';return;}
+      if(preview==='reset'){view('Yeni şifreni oluştur','Elma Go hesabın için en az 8 karakterli yeni bir şifre belirle.');$('passwordForm').classList.remove('hidden');return;}
       if(!code)return fail(new Error('missing-code'));
       try{
         if(mode==='verifyEmail'){
