@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#ffffff">
   <title>Elma Go | Hesap işlemi</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:24px;background:#f5f5f6;color:#111;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}.card{width:min(100%,430px);padding:34px 26px 28px;background:#fff;border:1px solid #e5e5e7;border-radius:28px;box-shadow:0 22px 65px rgba(0,0,0,.09);text-align:center}.logo{display:inline-flex;align-items:baseline;margin-bottom:28px;font-size:36px;font-weight:900;letter-spacing:-2.2px}.logo span:last-child{margin-left:3px;color:#73757a}.badge{width:70px;height:70px;margin:0 auto 20px;display:grid;place-items:center;border-radius:22px;background:#111;color:#fff;font-size:31px;font-weight:800}h1{margin:0;font-size:29px;letter-spacing:-1px}p{margin:12px 0 0;color:#6f7176;font-size:15px;line-height:1.55}.field{width:100%;margin-top:22px;padding:15px 17px;border:1px solid #d9dadd;border-radius:15px;font:600 16px inherit;outline:none}.field:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.08)}button,.button{width:100%;display:block;margin-top:14px;padding:15px;border:0;border-radius:15px;background:#111;color:#fff;text-decoration:none;font-size:16px;font-weight:800;cursor:pointer}.button.secondary{background:#efeff1;color:#111}.hidden{display:none}.status{min-height:23px;margin-top:15px;font-size:14px;font-weight:650}.status.error{color:#b42318}.status.success{color:#16804b}.foot{margin-top:24px;color:#a0a1a5;font-size:12px}
+    *{box-sizing:border-box}body{margin:0;min-height:100dvh;background:#fff;color:#111;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}.card{width:min(100%,480px);min-height:100dvh;margin:auto;padding:max(54px,env(safe-area-inset-top)) 26px max(30px,env(safe-area-inset-bottom));display:flex;flex-direction:column;text-align:center}.logo{display:block;align-self:center;width:174px;height:auto}.badge{width:92px;height:92px;margin:clamp(72px,15vh,140px) auto 27px;display:grid;place-items:center;border-radius:50%;background:#111;color:#fff;font-size:41px;font-weight:850;box-shadow:0 14px 38px rgba(0,0,0,.16)}h1{margin:0;font-size:34px;line-height:1.08;letter-spacing:-1.5px}p{max-width:340px;margin:15px auto 0;color:#77797e;font-size:16px;line-height:1.55}.field{width:100%;margin-top:18px;padding:16px 17px;border:1px solid #d9dadd;border-radius:17px;font:600 16px inherit;outline:none}.field:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.08)}button,.button{width:100%;display:block;margin-top:15px;padding:17px;border:0;border-radius:18px;background:#111;color:#fff;text-decoration:none;font-size:16px;font-weight:850;cursor:pointer}.button.secondary{margin-top:auto;background:#111;color:#fff}.hidden{display:none}.status{min-height:23px;margin-top:16px;font-size:14px;font-weight:700}.status.error{color:#b42318}.status.success{color:#16804b}.foot{margin-top:18px;color:#aaabb0;font-size:12px}@media(min-width:600px){body{background:#f4f4f5}.card{min-height:660px;margin:40px auto;border:1px solid #e6e6e8;border-radius:34px;box-shadow:0 24px 70px rgba(0,0,0,.08)}.badge{margin-top:100px}}
   </style>
 </head>
 <body>
   <main class="card">
-    <div class="logo"><span>elma</span><span>go</span></div>
+    <img class="logo" src="assets/elmago-logo.png" alt="Elma Go">
     <div id="badge" class="badge">✓</div>
     <h1 id="title">Bağlantı kontrol ediliyor</h1>
     <p id="description">Hesap işlemin güvenli şekilde tamamlanıyor.</p>
@@ -33,6 +33,7 @@
     auth.languageCode='tr';
     const params=new URLSearchParams(location.search);
     const mode=params.get('mode');
+    const preview=params.get('preview');
     const code=params.get('oobCode');
     const continueUrl=params.get('continueUrl');
     const $=id=>document.getElementById(id);
@@ -41,6 +42,7 @@
     function fail(error){console.error(error);view('Bağlantı kullanılamıyor','Bu bağlantının süresi dolmuş veya bağlantı daha önce kullanılmış olabilir.',{error:true});$('status').textContent='Uygulamadan yeni bir bağlantı isteyebilirsin.';}
 
     async function run(){
+      if(preview==='success'){view('E-postan doğrulandı','Hesabın hazır. Artık Elma Go’ya güvenle giriş yapabilirsin.',{success:true});$('status').textContent='Doğrulama başarıyla tamamlandı.';return;}
       if(!code)return fail(new Error('missing-code'));
       try{
         if(mode==='verifyEmail'){
