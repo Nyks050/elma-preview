@@ -163,6 +163,18 @@ async function removeCurrentAccount(auth, button, status, confirmed = false) {
 function start() {
   if (!getApps().length) return setTimeout(start, 50);
   const auth = getAuth(getApp());
+  window.elmaGetNativeAccountProfile = () => {
+    const user = auth.currentUser;
+    if (!user) return {};
+    const providerIds = (user.providerData || []).map(item => item?.providerId || '');
+    const provider = providerIds.includes('apple.com') ? 'Apple' : providerIds.includes('google.com') ? 'Google' : 'E-posta';
+    return {
+      name: user.displayName || user.email?.split('@')[0] || 'Elma Go kullanıcısı',
+      email: user.email || '',
+      photoURL: user.photoURL || '',
+      provider
+    };
+  };
   window.elmaDeleteCurrentAccount = () => {
     const button = document.getElementById('egDeleteAccount') || { disabled: false, textContent: '' };
     const status = document.getElementById('egDeleteAccountStatus') || { textContent: '' };
