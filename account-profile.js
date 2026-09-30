@@ -140,6 +140,8 @@ async function removeCurrentAccount(auth, button, status, confirmed = false) {
     const devices = await getDocs(query(collection(db, 'pushDevices'), where('ownerUid', '==', uid)));
     for (const record of devices.docs) await deleteDoc(record.ref);
 
+    await deleteDoc(doc(db, 'e2eeKeys', uid)).catch(() => {});
+    await deleteDoc(doc(db, 'listingRateLimits', uid)).catch(() => {});
     await deleteDoc(doc(db, 'users', uid)).catch(() => {});
     await deleteUser(user);
     try { localStorage.removeItem('elma_ios_push_device_v1'); } catch {}
