@@ -21,7 +21,6 @@
       <button id="savePassword" type="button">Şifreyi güncelle</button>
     </section>
     <div id="status" class="status" role="status" aria-live="polite"></div>
-    <a id="continueButton" class="button secondary hidden" href="https://elmago.com.tr/">Elma Go’ya dön</a>
     <div class="foot">Bu sayfa Elma Go tarafından güvenli şekilde sunulur.</div>
   </main>
   <script type="module">
@@ -37,8 +36,7 @@
     const code=params.get('oobCode');
     const continueUrl=params.get('continueUrl');
     const $=id=>document.getElementById(id);
-    const safeContinue=()=>{try{const url=new URL(continueUrl||'https://elmago.com.tr/');return url.hostname==='elmago.com.tr'||url.hostname.endsWith('.elmago.com.tr')?url.href:'https://elmago.com.tr/';}catch{return'https://elmago.com.tr/';}};
-    function view(title,description,{success=false,error=false,button=true}={}){$('title').textContent=title;$('description').textContent=description;$('badge').textContent=success?'✓':error?'!':'…';$('status').className='status'+(success?' success':error?' error':'');$('continueButton').href=safeContinue();$('continueButton').classList.toggle('hidden',!button);}
+    function view(title,description,{success=false,error=false}={}){$('title').textContent=title;$('description').textContent=description;$('badge').textContent=success?'✓':error?'!':'…';$('status').className='status'+(success?' success':error?' error':'');}
     function fail(error){console.error(error);view('Bağlantı kullanılamıyor','Bu bağlantının süresi dolmuş veya bağlantı daha önce kullanılmış olabilir.',{error:true});$('status').textContent='Uygulamadan yeni bir bağlantı isteyebilirsin.';}
 
     async function run(){
