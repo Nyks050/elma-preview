@@ -40,6 +40,8 @@ service cloud.firestore {
       allow update: if isAdmin() || (signedIn() && !isBlocked()
         && resource.data.ownerUid == request.auth.uid
         && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.city == 'Amasya'
+        && request.resource.data.updatedAt == request.time
         && (request.resource.data.status == resource.data.status
           || (resource.data.status == 'active' && request.resource.data.status == 'solved'))
         && request.resource.data.title is string
@@ -74,7 +76,15 @@ service cloud.firestore {
       allow create: if signedIn() && !isBlocked()
         && request.resource.data.requesterUid == request.auth.uid
         && request.resource.data.status == 'chat'
+        && request.resource.data.typingUid == null
+        && request.resource.data.createdAt == request.time
         && request.resource.data.listingId is string
+        && request.resource.data.listingTitle is string
+        && request.resource.data.listingTitle.size() > 0
+        && request.resource.data.listingTitle.size() <= 80
+        && request.resource.data.requesterName is string
+        && request.resource.data.requesterName.size() > 0
+        && request.resource.data.requesterName.size() <= 80
         && exists(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId))
         && get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.status == 'active'
         && request.resource.data.ownerUid == get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.ownerUid
@@ -114,10 +124,13 @@ service cloud.firestore {
         allow create: if !isBlocked() && isParticipant()
           && contact().status != 'rejected'
           && request.resource.data.senderUid == request.auth.uid
+          && request.resource.data.createdAt == request.time
           && request.resource.data.ciphertext is string
           && request.resource.data.ciphertext.size() > 0
           && request.resource.data.ciphertext.size() <= 4096
           && request.resource.data.iv is string
+          && request.resource.data.iv.size() >= 16
+          && request.resource.data.iv.size() <= 64
           && request.resource.data.encryption == 'e2ee-v1'
           && request.resource.data.deliveredAt == null
           && request.resource.data.readAt == null
@@ -134,6 +147,7 @@ service cloud.firestore {
     match /lostFoundReports/{reportId} {
       allow create: if signedIn() && !isBlocked()
         && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.createdAt == request.time
         && request.resource.data.listingId is string
         && request.resource.data.reason is string
         && request.resource.data.reason.size() > 0
@@ -164,6 +178,7 @@ service cloud.firestore {
         && request.resource.data.platform == 'ios'
         && request.resource.data.city == 'Amasya'
         && request.resource.data.enabled == true
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.token is string
         && request.resource.data.token.size() > 20
         && request.resource.data.keys().hasOnly([
@@ -173,6 +188,7 @@ service cloud.firestore {
       allow update: if signedIn()
         && resource.data.ownerUid == request.auth.uid
         && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'token', 'city', 'latitude', 'longitude', 'enabled', 'updatedAt'
         ]);
@@ -188,7 +204,9 @@ service cloud.firestore {
     match /e2eeKeys/{userId} {
       allow read: if signedIn();
       allow create, update: if signedIn() && userId == request.auth.uid
-        && request.resource.data.keys().hasOnly(['e2eePublicKey', 'e2eeVersion']);
+        && request.resource.data.keys().hasOnly(['e2eePublicKey', 'e2eeVersion'])
+        && request.resource.data.e2eePublicKey is map
+        && request.resource.data.e2eeVersion == 1;
       allow delete: if signedIn() && userId == request.auth.uid;
     }
 
