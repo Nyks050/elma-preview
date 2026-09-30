@@ -66,5 +66,47 @@ function configureRegister(auth){
  window.finishRegister=sendCode;const button=document.getElementById('registerBtn');if(button)button.onclick=sendCode;
 }
 
-function createEmailLogin(auth){if(document.getElementById('emailLogin'))return;const section=document.createElement('section');section.id='emailLogin';section.className='register';section.innerHTML=`<div class="box"><div class="brand wordmark"><span class="elma">elma</span><span class="go">go</span></div><h1>E-posta ile giriş</h1><p class="desc">E-posta adresin ve şifrenle hesabına devam et.</p><div class="field"><input id="emailLoginAddress" type="email" autocomplete="email" placeholder="E-posta adresi"></div><div class="field"><input id="emailLoginPassword" type="password" autocomplete="current-password" placeholder="Şifre"></div><button id="emailLoginSubmit" class="primary" type="button">Giriş yap</button><div id="emailLoginMsg" class="msg"></div><div class="email-auth-actions"><button id="emailLoginBack" class="email-auth-link" type="button">← Diğer yöntemler</button><button id="emailResetPassword" class="email-auth-link" type="button">Şifremi unuttum</button></div></div>`;document.getElementById('verify')?.before(section);document.getElementById('emailLoginBack').onclick=()=>section.classList.remove('show');document.getElementById('emailLoginSubmit').onclick=async()=>{const b=document.getElementById('emailLoginSubmit');const email=document.getElementById('emailLoginAddress').value.trim();const password=document.getElementById('emailLoginPassword').value;setMessage('emailLoginMsg','');if(!email||!password)return setMessage('emailLoginMsg','E-posta adresini ve şifreni gir.');b.disabled=true;try{const credential=await signInWithEmailAndPassword(auth,email,password);await credential.user.reload();if(!credential.user.emailVerified){await signOut(auth);setMessage('emailLoginMsg','Önce e-postana gönderilen doğrulama bağlantısını onayla.');return;}section.classList.remove('show');document.getElementById('login')?.classList.add('hide');}catch(e){setMessage('emailLoginMsg',messageFor(e));}finally{b.disabled=false;}};document.getElementById('emailResetPassword').onclick=async()=>{const email=document.getElementById('emailLoginAddress').value.trim();if(!email)return setMessage('emailLoginMsg','Önce e-posta adresini gir.');try{await sendPasswordResetEmail(auth,email);setMessage('emailLoginMsg','Kayıtlıysa şifre yenileme bağlantısı gönderildi.',true);}catch{setMessage('emailLoginMsg','Şifre yenileme isteği tamamlanamadı.');}};window.openEmailLogin=()=>section.classList.add('show');const eb=[...document.querySelectorAll('#login .authbtn')].find(b=>b.textContent.includes('E-posta'));if(eb){eb.removeAttribute('onclick');eb.onclick=window.openEmailLogin;}const ab=document.querySelector('#login .authbtn.apple');if(ab){ab.disabled=false;ab.title='Apple ile giriş';ab.onclick=null;}}
+function createEmailLogin(auth){
+ const login=document.getElementById('login');if(!login)return;
+ const phoneField=login.querySelector('.phone');
+ const submit=document.getElementById('phoneBtn');
+ const message=document.getElementById('phoneMsg');
+ if(!phoneField||!submit||!message)return;
+ login.querySelector('.desc').textContent='E-posta adresin ve şifrenle devam et veya başka bir giriş yöntemi seç.';
+ phoneField.className='field';
+ phoneField.innerHTML='<input id="emailLoginAddress" type="email" autocomplete="email" inputmode="email" placeholder="E-posta adresi">';
+ const passwordField=field('Şifre','emailLoginPassword','password','current-password');
+ phoneField.after(passwordField);
+ submit.textContent='Giriş yap';
+ message.id='emailLoginMsg';
+ document.getElementById('recaptcha-container')?.remove();
+ const oldEmailButton=[...login.querySelectorAll('.authbtn')].find(button=>button.textContent.includes('E-posta'));
+ oldEmailButton?.remove();
+ const reset=document.createElement('button');
+ reset.id='emailResetPassword';reset.className='email-auth-link';reset.type='button';reset.textContent='Şifremi unuttum';
+ message.after(reset);
+ const performLogin=async()=>{
+  const email=document.getElementById('emailLoginAddress').value.trim();
+  const password=document.getElementById('emailLoginPassword').value;
+  setMessage('emailLoginMsg','');
+  if(!email||!password)return setMessage('emailLoginMsg','E-posta adresini ve şifreni gir.');
+  submit.disabled=true;submit.textContent='Giriş yapılıyor…';
+  try{
+   const credential=await signInWithEmailAndPassword(auth,email,password);
+   await credential.user.reload();
+   if(!credential.user.emailVerified){await signOut(auth);setMessage('emailLoginMsg','Önce e-postana gönderilen doğrulama bağlantısını onayla.');return;}
+   login.classList.add('hide');
+  }catch(e){setMessage('emailLoginMsg',messageFor(e));}
+  finally{submit.disabled=false;submit.textContent='Giriş yap';}
+ };
+ submit.onclick=performLogin;
+ document.getElementById('emailLoginPassword').addEventListener('keydown',event=>{if(event.key==='Enter')performLogin();});
+ reset.onclick=async()=>{
+  const email=document.getElementById('emailLoginAddress').value.trim();
+  if(!email)return setMessage('emailLoginMsg','Önce e-posta adresini gir.');
+  try{await sendPasswordResetEmail(auth,email);setMessage('emailLoginMsg','Kayıtlıysa şifre yenileme bağlantısı gönderildi.',true);}
+  catch{setMessage('emailLoginMsg','Şifre yenileme isteği tamamlanamadı.');}
+ };
+ const ab=login.querySelector('.authbtn.apple');if(ab){ab.disabled=false;ab.title='Apple ile giriş';ab.onclick=null;}
+}
 async function start(){if(!getApps().length)return setTimeout(start,50);const auth=getAuth(getApp());window.elmaHandleAppleSignIn=async result=>{const button=document.querySelector('#login .authbtn.apple');if(button)button.disabled=true;try{if(!result?.identityToken||!result?.rawNonce)throw new Error('Apple kimlik bilgisi alınamadı.');const provider=new OAuthProvider('apple.com');const credential=provider.credential({idToken:result.identityToken,rawNonce:result.rawNonce});const signedIn=await signInWithCredential(auth,credential);const fullName=result.fullName?.trim();if(fullName&&!signedIn.user.displayName)await updateProfile(signedIn.user,{displayName:fullName});document.getElementById('login')?.classList.add('hide');window.dispatchEvent(new CustomEvent('elma-user-profile-updated',{detail:signedIn.user}));}catch{alert('Apple ile giriş tamamlanamadı. Lütfen tekrar dene.');}finally{if(button)button.disabled=false;}};if(auth.currentUser&&!auth.currentUser.emailVerified&&auth.currentUser.providerData.every(item=>item.providerId==='password')){await signOut(auth);document.getElementById('login')?.classList.remove('hide');}configureRegister(auth);createEmailLogin(auth);}start();
