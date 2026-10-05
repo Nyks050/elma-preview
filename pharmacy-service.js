@@ -47,9 +47,6 @@
     const style=document.createElement('style');
     style.id='elmaPharmacyStyle';
     style.textContent=`
-      .eg-pharmacy-card{grid-column:1/-1;min-height:112px!important;position:relative;overflow:hidden;background:#fff!important;color:#09090a!important;border:2px solid #09090a!important;box-shadow:6px 6px 0 #09090a!important}
-      .eg-pharmacy-card:after{content:"24 SAAT";position:absolute;right:14px;top:14px;border:1px solid #09090a;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:900;letter-spacing:.08em;background:#fff}
-      .eg-pharmacy-card .eg-service-icon{background:#09090a!important;color:#fff!important}
       .eg-panel[data-panel="pharmacies"]{padding-bottom:28px;color:#09090a}
       .eg-pharmacy-shell{position:relative;overflow:hidden;border:2px solid #09090a;border-radius:26px;background:#fff;box-shadow:8px 8px 0 #09090a;padding:20px}
       .eg-pharmacy-shell:before{content:"";position:absolute;inset:0 0 auto;height:6px;background:linear-gradient(90deg,#09090a 0 72%,#d8d8d8 72% 86%,#09090a 86%)}
