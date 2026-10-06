@@ -713,7 +713,7 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
 
 (()=>{
   const pharmacy=document.createElement('script');
-  pharmacy.src='pharmacy-service.js?v=20261006-card-restore1';
+  pharmacy.src='pharmacy-service.js?v=20261007-google-directions1';
   pharmacy.defer=true;
   pharmacy.dataset.elmaPharmacyService='1';
   document.head.appendChild(pharmacy);
