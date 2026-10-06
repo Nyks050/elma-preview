@@ -112,40 +112,46 @@ async function removeCurrentAccount(auth, button, status, confirmed = false) {
     const db = getFirestore(app);
     const storage = getStorage(app);
     const uid = user.uid;
-    const deletedContacts = new Set();
-
-    async function deleteContactSnapshot(snapshot) {
-      for (const record of snapshot.docs) {
-        if (deletedContacts.has(record.id)) continue;
-        deletedContacts.add(record.id);
-        const messages = await getDocs(collection(db, 'lostFoundContacts', record.id, 'messages'));
-        for (const message of messages.docs) await deleteDoc(message.ref);
-        await deleteDoc(record.ref);
+    // Fetch independent collections together, then delete in small parallel batches.
+    // Authentication is removed only after every owned record has finished deleting.
+    async function inBatches(records, task, size = 8) {
+      for (let offset = 0; offset < records.length; offset += size) {
+        await Promise.all(records.slice(offset, offset + size).map(task));
       }
     }
 
-    const listings = await getDocs(query(collection(db, 'lostFoundListings'), where('ownerUid', '==', uid)));
-    for (const record of listings.docs) {
-      const data = record.data();
-      if (data.photoPath) await deleteObject(ref(storage, data.photoPath)).catch(() => {});
-      await deleteDoc(record.ref);
-    }
+    const [listings, ownedContacts, requestedContacts, reports, devices] = await Promise.all([
+      getDocs(query(collection(db, 'lostFoundListings'), where('ownerUid', '==', uid))),
+      getDocs(query(collection(db, 'lostFoundContacts'), where('ownerUid', '==', uid))),
+      getDocs(query(collection(db, 'lostFoundContacts'), where('requesterUid', '==', uid))),
+      getDocs(query(collection(db, 'lostFoundReports'), where('reporterUid', '==', uid))),
+      getDocs(query(collection(db, 'pushDevices'), where('ownerUid', '==', uid)))
+    ]);
 
-    await deleteContactSnapshot(await getDocs(query(collection(db, 'lostFoundContacts'), where('ownerUid', '==', uid))));
-    await deleteContactSnapshot(await getDocs(query(collection(db, 'lostFoundContacts'), where('requesterUid', '==', uid))));
+    const contacts = [...new Map([...ownedContacts.docs, ...requestedContacts.docs].map(record => [record.id, record])).values()];
+    await Promise.all([
+      inBatches(listings.docs, async record => {
+        const photoPath = record.data().photoPath;
+        if (photoPath) await deleteObject(ref(storage, photoPath)).catch(() => {});
+        await deleteDoc(record.ref);
+      }),
+      inBatches(contacts, async record => {
+        const messages = await getDocs(collection(db, 'lostFoundContacts', record.id, 'messages'));
+        await inBatches(messages.docs, message => deleteDoc(message.ref));
+        await deleteDoc(record.ref);
+      }),
+      inBatches(reports.docs, record => deleteDoc(record.ref)),
+      inBatches(devices.docs, record => deleteDoc(record.ref))
+    ]);
 
-    const reports = await getDocs(query(collection(db, 'lostFoundReports'), where('reporterUid', '==', uid)));
-    for (const record of reports.docs) await deleteDoc(record.ref);
-
-    const devices = await getDocs(query(collection(db, 'pushDevices'), where('ownerUid', '==', uid)));
-    for (const record of devices.docs) await deleteDoc(record.ref);
-
-    await deleteDoc(doc(db, 'e2eeKeys', uid)).catch(() => {});
-    await deleteDoc(doc(db, 'listingRateLimits', uid)).catch(() => {});
-    await deleteDoc(doc(db, 'users', uid)).catch(() => {});
+    await Promise.all([
+      deleteDoc(doc(db, 'e2eeKeys', uid)).catch(() => {}),
+      deleteDoc(doc(db, 'listingRateLimits', uid)).catch(() => {}),
+      deleteDoc(doc(db, 'users', uid)).catch(() => {})
+    ]);
     await deleteUser(user);
     try { localStorage.removeItem('elma_ios_push_device_v1'); } catch {}
-    alert('Hesabın ve ilişkili verilerin kalıcı olarak silindi.');
+    if (!window.webkit?.messageHandlers?.elmaRoutePlanner) alert('Hesabın ve ilişkili verilerin kalıcı olarak silindi.');
     setTimeout(() => location.replace('/'), 0);
     return { ok: true };
   } catch (error) {
