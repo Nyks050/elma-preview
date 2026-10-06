@@ -57,7 +57,7 @@
     const style = document.createElement('style');
     style.textContent = `
       .eg-bus-led-overlay{position:absolute;inset:0;z-index:2;width:100%;height:100%;pointer-events:none;overflow:visible}
-      .eg-bus-led-track{animation:egBusLEDScroll ${Math.round(period / 24)}s linear infinite;animation-play-state:paused}
+      .eg-bus-led-track{animation:egBusLEDScroll ${Math.round(period / 32)}s linear infinite;animation-play-state:paused}
       .eg-panel.active .eg-bus-led-track{animation-play-state:running}
       .eg-bus-led-static{display:none}
       @keyframes egBusLEDScroll{from{transform:translateX(0)}to{transform:translateX(-${period}px)}}
