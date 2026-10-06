@@ -157,7 +157,7 @@
       directions.target='_blank';
       directions.rel='noopener';
       const point=coordinates(item);
-      directions.href=point?'https://maps.apple.com/?daddr='+encodeURIComponent(point.latitude+','+point.longitude)+'&dirflg=d':'https://maps.apple.com/?q='+encodeURIComponent(title.textContent+' Amasya');
+      directions.href=point?'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(point.latitude+','+point.longitude)+'&travelmode=driving':'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(title.textContent+' Amasya');
       actions.append(phone,directions);
       card.append(head,address,actions);
       results.appendChild(card);
