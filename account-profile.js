@@ -1,7 +1,102 @@
 import { getApp, getApps } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
-import { deleteUser, getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
-import { collection, deleteDoc, doc, getDocs, getFirestore, query, where } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
-import { deleteObject, getStorage, ref } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js';
+import { EmailAuthProvider, GoogleAuthProvider, OAuthProvider, getAuth, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, revokeAccessToken, signOut } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
+
+let accountDeleteInFlight = null;
+let profileObserver = null;
+let profileObserverTimer = null;
+let latestProfileUser = null;
+let accountStarted = false;
+let accountStartAttempts = 0;
+const isNativeAccount = () => Boolean(window.webkit?.messageHandlers?.elmaRoutePlanner);
+const accountError = code => Object.assign(new Error(code), { code });
+
+function bounded(promise, timeoutMs, code = 'auth/network-request-failed') {
+  let timer;
+  return Promise.race([promise, new Promise((_, reject) => {
+    timer = setTimeout(() => reject(accountError(code)), timeoutMs);
+  })]).finally(() => clearTimeout(timer));
+}
+
+function askCurrentPassword() {
+  return new Promise((resolve, reject) => {
+    const layer = document.createElement('div');
+    layer.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#0006;display:grid;place-items:center;padding:24px';
+    layer.innerHTML = '<form style="background:white;color:#111;border-radius:20px;padding:22px;width:min(100%,360px)"><h2 id="egDeletePasswordTitle" style="margin-top:0;font-size:20px">Hesabını doğrula</h2><p>Silme işlemi için mevcut şifreni gir.</p><input aria-label="Mevcut şifre" type="password" autocomplete="current-password" required style="width:100%;box-sizing:border-box;padding:12px;font-size:16px"><div style="display:flex;gap:12px;margin-top:18px"><button type="button">Vazgeç</button><button type="submit">Doğrula</button></div></form>';
+    layer.setAttribute('role', 'dialog');
+    layer.setAttribute('aria-modal', 'true');
+    layer.setAttribute('aria-labelledby', 'egDeletePasswordTitle');
+    const input = layer.querySelector('input');
+    let settled = false;
+    const finish = (value, error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      input.value = '';
+      layer.remove();
+      if (error) reject(accountError(error)); else resolve(value);
+    };
+    const timer = setTimeout(() => finish('', 'auth/timeout'), 90000);
+    layer.querySelector('button[type="button"]').onclick = () => finish('', 'auth/cancelled');
+    layer.querySelector('form').onsubmit = event => { event.preventDefault(); if (input.value) finish(input.value); };
+    layer.onkeydown = event => { if (event.key === 'Escape') finish('', 'auth/cancelled'); };
+    document.body.appendChild(layer);
+    input.focus();
+  });
+}
+
+// Native Apple authorization codes are not OAuth access tokens. Match the Firebase
+// iOS SDK's accounts:revokeToken request instead of feeding a code to revokeAccessToken.
+async function revokeNativeAppleCode(auth, user, code) {
+  if (!code || !auth.app.options.apiKey) throw accountError('auth/apple-revocation-required');
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const idToken = await bounded(user.getIdToken(), 10000);
+    const response = await fetch('https://identitytoolkit.googleapis.com/v2/accounts:revokeToken?key=' + encodeURIComponent(auth.app.options.apiKey), {
+      method: 'POST', signal: controller.signal,
+      headers: { 'Content-Type': 'application/json', 'X-Ios-Bundle-Identifier': 'tr.com.elmago.app' },
+      body: JSON.stringify({ providerId: 'apple.com', tokenType: '3', token: code, idToken })
+    });
+    if (!response.ok) throw accountError('auth/apple-revocation-failed');
+  } catch (error) {
+    if (error?.name === 'AbortError') throw accountError('auth/network-request-failed');
+    throw error;
+  } finally { clearTimeout(timeout); }
+}
+
+async function verifyAccountForDeletion(auth, user) {
+  const token = await bounded(user.getIdTokenResult(), 10000);
+  const providers = (user.providerData || []).map(item => item.providerId);
+  const hasApple = providers.includes('apple.com');
+  const providerId = hasApple ? 'apple.com' : providers.includes(token.signInProvider) ? token.signInProvider : providers[0];
+  const authTime = Date.parse(token.authTime || '');
+  const recent = Number.isFinite(authTime) && authTime <= Date.now() + 30000 && Date.now() - authTime <= 4 * 60 * 1000;
+  // Apple must yield a fresh code even during a recent session so its grant can be revoked.
+  if (hasApple || !recent) {
+    if (['apple.com', 'google.com', 'password'].includes(providerId) && typeof window.__elmaReauthenticateAccount === 'function') {
+      const result = await bounded(window.__elmaReauthenticateAccount(providerId, user.uid), 95000, 'auth/timeout');
+      if (auth.currentUser?.uid !== user.uid) throw accountError('auth/user-mismatch');
+      if (hasApple) await revokeNativeAppleCode(auth, user, result?.appleAuthorizationCode);
+    } else if (providerId === 'password') {
+      if (window.webkit?.messageHandlers?.elmaRoutePlanner) throw accountError('auth/native-update-required');
+      const password = await askCurrentPassword();
+      if (auth.currentUser?.uid !== user.uid) throw accountError('auth/user-mismatch');
+      await bounded(reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password)), 15000);
+    } else if (providerId === 'google.com' || providerId === 'apple.com') {
+      if (window.webkit?.messageHandlers?.elmaRoutePlanner) throw accountError('auth/native-update-required');
+      const provider = hasApple ? new OAuthProvider('apple.com') : new GoogleAuthProvider();
+      const result = await bounded(reauthenticateWithPopup(user, provider), 95000, 'auth/timeout');
+      if (hasApple) {
+        const accessToken = OAuthProvider.credentialFromResult(result)?.accessToken;
+        if (!accessToken) throw accountError('auth/apple-revocation-required');
+        await bounded(revokeAccessToken(auth, accessToken), 15000);
+      }
+    } else throw accountError('auth/requires-recent-login');
+  }
+  if (auth.currentUser?.uid !== user.uid) throw accountError('auth/user-mismatch');
+  await bounded(user.getIdToken(true), 10000);
+}
 
 const style = document.createElement('style');
 style.textContent = `
@@ -44,7 +139,7 @@ function ensureProfileCard() {
     card.id = 'egUserProfile';
     card.className = 'eg-user-profile';
     card.setAttribute('aria-label', 'Kullanıcı profili');
-    card.innerHTML = '<span class="eg-user-avatar" aria-hidden="true"></span><span class="eg-user-copy"><strong></strong><small>Google ile giriş yapıldı</small></span>';
+    card.innerHTML = '<span class="eg-user-avatar" aria-hidden="true"></span><span class="eg-user-copy"><strong></strong><small></small></span>';
     settings.prepend(card);
   }
   return card;
@@ -59,6 +154,8 @@ function renderUser(user) {
   const name = userName(user);
   avatar.replaceChildren(avatarMarkup(user));
   card.querySelector('strong').textContent = name;
+  const providerIds = (user.providerData || []).map(item => item.providerId);
+  card.querySelector('small').textContent = (providerIds.includes('apple.com') ? 'Apple' : providerIds.includes('google.com') ? 'Google' : 'E-posta') + ' ile giriş yapıldı';
 
   const topProfile = document.querySelector('.profile');
   if (topProfile) {
@@ -70,11 +167,23 @@ function renderUser(user) {
 }
 
 function renderWhenReady(user) {
-  if (renderUser(user)) return;
-  const observer = new MutationObserver(() => {
-    if (renderUser(user)) observer.disconnect();
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
+  latestProfileUser = user;
+  if (isNativeAccount()) return;
+  const render = () => {
+    const ready = renderUser(latestProfileUser);
+    if (ready) ensureDeleteAccount(getAuth(getApp()));
+    return ready;
+  };
+  const stop = () => {
+    profileObserver?.disconnect(); profileObserver = null;
+    clearTimeout(profileObserverTimer); profileObserverTimer = null;
+  };
+  if (render()) { stop(); return; }
+  if (profileObserver || !document.body) return;
+  profileObserver = new MutationObserver(() => { if (render()) stop(); });
+  profileObserver.observe(document.body, { childList: true, subtree: true });
+  // An absent/replaced account screen must not leave a lifetime DOM observer.
+  profileObserverTimer = setTimeout(stop, 10000);
 }
 
 function ensureDeleteAccount(auth) {
@@ -89,7 +198,7 @@ function ensureDeleteAccount(auth) {
   status.id = 'egDeleteAccountStatus';
   status.className = 'eg-delete-account-status';
   settings.append(button, status);
-  button.onclick = () => removeCurrentAccount(auth, button, status);
+  button.onclick = () => deleteCurrentAccountOnce(auth, button, status);
   return true;
 }
 
@@ -97,77 +206,66 @@ async function removeCurrentAccount(auth, button, status, confirmed = false) {
   const user = auth.currentUser;
   window.__elmaLastAccountDeleteError = '';
   if (!user) { status.textContent = 'Önce hesabına giriş yap.'; window.__elmaLastAccountDeleteError = 'auth/no-current-user'; return { ok: false, error: 'auth/no-current-user' }; }
-  const lastSignIn = Date.parse(user.metadata?.lastSignInTime || '');
-  if (!Number.isFinite(lastSignIn) || Date.now() - lastSignIn > 5 * 60 * 1000) {
-    status.textContent = 'Güvenlik için çıkış yapıp tekrar giriş yaptıktan sonra yeniden dene.';
-    window.__elmaLastAccountDeleteError = 'auth/requires-recent-login';
-    return { ok: false, error: 'auth/requires-recent-login' };
-  }
-  if (!confirmed && prompt('Hesabın ve ilişkili verilerin kalıcı olarak silinecek. Onaylamak için SİL yaz.') !== 'SİL') return;
+  if (!confirmed && prompt('Hesabın ve ilişkili verilerin kalıcı olarak silinecek. Onaylamak için SİL yaz.') !== 'SİL') return { ok: false, error: 'auth/cancelled' };
   button.disabled = true;
   button.textContent = 'Hesap siliniyor…';
   status.textContent = '';
   try {
-    const app = getApp();
-    const db = getFirestore(app);
-    const storage = getStorage(app);
     const uid = user.uid;
-    // Fetch independent collections together, then delete in small parallel batches.
-    // Authentication is removed only after every owned record has finished deleting.
-    async function inBatches(records, task, size = 8) {
-      for (let offset = 0; offset < records.length; offset += size) {
-        await Promise.all(records.slice(offset, offset + size).map(task));
-      }
+    status.textContent = 'Kimliğin güvenli şekilde doğrulanıyor…';
+    await verifyAccountForDeletion(auth, user);
+    status.textContent = 'Hesap silme isteği gönderiliyor…';
+    const remove = httpsCallable(getFunctions(getApp(), 'europe-west1'), 'deleteMyAccount', { timeout: 20000 });
+    const response = await remove({ confirmation: 'DELETE', expectedUid: uid });
+    if (response.data?.deleted !== true) throw accountError('functions/invalid-response');
+    // Only the server-confirmed deletion signs out. Cleanup remains a durable,
+    // retried server job; neither network timeout nor local sign-out means success.
+    await bounded(signOut(auth), 5000).catch(() => {});
+    try {
+      ['elma_ios_push_device_v1', 'elma_e2ee_private_' + uid, 'elmaChatSeen_' + uid, 'elmaBlockedOwners', 'elmaLastListingAt'].forEach(key => localStorage.removeItem(key));
+      ['elmaLastMessageText', 'elmaLastMessageAt'].forEach(key => sessionStorage.removeItem(key));
+    } catch {}
+    status.textContent = 'Hesabın silindi. İlişkili veriler sunucuda temizleniyor.';
+    if (!window.webkit?.messageHandlers?.elmaRoutePlanner) {
+      alert(status.textContent);
+      setTimeout(() => location.replace('/'), 0);
     }
-
-    const [listings, ownedContacts, requestedContacts, reports, devices] = await Promise.all([
-      getDocs(query(collection(db, 'lostFoundListings'), where('ownerUid', '==', uid))),
-      getDocs(query(collection(db, 'lostFoundContacts'), where('ownerUid', '==', uid))),
-      getDocs(query(collection(db, 'lostFoundContacts'), where('requesterUid', '==', uid))),
-      getDocs(query(collection(db, 'lostFoundReports'), where('reporterUid', '==', uid))),
-      getDocs(query(collection(db, 'pushDevices'), where('ownerUid', '==', uid)))
-    ]);
-
-    const contacts = [...new Map([...ownedContacts.docs, ...requestedContacts.docs].map(record => [record.id, record])).values()];
-    await Promise.all([
-      inBatches(listings.docs, async record => {
-        const photoPath = record.data().photoPath;
-        if (photoPath) await deleteObject(ref(storage, photoPath)).catch(() => {});
-        await deleteDoc(record.ref);
-      }),
-      inBatches(contacts, async record => {
-        const messages = await getDocs(collection(db, 'lostFoundContacts', record.id, 'messages'));
-        await inBatches(messages.docs, message => deleteDoc(message.ref));
-        await deleteDoc(record.ref);
-      }),
-      inBatches(reports.docs, record => deleteDoc(record.ref)),
-      inBatches(devices.docs, record => deleteDoc(record.ref))
-    ]);
-
-    await Promise.all([
-      deleteDoc(doc(db, 'e2eeKeys', uid)).catch(() => {}),
-      deleteDoc(doc(db, 'listingRateLimits', uid)).catch(() => {}),
-      deleteDoc(doc(db, 'users', uid)).catch(() => {})
-    ]);
-    await deleteUser(user);
-    try { localStorage.removeItem('elma_ios_push_device_v1'); } catch {}
-    if (!window.webkit?.messageHandlers?.elmaRoutePlanner) alert('Hesabın ve ilişkili verilerin kalıcı olarak silindi.');
-    setTimeout(() => location.replace('/'), 0);
-    return { ok: true };
+    return { ok: true, cleanupPending: response.data.cleanupPending === true };
   } catch (error) {
     window.__elmaLastAccountDeleteError = error?.code || error?.message || 'unknown';
-    const requiresLogin = error?.code === 'auth/requires-recent-login';
-    status.textContent = requiresLogin
-      ? 'Çıkış yapıp tekrar giriş yaptıktan sonra yeniden dene.'
-      : 'Hesap silinemedi. Lütfen tekrar dene.';
+    const code = window.__elmaLastAccountDeleteError;
+    const messages = {
+      'auth/requires-recent-login': 'Güvenlik için hesabını yeniden doğrulaman gerekiyor.',
+      'auth/user-mismatch': 'Silmek istediğin hesapla aynı hesabı seçmelisin.',
+      'auth/cancelled': 'Silme işlemi iptal edildi.',
+      'auth/popup-closed-by-user': 'Doğrulama iptal edildi. Hesabın silinmedi.',
+      'auth/native-update-required': 'Güvenli hesap doğrulaması için uygulamayı güncelle.',
+      'auth/apple-revocation-required': 'Apple yetkisi doğrulanamadı. Hesabın silinmedi.',
+      'auth/apple-revocation-failed': 'Apple bağlantısı kaldırılamadı. Hesabın silinmedi; tekrar dene.',
+      'functions/deadline-exceeded': 'Sunucudan sonuç alınamadı. Silme başlamış olabilir; bağlantını kontrol edip tekrar dene.',
+      'functions/unavailable': 'Silme sonucu doğrulanamadı. Bağlantını kontrol edip tekrar dene.',
+      'auth/timeout': 'Doğrulama zaman aşımına uğradı. Hesabın silinmedi.'
+    };
+    status.textContent = messages[code] || 'Hesap silme işlemi tamamlanamadı. Lütfen tekrar dene.';
     button.disabled = false;
     button.textContent = 'Hesabımı sil';
     return { ok: false, error: window.__elmaLastAccountDeleteError };
   }
 }
 
+function deleteCurrentAccountOnce(auth, button, status, confirmed = false) {
+  if (accountDeleteInFlight) return accountDeleteInFlight;
+  accountDeleteInFlight = removeCurrentAccount(auth, button, status, confirmed).finally(() => { accountDeleteInFlight = null; });
+  return accountDeleteInFlight;
+}
+
 function start() {
-  if (!getApps().length) return setTimeout(start, 50);
+  if (accountStarted) return;
+  if (!getApps().length) {
+    if (accountStartAttempts++ < 60) setTimeout(start, 500);
+    return;
+  }
+  accountStarted = true;
   const auth = getAuth(getApp());
   window.elmaGetNativeAccountProfile = () => {
     const user = auth.currentUser;
@@ -184,13 +282,15 @@ function start() {
   window.elmaDeleteCurrentAccount = () => {
     const button = document.getElementById('egDeleteAccount') || { disabled: false, textContent: '' };
     const status = document.getElementById('egDeleteAccountStatus') || { textContent: '' };
-    return removeCurrentAccount(auth, button, status, true);
+    return deleteCurrentAccountOnce(auth, button, status, true);
   };
   window.elmaClearNativePreferences = () => {
     ['elma_location_onboarding_seen_v1','elma_location_enabled_v1','elma_notifications_v1','elma_large_text_v1','elma_reduce_motion_v1'].forEach(key => localStorage.removeItem(key));
   };
-  onAuthStateChanged(auth, user => { renderWhenReady(user); const observer = new MutationObserver(() => { if (ensureDeleteAccount(auth)) observer.disconnect(); }); if (!ensureDeleteAccount(auth)) observer.observe(document.body, { childList: true, subtree: true }); });
+  onAuthStateChanged(auth, user => renderWhenReady(user));
   window.addEventListener('elma-user-profile-updated', event => renderWhenReady(event.detail));
 }
 
+window.addEventListener('elma-auth-session-ready', start);
 start();
+

@@ -18,7 +18,13 @@ const icons={
 let api=null,user=null,listings=[],myListings=[],requests=[],outgoingRequests=[],unsubscribeListings=null,unsubscribeRequests=null,unsubscribeOutgoing=null,unsubscribeMine=null,chatUnsubscribe=null,chatStateUnsubscribe=null,typingStopTimer=null,typingIndicatorTimer=null,typingActive=false,typingLastWrite=0,chatSeen={},mode='all',query='',category='all',editing=null,pendingKind='lost',viewerCity='',viewerDistrict='',viewerCoords=null,cityResolution=null,nearOnly=false,currentDetail=null,currentChat=null,listingSnapshotReady=false;
 const conversationWatchers=new Map(),conversationLatest=new Map();
 const storedSet=key=>{try{return new Set(JSON.parse(localStorage.getItem(key)||'[]'))}catch{return new Set()}};
-const blockedOwners=storedSet('elmaBlockedOwners');
+const blockedOwners=new Set(),blockedNames=new Map();
+let unsubscribeBlocks=null,unsubscribePrivate=null,sendingMessage=false;
+const privateListings=new Map();
+const identityPromises=new Map(),conversationKeyCache=new Map(),decryptedMessageCache=new Map();
+function peerUid(conversation){return conversation.ownerUid===user?.uid?conversation.requesterUid:conversation.ownerUid}
+function isConversationBlocked(conversation){return blockedOwners.has(peerUid(conversation))}
+function clearCryptoCache(){identityPromises.clear();conversationKeyCache.clear();decryptedMessageCache.clear()}
 const notifiedMatches=storedSet('elmaNotifiedMatches');
 const $=selector=>document.querySelector(selector);
 const dateValue=value=>value?.toDate?.()||value instanceof Date&&value||value?.seconds&&new Date(value.seconds*1000)||null;
@@ -26,21 +32,58 @@ const activeListing=item=>item.status==='active'&&(!dateValue(item.expiresAt)||d
 const trDate=value=>{const date=dateValue(value)||new Date(value);return Number.isNaN(date.getTime())?'':new Intl.DateTimeFormat('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(date)};
 const normalize=value=>String(value||'').toLocaleLowerCase('tr-TR');
 const cityKey=value=>normalize(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replaceAll('ı','i');
-const withTimeout=(promise,ms,message)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(message)),ms))]);
-const after=(ms,value)=>new Promise(resolve=>setTimeout(()=>resolve(value),ms));
+const withTimeout=(promise,ms,message)=>new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(new Error(message)),ms);Promise.resolve(promise).then(value=>{clearTimeout(timeout);resolve(value)},error=>{clearTimeout(timeout);reject(error)})});
 const distanceKm=(a,b)=>{if(!a||!b)return Infinity;const rad=value=>value*Math.PI/180,dLat=rad(b.lat-a.lat),dLon=rad(b.lon-a.lon),x=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;return 6371*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))};
 const words=value=>new Set(normalize(value).replace(/[^a-z0-9çğıöşü ]/g,' ').split(/\s+/).filter(word=>word.length>2));
 const FIXED_CITY='Amasya',LISTING_COOLDOWN_MS=24*60*60*1000,MESSAGE_WINDOW_MS=10000,MESSAGE_WINDOW_LIMIT=6;
 const forbiddenRoots=['amk','aq','orospu','piç','sik','siker','siktir','yarrak','göt','ibne','kahpe','pezevenk','salak','aptal','gerizekalı','porn','seks','escort','itiraf'];
 const moderationText=value=>normalize(value).replace(/[013457@!$]/g,char=>({'0':'o','1':'i','3':'e','4':'a','5':'s','7':'t','@':'a','!':'i','$':'s'}[char]||char)).replace(/(.)\1{2,}/g,'$1$1').replace(/[^a-zçğıöşü]/g,'');
-function validateCommunityText(...values){const compact=moderationText(values.join(' '));if(forbiddenRoots.some(root=>compact.includes(root)))throw new Error('Küfür, hakaret, cinsel içerik veya konu dışı itiraf metni kullanılamaz.');}
+function validateCommunityText(...values){const tokens=normalize(values.join(' ')).split(/[\s.,;:!?()[\]{}]+/).map(moderationText);if(tokens.some(token=>forbiddenRoots.includes(token)||/^(siktir|orospu|yarrak|pezevenk|porn)/.test(token)))throw new Error('Küfür, hakaret, cinsel içerik veya konu dışı itiraf metni kullanılamaz.');}
 let recentMessageTimes=[];
 function guardMessageSpam(text){const now=Date.now();recentMessageTimes=recentMessageTimes.filter(time=>now-time<MESSAGE_WINDOW_MS);if(recentMessageTimes.length>=MESSAGE_WINDOW_LIMIT)throw new Error('Çok hızlı mesaj gönderiyorsun. Birkaç saniye bekle.');const fingerprint=normalize(text).replace(/\s+/g,' ').trim();if(fingerprint&&fingerprint===sessionStorage.getItem('elmaLastMessageText')&&now-Number(sessionStorage.getItem('elmaLastMessageAt')||0)<30000)throw new Error('Aynı mesajı art arda gönderemezsin.');recentMessageTimes.push(now);sessionStorage.setItem('elmaLastMessageText',fingerprint);sessionStorage.setItem('elmaLastMessageAt',String(now));}
 const b64=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes))),unb64=value=>Uint8Array.from(atob(value),char=>char.charCodeAt(0));
-async function ensureE2EEIdentity(account){if(!account||!api||!crypto.subtle)return null;const storageKey='elma_e2ee_private_'+account.uid;let privateJwk;try{privateJwk=JSON.parse(localStorage.getItem(storageKey)||'null')}catch{}let pair;if(privateJwk){const privateKey=await crypto.subtle.importKey('jwk',privateJwk,{name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);pair={privateKey}}else{pair=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);privateJwk=await crypto.subtle.exportKey('jwk',pair.privateKey);localStorage.setItem(storageKey,JSON.stringify(privateJwk))}if(!pair.publicKey){const x=privateJwk.x,y=privateJwk.y;pair.publicKey=await crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x,y,ext:true},{name:'ECDH',namedCurve:'P-256'},true,[])}const publicJwk=await crypto.subtle.exportKey('jwk',pair.publicKey);await api.setDoc(api.doc(api.db,'e2eeKeys',account.uid),{e2eePublicKey:publicJwk,e2eeVersion:1},{merge:true}).catch(()=>{});return pair.privateKey}
-async function conversationCryptoKey(conversation){const account=user;if(!account||!api)throw new Error('Şifreleme için giriş yapmalısın.');const otherUid=conversation.ownerUid===account.uid?conversation.requesterUid:conversation.ownerUid;if(!otherUid)throw new Error('Karşı taraf kimliği bulunamadı.');const privateKey=await ensureE2EEIdentity(account),snapshot=await api.getDoc(api.doc(api.db,'e2eeKeys',otherUid)),publicJwk=snapshot.data()?.e2eePublicKey;if(!publicJwk)throw new Error('Karşı taraf güvenli mesajlaşmayı henüz etkinleştirmedi.');const publicKey=await crypto.subtle.importKey('jwk',publicJwk,{name:'ECDH',namedCurve:'P-256'},false,[]),bits=await crypto.subtle.deriveBits({name:'ECDH',public:publicKey},privateKey,256),material=await crypto.subtle.importKey('raw',bits,'HKDF',false,['deriveKey']),salt=new TextEncoder().encode(conversation.id);return crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt,info:new TextEncoder().encode('ElmaGo E2EE v1')},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function ensureE2EEIdentity(account){
+  if(!account||!api||!crypto.subtle)throw new Error('Güvenli mesajlaşma bu cihazda kullanılamıyor.');
+  if(identityPromises.has(account.uid))return identityPromises.get(account.uid);
+  const promise=(async()=>{
+    const storageKey='elma_e2ee_private_'+account.uid;let privateJwk;
+    try{privateJwk=JSON.parse(localStorage.getItem(storageKey)||'null')}catch{}
+    let pair;
+    if(privateJwk){pair={privateKey:await crypto.subtle.importKey('jwk',privateJwk,{name:'ECDH',namedCurve:'P-256'},true,['deriveBits'])}}
+    else{pair=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);privateJwk=await crypto.subtle.exportKey('jwk',pair.privateKey);localStorage.setItem(storageKey,JSON.stringify(privateJwk))}
+    if(!pair.publicKey)pair.publicKey=await crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x:privateJwk.x,y:privateJwk.y,ext:true},{name:'ECDH',namedCurve:'P-256'},true,[]);
+    const publicJwk=await crypto.subtle.exportKey('jwk',pair.publicKey);
+    await api.setDoc(api.doc(api.db,'e2eeKeys',account.uid),{e2eePublicKey:publicJwk,e2eeVersion:1},{merge:true});
+    return pair.privateKey;
+  })();
+  identityPromises.set(account.uid,promise);
+  promise.catch(()=>{if(identityPromises.get(account.uid)===promise)identityPromises.delete(account.uid)});
+  return promise;
+}
+async function conversationCryptoKey(conversation){
+  const account=user;if(!account||!api)throw new Error('Şifreleme için giriş yapmalısın.');
+  const otherUid=conversation.ownerUid===account.uid?conversation.requesterUid:conversation.ownerUid;
+  if(!otherUid)throw new Error('Karşı taraf kimliği bulunamadı.');
+  const cacheKey=account.uid+':'+conversation.id,cached=conversationKeyCache.get(cacheKey);
+  if(cached&&Date.now()-cached.at<30000)return cached.promise;
+  const promise=(async()=>{
+    const privateKey=await ensureE2EEIdentity(account),snapshot=await api.getDoc(api.doc(api.db,'e2eeKeys',otherUid)),publicJwk=snapshot.data()?.e2eePublicKey;
+    if(!publicJwk)throw new Error('Karşı taraf güvenli mesajlaşmayı henüz etkinleştirmedi.');
+    const publicKey=await crypto.subtle.importKey('jwk',publicJwk,{name:'ECDH',namedCurve:'P-256'},false,[]),bits=await crypto.subtle.deriveBits({name:'ECDH',public:publicKey},privateKey,256),material=await crypto.subtle.importKey('raw',bits,'HKDF',false,['deriveKey']);
+    return crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt:new TextEncoder().encode(conversation.id),info:new TextEncoder().encode('ElmaGo E2EE v1')},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  })();
+  if(conversationKeyCache.size>=100)conversationKeyCache.delete(conversationKeyCache.keys().next().value);
+  conversationKeyCache.set(cacheKey,{at:Date.now(),promise});
+  promise.catch(()=>{if(conversationKeyCache.get(cacheKey)?.promise===promise)conversationKeyCache.delete(cacheKey)});
+  return promise;
+}
 async function encryptMessage(conversation,text){const key=await conversationCryptoKey(conversation),iv=crypto.getRandomValues(new Uint8Array(12)),cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(text));return{ciphertext:b64(cipher),iv:b64(iv),encryption:'e2ee-v1'}}
-async function decryptMessage(conversation,message){if(message.encryption!=='e2ee-v1')return message.text||'';try{const key=await conversationCryptoKey(conversation),plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(message.iv)},key,unb64(message.ciphertext));return new TextDecoder().decode(plain)}catch{return'🔒 Bu mesaj bu cihazda çözülemedi.'}}
+async function decryptMessage(conversation,message){
+  if(message.encryption!=='e2ee-v1')return message.text||'';
+  const cacheKey=[user?.uid,conversation.id,message.id,message.iv,message.ciphertext].join(':');
+  if(decryptedMessageCache.has(cacheKey))return decryptedMessageCache.get(cacheKey);
+  try{const key=await conversationCryptoKey(conversation),plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(message.iv)},key,unb64(message.ciphertext)),text=new TextDecoder().decode(plain);if(decryptedMessageCache.size>=300)decryptedMessageCache.delete(decryptedMessageCache.keys().next().value);decryptedMessageCache.set(cacheKey,text);return text}catch{return'🔒 Bu mesaj bu cihazda çözülemedi.'}
+}
 function matchScore(source,target){if(!source||!target||source.kind===target.kind||source.category!==target.category||cityKey(itemCity(source))!==cityKey(itemCity(target)))return 0;let score=45;if(itemDistrict(source,itemCity(source))&&itemDistrict(source,itemCity(source))===itemDistrict(target,itemCity(target)))score+=25;const a=words(source.title+' '+source.description),b=words(target.title+' '+target.description),shared=[...a].filter(word=>b.has(word)).length;return Math.min(99,score+shared*10)}
 function bestMatch(item){return listings.filter(candidate=>candidate.id!==item.id&&activeListing(candidate)&&!blockedOwners.has(candidate.ownerUid)).map(candidate=>({item:candidate,score:matchScore(item,candidate)})).filter(result=>result.score>=55).sort((a,b)=>b.score-a.score)[0]||null}
 
@@ -112,7 +155,7 @@ async function connectFirebase(){
   const app=appModule.getApps()[0]||appModule.initializeApp(APP_CONFIG);
   const auth=authModule.getAuth(app),db=dbModule.getFirestore(app),storage=storageModule.getStorage(app);
   api={...authModule,...dbModule,...storageModule,auth,db,storage};
-  authModule.onAuthStateChanged(auth,next=>{if(user?.uid!==next?.uid)clearConversationWatchers();user=next;if(next)ensureE2EEIdentity(next).catch(()=>{});chatSeen=readChatSeen();subscribeRequests();subscribeOutgoingRequests();subscribeMyListings();render();prefillUser()});
+  authModule.onAuthStateChanged(auth,next=>{if(user?.uid!==next?.uid){closeChat();clearConversationWatchers();clearCryptoCache()}user=next;if(next)ensureE2EEIdentity(next).catch(()=>{});chatSeen=readChatSeen();subscribeBlocks();subscribePrivateListings();subscribeRequests();subscribeOutgoingRequests();subscribeMyListings();render();prefillUser()});
   await resolveViewerCity();if(viewerCity)subscribeListings();return api;
 }
 function subscribeListings(){
@@ -131,12 +174,33 @@ function subscribeOutgoingRequests(){unsubscribeOutgoing?.();unsubscribeOutgoing
 function readChatSeen(){if(!user)return{};try{return JSON.parse(localStorage.getItem('elmaChatSeen_'+user.uid)||'{}')}catch{return{}}}
 function saveChatSeen(){if(!user)return;try{localStorage.setItem('elmaChatSeen_'+user.uid,JSON.stringify(chatSeen))}catch{}}
 function conversationReadKey(request){return conversationLatest.get(request.id)?.id||'request:'+request.id}
-function isConversationUnread(request){if(!user||request.status==='rejected')return false;const latest=conversationLatest.get(request.id);if(latest)return latest.senderUid!==user.uid&&chatSeen[request.id]!==latest.id;return request.ownerUid===user.uid&&chatSeen[request.id]!==conversationReadKey(request)}
+function isConversationUnread(request){if(!user||request.status==='rejected'||isConversationBlocked(request))return false;const latest=conversationLatest.get(request.id);if(latest)return latest.senderUid!==user.uid&&chatSeen[request.id]!==latest.id;return request.ownerUid===user.uid&&chatSeen[request.id]!==conversationReadKey(request)}
 function markConversationRead(request){if(!request?.id)return;chatSeen[request.id]=conversationReadKey(request);saveChatSeen();updateUnreadBadges();if(mode==='requests')render()}
 function ensureUnreadBadge(host,id){if(!host)return null;let badge=host.querySelector('#'+id);if(!badge){badge=document.createElement('span');badge.id=id;badge.className='eg-chat-badge';badge.hidden=true;host.appendChild(badge)}return badge}
 function updateUnreadBadges(){const all=[...requests,...outgoingRequests].filter((item,index,array)=>item.status!=='rejected'&&array.findIndex(other=>other.id===item.id)===index),count=all.filter(isConversationUnread).length,labels=[ensureUnreadBadge($('.eg-lost-card'),'egLostCardBadge'),ensureUnreadBadge($('.eg-lost-nav button[data-mode="requests"]'),'egLostMessagesBadge'),ensureUnreadBadge(document.querySelector('.eg-tab[data-tab="lost"]'),'egLostTabBadge'),ensureUnreadBadge(document.querySelector('.elma-main-tab[data-elma-tab="lost"]'),'elmaLostMainTabBadge')];labels.forEach(badge=>{if(!badge)return;badge.hidden=!count;badge.textContent=count>9?'9+':String(count)});document.title=count?'('+count+') ElmaGo':'ElmaGo'}
 function clearConversationWatchers(){conversationWatchers.forEach(stop=>stop());conversationWatchers.clear();conversationLatest.clear();updateUnreadBadges()}
-function syncConversationWatchers(){if(!api||!user)return clearConversationWatchers();const all=[...requests,...outgoingRequests].filter((item,index,array)=>item.status!=='rejected'&&array.findIndex(other=>other.id===item.id)===index),ids=new Set(all.map(item=>item.id));conversationWatchers.forEach((stop,id)=>{if(!ids.has(id)){stop();conversationWatchers.delete(id);conversationLatest.delete(id)}});all.forEach(request=>{if(conversationWatchers.has(request.id))return;let ready=false;const source=api.query(api.collection(api.db,'lostFoundContacts',request.id,'messages'),api.limit(100)),stop=api.onSnapshot(source,async snapshot=>{const messages=snapshot.docs.map(doc=>({id:doc.id,...doc.data()})).sort((a,b)=>(dateValue(a.createdAt)||0)-(dateValue(b.createdAt)||0)),latest=messages.at(-1),previous=conversationLatest.get(request.id);if(latest){const preview=latest.encryption?await decryptMessage(request,latest):latest.text;conversationLatest.set(request.id,{...latest,text:preview});}else conversationLatest.delete(request.id);await acknowledgeMessages(request,messages);if(currentChat?.id===request.id)markConversationRead(request);else{updateUnreadBadges();if(mode==='requests')render();if(ready&&latest&&latest.id!==previous?.id&&latest.senderUid!==user.uid)toast('Yeni mesajın var.')}ready=true},()=>{});conversationWatchers.set(request.id,stop)});updateUnreadBadges()}
+function syncConversationWatchers(){
+  if(!api||!user)return clearConversationWatchers();
+  const accountUid=user.uid,all=[...requests,...outgoingRequests].filter((item,index,array)=>item.status!=='rejected'&&!isConversationBlocked(item)&&array.findIndex(other=>other.id===item.id)===index).sort((a,b)=>(dateValue(b.createdAt)||0)-(dateValue(a.createdAt)||0)).slice(0,30),ids=new Set(all.map(item=>item.id));
+  conversationWatchers.forEach((stop,id)=>{if(!ids.has(id)){stop();conversationWatchers.delete(id);conversationLatest.delete(id)}});
+  all.forEach(request=>{
+    if(conversationWatchers.has(request.id))return;
+    let ready=false,revision=0;
+    // A closed conversation needs one preview, not 100 decryptions and receipt writes.
+    const source=api.query(api.collection(api.db,'lostFoundContacts',request.id,'messages'),api.orderBy('createdAt','desc'),api.limit(1));
+    const stop=api.onSnapshot(source,async snapshot=>{
+      const generation=++revision,messages=snapshot.docs.map(doc=>({id:doc.id,...doc.data()})),latest=messages[0],previous=conversationLatest.get(request.id);
+      const preview=latest?(latest.encryption?await decryptMessage(request,latest):latest.text):null;
+      if(user?.uid!==accountUid||isConversationBlocked(request)||!conversationWatchers.has(request.id)||generation!==revision)return;
+      if(latest)conversationLatest.set(request.id,{...latest,text:preview});else conversationLatest.delete(request.id);
+      await acknowledgeMessages(request,messages);
+      if(currentChat?.id===request.id)markConversationRead(request);
+      else{updateUnreadBadges();if(mode==='requests')render();if(ready&&latest&&latest.id!==previous?.id&&latest.senderUid!==accountUid)toast('Yeni mesajın var.')}
+      ready=true;
+    },()=>{});
+    conversationWatchers.set(request.id,stop);
+  });updateUnreadBadges();
+}
 function filteredItems(){
   const source=mode==='mine'?myListings:listings;return source.filter(item=>{
     if(mode!=='mine'&&(!viewerCity||cityKey(itemCity(item))!==cityKey(viewerCity)))return false;
@@ -152,7 +216,7 @@ function updateMetrics(items){
   const all=(mode==='mine'?myListings:listings).filter(activeListing),values={egLostMetricAll:all.length,egLostMetricLost:all.filter(item=>item.kind==='lost').length,egLostMetricFound:all.filter(item=>item.kind==='found').length,egLostVisibleCount:items.length+' ilan'};
   Object.entries(values).forEach(([id,value])=>{const node=document.getElementById(id);if(node)node.textContent=value});
 }
-function nativeSnapshot(){const handler=window.webkit?.messageHandlers?.elmaRoutePlanner;if(!handler)return;const source=[...listings,...myListings.filter(mine=>!listings.some(item=>item.id===mine.id))],items=source.filter(item=>activeListing(item)||item.ownerUid===user?.uid).map(item=>({id:String(item.id||''),kind:item.kind==='found'?'found':'lost',title:String(item.title||'İsimsiz eşya'),category:String(item.category||'Diğer'),district:String(item.district||'Merkez'),address:String(item.address||''),description:String(item.description||''),time:trDate(item.createdAt||item.happenedAt),owned:item.ownerUid===user?.uid,urgent:Boolean(item.urgent)}));const conversations=[...requests,...outgoingRequests].filter((item,index,array)=>item.status!=='rejected'&&array.findIndex(other=>other.id===item.id)===index);handler.postMessage({action:'lostSnapshot',items,signedIn:Boolean(user),messageCount:conversations.filter(isConversationUnread).length,status:viewerCity?viewerCity+' ilanları':'Amasya ilanları'})}
+function nativeSnapshot(){const handler=window.webkit?.messageHandlers?.elmaRoutePlanner;if(!handler)return;const source=[...listings,...myListings.filter(mine=>!listings.some(item=>item.id===mine.id))],items=source.filter(item=>(activeListing(item)||item.ownerUid===user?.uid)&&!blockedOwners.has(item.ownerUid)).map(item=>({id:String(item.id||''),kind:item.kind==='found'?'found':'lost',title:String(item.title||'İsimsiz eşya'),category:String(item.category||'Diğer'),district:String(item.district||'Merkez'),address:item.ownerUid===user?.uid?String(itemAddress(item,itemCity(item))||''):'',description:String(item.description||''),time:trDate(item.createdAt||item.happenedAt),owned:item.ownerUid===user?.uid,urgent:Boolean(item.urgent)}));const conversations=[...requests,...outgoingRequests].filter((item,index,array)=>item.status!=='rejected'&&array.findIndex(other=>other.id===item.id)===index);handler.postMessage({action:'lostSnapshot',items,signedIn:Boolean(user),messageCount:conversations.filter(isConversationUnread).length,status:viewerCity?viewerCity+' ilanları':'Amasya ilanları'})}
 async function nativeCreateListing(payload){if(!user)return toast('İlan oluşturmak için hesabınla giriş yap.',true);if(!api)await connectFirebase();const clean={kind:payload.kind==='found'?'found':'lost',title:String(payload.title||'').trim().slice(0,80),category:categories.includes(payload.category)?payload.category:'Diğer',line:'other',city:FIXED_CITY,district:(districts[FIXED_CITY]||[]).includes(payload.district)?payload.district:'Merkez',address:String(payload.address||'').trim().slice(0,180),location:(payload.district||'Merkez')+', '+FIXED_CITY,coords:null,happenedAt:api.Timestamp.fromDate(new Date()),description:String(payload.description||'').trim().slice(0,800),urgent:false,ownerUid:user.uid,ownerName:maskedOwnerName(user),status:'pending',createdAt:api.serverTimestamp(),updatedAt:api.serverTimestamp(),expiresAt:api.Timestamp.fromDate(new Date(Date.now()+86400000))};if(!clean.title||!clean.address||!clean.description)throw new Error('Başlık, açık adres ve açıklama zorunlu.');guardSpam(clean,false);await createListingWithLimit(api.doc(api.collection(api.db,'lostFoundListings')),clean);localStorage.setItem('elmaLastListingAt',String(Date.now()));toast('İlan incelemeye gönderildi.')}
 window.elmaNativeLostFoundAPI={handle:async(action,payload={})=>{try{if(action==='refresh'){await connectFirebase();nativeSnapshot();return}if(action==='login'){window.webkit?.messageHandlers?.elmaRoutePlanner?.postMessage({action:'closeAll'});document.querySelector('#login')?.classList.remove('hide');return}if(action==='create'){await nativeCreateListing(payload);nativeSnapshot();return}const openWeb=()=>window.webkit?.messageHandlers?.elmaRoutePlanner?.postMessage({action:'closeAll'});if(action==='messages'){openWeb();showPanel($('.eg-panel[data-panel="lost-found"]'));mode='requests';render();return}if(action==='detail'){const item=[...listings,...myListings].find(entry=>entry.id===payload.id);if(item){openWeb();showPanel($('.eg-panel[data-panel="lost-found"]'));openDetail(item)}return}}catch(error){toast(error.message||'İşlem tamamlanamadı.',true);throw error}}};
 function render(){
@@ -182,8 +246,34 @@ function listingCard(item){
 }
 function action(label,className,handler){const button=document.createElement('button');button.type='button';button.className='eg-lost-action'+(className?' '+className:'');button.textContent=label;button.onclick=handler;return button}
 function persistSet(key,set){try{localStorage.setItem(key,JSON.stringify([...set]))}catch{}}
-function blockOwner(item){if(!item.ownerUid||!confirm('Bu kullanıcıyı engellemek istiyor musun? İlanları artık gösterilmeyecek.'))return;blockedOwners.add(item.ownerUid);persistSet('elmaBlockedOwners',blockedOwners);closeDetail();render();toast('Kullanıcı engellendi.')}
-async function renew(item){if(!api||item.ownerUid!==user?.uid)return;try{await api.updateDoc(api.doc(api.db,'lostFoundListings',item.id),{status:'active',expiresAt:api.Timestamp.fromDate(new Date(Date.now()+86400000)),updatedAt:api.serverTimestamp()});toast('İlan 24 saatliğine yeniden yayımlandı.')}catch{toast('İlan yeniden yayımlanamadı.',true)}}
+function subscribeBlocks(){
+  unsubscribeBlocks?.();unsubscribeBlocks=null;blockedOwners.clear();blockedNames.clear();
+  if(!api||!user)return;
+  const accountUid=user.uid;
+  unsubscribeBlocks=api.onSnapshot(api.collection(api.db,'userBlocks',accountUid,'blockedUsers'),snapshot=>{
+    if(user?.uid!==accountUid)return;
+    blockedOwners.clear();blockedNames.clear();snapshot.docs.forEach(item=>{blockedOwners.add(item.id);blockedNames.set(item.id,item.data().targetName||'Elma Go kullanıcısı')});
+    if(currentChat&&isConversationBlocked(currentChat))closeChat();syncConversationWatchers();render();renderBlockedUsers();
+  },()=>toast('Engellenen kullanıcılar eşitlenemedi. Bağlantını kontrol et.',true));
+}
+function subscribePrivateListings(){
+  unsubscribePrivate?.();unsubscribePrivate=null;privateListings.clear();if(!api||!user)return;
+  const accountUid=user.uid,source=api.query(api.collection(api.db,'lostFoundPrivate'),api.where('ownerUid','==',accountUid),api.limit(100));
+  unsubscribePrivate=api.onSnapshot(source,snapshot=>{if(user?.uid!==accountUid)return;privateListings.clear();snapshot.docs.forEach(item=>privateListings.set(item.id,item.data()));render()},()=>{});
+}
+async function blockUser(targetUid,targetName='Elma Go kullanıcısı'){
+  if(!user||!api)return toast('Kullanıcı engellemek için giriş yap.',true);
+  if(!targetUid||targetUid===user.uid)return;
+  if(!confirm('Bu kullanıcı engellensin mi? İlanları gizlenecek ve iki taraf da birbirine yeni mesaj gönderemeyecek.'))return;
+  try{await api.setDoc(api.doc(api.db,'userBlocks',user.uid,'blockedUsers',targetUid),{targetUid,targetName:String(targetName).slice(0,80),createdAt:api.serverTimestamp()});blockedOwners.add(targetUid);blockedNames.set(targetUid,String(targetName).slice(0,80));if(currentChat&&isConversationBlocked(currentChat))closeChat();closeDetail();syncConversationWatchers();render();toast('Kullanıcı engellendi.')}catch{toast('Engelleme sunucuya kaydedilemedi. Tekrar dene.',true)}
+}
+function blockOwner(item){return blockUser(item.ownerUid,item.ownerName)}
+function renderBlockedUsers(){
+  const list=$('#egLostBlockedList');if(!list)return;list.replaceChildren();
+  if(!blockedOwners.size){const note=document.createElement('p');note.textContent='Engellediğin kullanıcı yok.';list.append(note);return}
+  blockedOwners.forEach(uid=>{const row=document.createElement('div');row.className='eg-lost-detail-row';const name=document.createElement('strong');name.textContent=blockedNames.get(uid)||'Elma Go kullanıcısı';row.append(name,action('Engeli kaldır','',async()=>{if(!user||!confirm('Bu kullanıcının engeli kaldırılsın mı?'))return;try{await api.deleteDoc(api.doc(api.db,'userBlocks',user.uid,'blockedUsers',uid));toast('Engel kaldırıldı.')}catch{toast('Engel kaldırılamadı.',true)}}));list.append(row)});
+}
+async function renew(item){if(!api||item.ownerUid!==user?.uid)return;try{await api.updateDoc(api.doc(api.db,'lostFoundListings',item.id),{status:'pending',expiresAt:api.Timestamp.fromDate(new Date(Date.now()+86400000)),updatedAt:api.serverTimestamp()});toast('İlan yeniden incelemeye gönderildi.')}catch{toast('İlan yeniden gönderilemedi.',true)}}
 function detailRow(label,value){const row=document.createElement('div');row.className='eg-lost-detail-row';const key=document.createElement('span');key.textContent=label;const content=document.createElement(label==='Açıklama'?'p':'strong');content.textContent=value||'Belirtilmedi';row.append(key,content);return row}
 function trustScore(ownerUid){const owned=ownerUid===user?.uid?myListings:listings.filter(item=>item.ownerUid===ownerUid),solved=owned.filter(item=>item.status==='solved').length,total=owned.length;return Math.min(100,50+Math.min(30,solved*10)+Math.min(20,total*2))}
 function visibleLocation(item){const city=itemCity(item),publicPlace=[itemDistrict(item,city),city].filter(Boolean).join(', ');return item.ownerUid===user?.uid?[publicPlace,itemAddress(item,city)].filter(Boolean).join(' • '):publicPlace+' • Açık adres gizli'}
@@ -194,14 +284,25 @@ function notifyNearbyListing(item){if(!viewerCoords||!activeListing(item)||item.
 function checkMatches(){if(!user||!('Notification'in window)||Notification.permission!=='granted')return;myListings.filter(activeListing).forEach(source=>{const match=bestMatch(source);if(!match)return;const key=source.id+'_'+match.item.id;if(notifiedMatches.has(key))return;notifiedMatches.add(key);persistSet('elmaNotifiedMatches',notifiedMatches);new Notification('Yeni bir eşleşme olabilir',{body:source.title+' için %'+match.score+' benzer ilan bulundu.',tag:key})})}
 function updateAccountSummary(){document.getElementById('egAccountLostSummary')?.remove()}
 function renderRequests(container){
-  const all=[...requests.map(item=>({...item,direction:'incoming'})),...outgoingRequests.map(item=>({...item,direction:'outgoing'}))].filter(item=>item.status!=='rejected');const count=$('#egLostVisibleCount');if(count)count.textContent=all.length+' sohbet';
+  const all=[...requests.map(item=>({...item,direction:'incoming'})),...outgoingRequests.map(item=>({...item,direction:'outgoing'}))].filter(item=>item.status!=='rejected'&&!isConversationBlocked(item));const count=$('#egLostVisibleCount');if(count)count.textContent=all.length+' sohbet';
   if(!user)return empty(container,'Mesajlarını görmek için giriş yap.',false);if(!all.length)return empty(container,'Henüz bir sohbetin yok.',false);
   all.forEach(request=>{const rejected=request.status==='rejected',unread=isConversationUnread(request),latest=conversationLatest.get(request.id),node=document.createElement('article');node.className='eg-lost-request'+(unread?' has-unread':'');const heading=document.createElement('div');heading.className='eg-chat-request-head';const title=document.createElement('b');title.textContent=request.listingTitle||'Kayıp eşya ilanı';heading.append(title);if(unread){const fresh=document.createElement('span');fresh.textContent='YENİ';heading.append(fresh)}const copy=document.createElement('small');copy.textContent=latest?.text||(rejected?(request.direction==='incoming'?'Bu konuşma talebini reddettin.':'İlan sahibi konuşma talebini reddetti.'):request.direction==='incoming'?(request.requesterName||'Elma Go kullanıcısı')+' sana mesaj göndermek istiyor.':'İlan sahibiyle güvenli özel sohbet.');const actions=document.createElement('div');actions.className='eg-lost-actions';if(!rejected){actions.append(action('Sohbeti aç','primary',()=>openChat(request)));if(request.direction==='incoming')actions.append(action('Reddet','danger',()=>rejectConversation(request)))}node.append(heading,copy);if(actions.childElementCount)node.append(actions);container.appendChild(node)})
 }
 async function rejectConversation(request){if(request.ownerUid!==user?.uid||!confirm('Bu konuşma talebini reddetmek istiyor musun?'))return;try{await api.updateDoc(api.doc(api.db,'lostFoundContacts',request.id),{status:'rejected',typingUid:null,typingAt:api.serverTimestamp(),rejectedAt:api.serverTimestamp()});if(currentChat?.id===request.id)closeChat();toast('Konuşma talebi reddedildi.')}catch{toast('Talep reddedilemedi.',true)}}
 async function startConversation(item){
   if(!user)return toast('Mesaj göndermek için hesabınla giriş yap.',true);if(!api)await connectFirebase();
-  try{let conversation=outgoingRequests.find(request=>request.listingId===item.id);if(conversation?.status==='rejected')return toast('İlan sahibi bu konuşma talebini reddetti.',true);if(!conversation){const payload={listingId:item.id,listingTitle:item.title,ownerUid:item.ownerUid,requesterUid:user.uid,requesterName:maskedOwnerName(user),status:'chat',typingUid:null,createdAt:api.serverTimestamp()},reference=await api.addDoc(api.collection(api.db,'lostFoundContacts'),payload);conversation={id:reference.id,...payload,createdAt:new Date()}}openChat(conversation)}catch(error){console.error('Sohbet başlatılamadı:',error);const code=String(error?.code||'').replace('firestore/','');toast('Sohbet başlatılamadı'+(code?' ('+code+')':'')+'.',true)}
+  if(blockedOwners.has(item.ownerUid))return toast('Bu kullanıcı engelli. Mesaj göndermek için önce engeli kaldır.',true);
+  try{
+    let conversation=outgoingRequests.find(request=>request.listingId===item.id);
+    if(conversation?.status==='rejected')return toast('İlan sahibi bu konuşma talebini reddetti.',true);
+    if(!conversation){
+      const accountUid=user.uid,payload={listingId:item.id,listingTitle:item.title,ownerUid:item.ownerUid,requesterUid:accountUid,requesterName:maskedOwnerName(user),status:'chat',typingUid:null,createdAt:api.serverTimestamp()},reference=api.doc(api.db,'lostFoundContacts',accountUid+'_'+item.id);
+      try{await api.setDoc(reference,payload);conversation={id:reference.id,...payload,createdAt:new Date()}}
+      catch(error){const existing=await api.getDoc(reference).catch(()=>null);if(!existing?.exists())throw error;conversation={id:reference.id,...existing.data()}}
+      if(user?.uid!==accountUid)return;
+    }
+    openChat(conversation);
+  }catch(error){const code=String(error?.code||'').replace('firestore/','');toast(code==='permission-denied'?'Bu kullanıcıyla sohbet başlatılamıyor. Kullanıcı engellenmiş veya ilan kapatılmış olabilir.':'Sohbet başlatılamadı. Bağlantını kontrol et.',true)}
 }
 function showTypingIndicator(data){const node=$('#egLostTyping');if(!node)return;clearTimeout(typingIndicatorTimer);const stamp=dateValue(data?.typingAt),fresh=!stamp||Date.now()-stamp.getTime()<6000,show=data?.status!=='rejected'&&data?.typingUid&&data.typingUid!==user?.uid&&fresh;node.classList.toggle('show',Boolean(show));if(show)typingIndicatorTimer=setTimeout(()=>node.classList.remove('show'),stamp?Math.max(250,6000-(Date.now()-stamp.getTime())):6000)}
 function chatTime(value){const date=dateValue(value);return date?new Intl.DateTimeFormat('tr-TR',{hour:'2-digit',minute:'2-digit'}).format(date):''}
@@ -210,9 +311,65 @@ async function acknowledgeMessages(request,messages){if(!user||!api)return;const
 function setChatLocked(locked){const form=$('#egLostChatForm'),input=$('#egLostChatInput'),button=form?.querySelector('button');form?.classList.toggle('is-locked',locked);if(input){input.disabled=locked;input.placeholder=locked?'Bu konuşma reddedildi.':'Mesaj yaz…'}if(button)button.disabled=locked}
 async function setTyping(active){const chat=currentChat;if(!chat||!user||chat.status==='rejected')return;typingActive=active;if(active)typingLastWrite=Date.now();try{await api.updateDoc(api.doc(api.db,'lostFoundContacts',chat.id),{typingUid:active?user.uid:null,typingAt:api.serverTimestamp()})}catch{}}
 function handleChatInput(){if(!currentChat||currentChat.status==='rejected')return;clearTimeout(typingStopTimer);const now=Date.now();if(!typingActive||now-typingLastWrite>1400)setTyping(true);typingStopTimer=setTimeout(()=>setTyping(false),1600)}
-function openChat(request){if(!user||!api)return;if(request.status==='rejected')return toast('Bu konuşma talebini reddedildi.',true);currentChat=request;typingActive=false;markConversationRead(request);const layer=$('#egLostChatLayer'),list=$('#egLostChatList'),input=$('#egLostChatInput');list.replaceChildren();input.value='';setChatLocked(false);showTypingIndicator(null);const person=request.ownerUid===user.uid?(request.requesterName||'Elma Go kullanıcısı'):'İlan sahibiyle güvenli sohbet';$('#egLostChatTitle').textContent=request.listingTitle||'Güvenli sohbet';$('#egLostChatPerson').textContent=person;$('#egLostChatAvatar').textContent=person.trim().charAt(0).toLocaleUpperCase('tr-TR')||'E';layer.classList.add('show');chatUnsubscribe?.();chatStateUnsubscribe?.();const source=api.query(api.collection(api.db,'lostFoundContacts',request.id,'messages'),api.limit(100));chatUnsubscribe=api.onSnapshot(source,snapshot=>{const messages=snapshot.docs.map(doc=>({id:doc.id,...doc.data()})).sort((a,b)=>(dateValue(a.createdAt)||0)-(dateValue(b.createdAt)||0));list.replaceChildren();if(!messages.length){const empty=document.createElement('div');empty.className='eg-chat-empty';empty.innerHTML='<span>✦</span><b>Sohbet burada başlıyor.</b><small>Kişisel bilgilerini paylaşmadan güvenle mesajlaş.</small>';list.appendChild(empty)}else messages.forEach(message=>{const node=document.createElement('div');node.className='eg-chat-message'+(message.senderUid===user.uid?' mine':'');const text=document.createElement('span');text.textContent=message.encryption?'🔒 Mesaj çözülüyor…':message.text;const time=document.createElement('time');time.innerHTML=chatTime(message.createdAt)+(message.senderUid===user.uid?' '+deliveryIcon(message):'');node.append(text,time);list.appendChild(node);if(message.encryption)decryptMessage(request,message).then(value=>text.textContent=value)});acknowledgeMessages(request,messages);const latest=messages.at(-1);if(latest){decryptMessage(request,latest).then(value=>conversationLatest.set(request.id,{...latest,text:value}))}markConversationRead(request);list.scrollTop=list.scrollHeight},()=>toast('Sohbet yüklenemedi.',true));chatStateUnsubscribe=api.onSnapshot(api.doc(api.db,'lostFoundContacts',request.id),snapshot=>{if(!snapshot.exists())return closeChat();const state={id:request.id,...snapshot.data()};currentChat=state;const rejected=state.status==='rejected';setChatLocked(rejected);showTypingIndicator(state);if(rejected)clearTimeout(typingStopTimer)},()=>{})}
+function openChat(request){
+  if(!user||!api)return;
+  if(request.status==='rejected'||isConversationBlocked(request))return toast('Bu konuşma kapalı veya kullanıcı engelli.',true);
+  currentChat=request;typingActive=false;markConversationRead(request);
+  const accountUid=user.uid,layer=$('#egLostChatLayer'),list=$('#egLostChatList'),input=$('#egLostChatInput');
+  list.replaceChildren();input.value='';setChatLocked(false);showTypingIndicator(null);
+  const person=request.ownerUid===accountUid?(request.requesterName||'Elma Go kullanıcısı'):'İlan sahibiyle güvenli sohbet';
+  $('#egLostChatTitle').textContent=request.listingTitle||'Güvenli sohbet';$('#egLostChatPerson').textContent=person;
+  $('#egLostChatAvatar').textContent=person.trim().charAt(0).toLocaleUpperCase('tr-TR')||'E';
+  layer.classList.add('show');chatUnsubscribe?.();chatStateUnsubscribe?.();
+  const source=api.query(api.collection(api.db,'lostFoundContacts',request.id,'messages'),api.orderBy('createdAt','desc'),api.limit(100));
+  chatUnsubscribe=api.onSnapshot(source,snapshot=>{
+    if(user?.uid!==accountUid||currentChat?.id!==request.id)return;
+    const messages=snapshot.docs.map(doc=>({id:doc.id,...doc.data()})).reverse();
+    const wasNearBottom=list.scrollHeight-list.scrollTop-list.clientHeight<100;
+    list.replaceChildren();
+    if(!messages.length){const empty=document.createElement('div');empty.className='eg-chat-empty';empty.innerHTML='<span>✦</span><b>Sohbet burada başlıyor.</b><small>Kişisel bilgilerini paylaşmadan güvenle mesajlaş.</small>';list.appendChild(empty)}
+    else messages.forEach(message=>{
+      const node=document.createElement('div');node.className='eg-chat-message'+(message.senderUid===accountUid?' mine':'');
+      const text=document.createElement('span');text.textContent=message.encryption?'🔒 Mesaj çözülüyor…':message.text;
+      const time=document.createElement('time');time.innerHTML=chatTime(message.createdAt)+(message.senderUid===accountUid?' '+deliveryIcon(message):'');
+      node.append(text,time);
+      if(message.senderUid!==accountUid){const reportButton=action('Şikâyet et','eg-message-report',()=>reportMessage(request,message));reportButton.setAttribute('aria-label','Bu mesajı şikâyet et');node.append(reportButton)}
+      list.appendChild(node);
+      if(message.encryption)decryptMessage(request,message).then(value=>{if(user?.uid===accountUid&&currentChat?.id===request.id&&text.isConnected)text.textContent=value});
+    });
+    acknowledgeMessages(request,messages);
+    const latest=messages.at(-1);
+    if(latest)decryptMessage(request,latest).then(value=>{if(user?.uid===accountUid&&currentChat?.id===request.id)conversationLatest.set(request.id,{...latest,text:value})});
+    markConversationRead(request);if(wasNearBottom)list.scrollTop=list.scrollHeight;
+  },()=>toast('Sohbet yüklenemedi.',true));
+  chatStateUnsubscribe=api.onSnapshot(api.doc(api.db,'lostFoundContacts',request.id),snapshot=>{
+    if(user?.uid!==accountUid||currentChat?.id!==request.id)return;
+    if(!snapshot.exists())return closeChat();
+    const state={id:request.id,...snapshot.data()};currentChat=state;const locked=state.status==='rejected'||isConversationBlocked(state);
+    setChatLocked(locked);showTypingIndicator(state);if(locked)clearTimeout(typingStopTimer);
+  },()=>{setChatLocked(true);toast('Konuşma bağlantısı kesildi. Yeniden açmayı dene.',true)});
+}
 function closeChat(){if(typingActive)setTyping(false);clearTimeout(typingStopTimer);clearTimeout(typingIndicatorTimer);chatUnsubscribe?.();chatStateUnsubscribe?.();chatUnsubscribe=null;chatStateUnsubscribe=null;typingActive=false;currentChat=null;$('#egLostTyping')?.classList.remove('show');$('#egLostChatLayer')?.classList.remove('show')}
-async function sendChat(event){event.preventDefault();const input=$('#egLostChatInput'),text=input.value.trim();if(!text||!currentChat||!user||currentChat.status==='rejected')return;try{validateCommunityText(text);guardMessageSpam(text)}catch(error){return toast(error.message,true)}input.value='';clearTimeout(typingStopTimer);setTyping(false);try{const encrypted=await encryptMessage(currentChat,text.slice(0,500));await api.addDoc(api.collection(api.db,'lostFoundContacts',currentChat.id,'messages'),{senderUid:user.uid,...encrypted,createdAt:api.serverTimestamp(),deliveredAt:null,readAt:null})}catch(error){toast(error.message||'Mesaj gönderilemedi.',true)}}
+async function sendChat(event){
+  event.preventDefault();const input=$('#egLostChatInput'),text=input.value.trim(),chat=currentChat,accountUid=user?.uid;
+  if(sendingMessage||!text||!chat||!accountUid||chat.status==='rejected'||isConversationBlocked(chat))return;
+  try{validateCommunityText(text);guardMessageSpam(text)}catch(error){return toast(error.message,true)}
+  sendingMessage=true;const button=$('#egLostChatForm')?.querySelector('button');if(button)button.disabled=true;
+  clearTimeout(typingStopTimer);setTyping(false);
+  try{
+    const encrypted=await encryptMessage(chat,text.slice(0,500));
+    if(user?.uid!==accountUid||isConversationBlocked(chat))throw new Error('Oturum değişti veya kullanıcı engellendi.');
+    const reference=api.doc(api.collection(api.db,'lostFoundContacts',chat.id,'messages')),throttle=api.doc(api.db,'messageRateLimits',accountUid);
+    await withTimeout(api.runTransaction(api.db,async transaction=>{
+      const previous=await transaction.get(throttle),last=previous.exists()?dateValue(previous.data().lastMessageAt):null;
+      if(last&&Date.now()-last.getTime()<1000)throw new Error('Yeni mesaj için bir saniye bekle.');
+      transaction.set(reference,{senderUid:accountUid,...encrypted,createdAt:api.serverTimestamp(),deliveredAt:null,readAt:null});
+      transaction.set(throttle,{lastMessageAt:api.serverTimestamp(),messageId:reference.id,conversationId:chat.id});
+    }),15000,'Mesajın gönderim sonucu henüz doğrulanamadı. Tekrar göndermeden sohbeti kontrol et.');
+    if(currentChat?.id===chat.id&&input.value.trim()===text)input.value='';
+  }catch(error){toast(error.code==='permission-denied'?'Bu konuşmaya mesaj gönderilemiyor. Kullanıcı engellenmiş veya konuşma kapatılmış olabilir.':error.message||'Mesaj gönderilemedi.',true)}
+  finally{sendingMessage=false;if(currentChat?.id===chat.id&&button)button.disabled=currentChat.status==='rejected'||isConversationBlocked(currentChat)}
+}
 function closeSuccess(event){event?.preventDefault();event?.stopPropagation();const layer=$('#egLostSuccessLayer');if(!layer)return;layer.classList.remove('show');layer.setAttribute('aria-hidden','true');layer.style.display='none';requestAnimationFrame(()=>layer.style.removeProperty('display'))}
 function showSuccess(){const layer=$('#egLostSuccessLayer');if(!layer)return;layer.style.removeProperty('display');layer.removeAttribute('aria-hidden');layer.classList.add('show')}
 function openDropPoints(){const layer=$('#egLostDropLayer'),list=$('#egLostDropList'),place=[viewerDistrict,viewerCity].filter(Boolean).join(' '),points=['Polis merkezi','Belediye zabıta','Üniversite güvenlik','AVM danışma'];list.replaceChildren();points.forEach(name=>{const link=document.createElement('a');link.className='eg-drop-point';link.target='_blank';link.rel='noopener';link.href='https://www.openstreetmap.org/search?query='+encodeURIComponent(place+' '+name);const copy=document.createElement('span');const strong=document.createElement('b');strong.textContent=name;const small=document.createElement('span');small.textContent='Haritada yakındaki noktaları aç';copy.append(strong,document.createElement('br'),small);link.append(copy,document.createTextNode('↗'));list.appendChild(link)});layer.classList.add('show')}
@@ -222,7 +379,7 @@ function prefillUser(){const name=$('#egLostOwnerName');if(name)name.value=maske
 function itemCity(item){if(item?.city)return item.city;const location=String(item?.location||'');return cities.find(city=>location===city||location.endsWith(', '+city))||''}
 function itemPlace(item,city){const location=String(item?.location||'');return city&&location.endsWith(', '+city)?location.slice(0,-city.length-2):location===city?'':location}
 function itemDistrict(item,city){if(item?.district)return item.district;const legacy=itemPlace(item,city);return(districts[city]||[]).includes(legacy)?legacy:''}
-function itemAddress(item,city){if(item?.address)return item.address;const legacy=itemPlace(item,city);return(districts[city]||[]).includes(legacy)?'':legacy}
+function itemAddress(item,city){if(item?.ownerUid===user?.uid&&privateListings.has(item.id))return privateListings.get(item.id).address||'';if(item?.address)return item.address;const legacy=itemPlace(item,city);return(districts[city]||[]).includes(legacy)?'':legacy}
 function setDistrictOptions(city,selected=''){const select=$('#egLostDistrict');if(!select)return;select.replaceChildren(new Option('İlçe seç',''));(districts[city]||[]).forEach(name=>select.add(new Option(name,name)));select.value=(districts[city]||[]).includes(selected)?selected:''}
 function filterCities(value=''){const query=normalize(value.trim());let visible=0;document.querySelectorAll('.eg-city-option').forEach(button=>{const show=!query||normalize(button.dataset.city).includes(query);button.hidden=!show;if(show)visible++});$('#egCityEmpty')?.classList.toggle('show',visible===0)}
 function closeCity(){const layer=$('#egCityLayer');if(layer)layer.classList.remove('show')}
@@ -235,7 +392,10 @@ function openForm(item=null,kind='lost',city=''){
 }
 function closeForm(){editing=null;$('#egLostFormLayer')?.classList.remove('show')}
 function guardSpam(payload,wasEditing){validateCommunityText(payload.title,payload.description);if(wasEditing)return;const newest=myListings.map(item=>dateValue(item.createdAt)).filter(Boolean).sort((a,b)=>b-a)[0];const localLast=Number(localStorage.getItem('elmaLastListingAt')||0),last=Math.max(localLast,newest?.getTime?.()||0);if(Date.now()-last<LISTING_COOLDOWN_MS){const hours=Math.max(1,Math.ceil((LISTING_COOLDOWN_MS-(Date.now()-last))/3600000));throw new Error('Her kullanıcı 24 saatte yalnızca 1 ilan verebilir. Yaklaşık '+hours+' saat sonra tekrar deneyebilirsin.')}const duplicate=myListings.some(item=>activeListing(item)&&normalize(item.title)===normalize(payload.title)&&item.district===payload.district);if(duplicate)throw new Error('Aynı başlık ve ilçede zaten aktif bir ilanın var.')}
-async function createListingWithLimit(reference,payload){const throttle=api.doc(api.db,'listingRateLimits',user.uid);return api.runTransaction(api.db,async transaction=>{const current=await transaction.get(throttle),last=current.exists()?dateValue(current.data().lastCreatedAt):null;if(last&&Date.now()-last.getTime()<LISTING_COOLDOWN_MS)throw new Error('Her kullanıcı 24 saatte yalnızca 1 ilan verebilir.');transaction.set(reference,payload);transaction.set(throttle,{lastCreatedAt:api.serverTimestamp()});})}
+function publicListingPayload(payload){return{...payload,address:'',coords:null}}
+function privateListingPayload(payload){return{ownerUid:payload.ownerUid,address:payload.address,coords:null,updatedAt:api.serverTimestamp()}}
+async function createListingWithLimit(reference,payload){const throttle=api.doc(api.db,'listingRateLimits',user.uid);return api.runTransaction(api.db,async transaction=>{const current=await transaction.get(throttle),last=current.exists()?dateValue(current.data().lastCreatedAt):null;if(last&&Date.now()-last.getTime()<LISTING_COOLDOWN_MS)throw new Error('Her kullanıcı 24 saatte yalnızca 1 ilan verebilir.');transaction.set(reference,publicListingPayload(payload));transaction.set(api.doc(api.db,'lostFoundPrivate',reference.id),privateListingPayload(payload));transaction.set(throttle,{lastCreatedAt:api.serverTimestamp(),listingId:reference.id});})}
+async function editListing(reference,payload){const batch=api.writeBatch(api.db);batch.update(reference,{...publicListingPayload(payload),status:'pending'});batch.set(api.doc(api.db,'lostFoundPrivate',reference.id),privateListingPayload(payload));return batch.commit()}
 async function submitListing(event){
   event.preventDefault();if(!user)return toast('İlan oluşturmak için giriş yap.',true);const wasEditing=Boolean(editing),button=$('#egLostSubmit');if(button.disabled)return;button.disabled=true;button.textContent='Kaydediliyor…';
   try{
@@ -244,17 +404,38 @@ async function submitListing(event){
     const city=FIXED_CITY,district=$('#egLostDistrict').value.trim(),address=$('#egLostAddress').value.trim(),when=new Date($('#egLostWhen').value);
     if(Number.isNaN(when.getTime()))throw new Error('Geçerli bir tarih ve saat seç.');
     if(!district||(districts[city]||[]).includes(district)===false)throw new Error('Lütfen seçtiğin şehre ait bir ilçe seç.');
-    let coords=editing?.coords||null;if(!viewerCity||cityKey(city)===cityKey(viewerCity))try{const current=await position();coords={lat:current.coords.latitude,lon:current.coords.longitude}}catch{}
+    // The form asks for an event address, not the poster's current GPS location.
+    const coords=null;
     const payload={kind:$('#egLostKind').value,title:$('#egLostTitle').value.trim(),category:$('#egLostCategory').value,line:editing?.line||'other',city,district,address,location:district+', '+city,coords,happenedAt:api.Timestamp.fromDate(when),description:$('#egLostDescription').value.trim(),urgent:$('#egLostUrgent').checked,ownerUid:user.uid,ownerName:maskedOwnerName(user),updatedAt:api.serverTimestamp()};
     if(!payload.title||!address||!payload.description)throw new Error('Başlık, açık adres ve açıklama zorunlu.');
     guardSpam(payload,wasEditing);
     const reference=editing?api.doc(api.db,'lostFoundListings',editing.id):api.doc(api.collection(api.db,'lostFoundListings'));
-    button.textContent='İlan yayımlanıyor…';const createPayload={...payload,status:'pending',createdAt:api.serverTimestamp(),expiresAt:api.Timestamp.fromDate(new Date(Date.now()+86400000))},write=editing?api.updateDoc(reference,payload):createListingWithLimit(reference,createPayload);const guarded=write.then(()=>({state:'saved'}),error=>({state:'error',error})),result=await Promise.race([guarded,after(600,{state:'queued'})]);if(result.state==='error')throw result.error;if(!wasEditing)localStorage.setItem('elmaLastListingAt',String(Date.now()));closeForm();toast(wasEditing?'İlan güncellendi.':'İlan incelemeye gönderildi.');if(result.state==='queued')guarded.then(late=>{if(late.state==='error')toast(late.error?.code==='permission-denied'?'İlan kaydetme izni verilemedi. Hesabından çıkıp yeniden gir.':'İlan sunucuya gönderilemedi. Bağlantını kontrol et.',true)});
+    button.textContent='İncelemeye gönderiliyor…';const createPayload={...payload,status:'pending',createdAt:api.serverTimestamp(),expiresAt:api.Timestamp.fromDate(new Date(Date.now()+86400000))},write=editing?editListing(reference,payload):createListingWithLimit(reference,createPayload);
+    await withTimeout(write,15000,'Kaydın sonucu henüz doğrulanamadı. Yeniden göndermeden İlanlarım bölümünü kontrol et.');
+    if(!wasEditing)localStorage.setItem('elmaLastListingAt',String(Date.now()));closeForm();toast(wasEditing?'Değişikliklerin yeniden incelemeye gönderildi.':'İlan incelemeye gönderildi.');
   }catch(error){console.error('Kayıp eşya ilanı kaydedilemedi:',error);toast(error.code==='permission-denied'?'İlan kaydetme izni verilemedi. Hesabından çıkıp yeniden gir.':error.message||'İlan kaydedilemedi.',true)}finally{button.disabled=false;button.textContent=wasEditing?'Değişiklikleri kaydet':'İlanı incelemeye gönder'}
 }
 async function solve(item){if(!confirm('Bu ilan çözüldü olarak işaretlensin mi?'))return;try{await api.updateDoc(api.doc(api.db,'lostFoundListings',item.id),{status:'solved',updatedAt:api.serverTimestamp()});closeDetail();showSuccess();toast('İlan çözüldü olarak işaretlendi.')}catch{toast('İlan güncellenemedi.',true)}}
-async function removeListing(item){if(!confirm('İlan kalıcı olarak silinsin mi?'))return;try{await api.deleteDoc(api.doc(api.db,'lostFoundListings',item.id));if(item.photoPath)await api.deleteObject(api.ref(api.storage,item.photoPath)).catch(()=>{});toast('İlan silindi.')}catch{toast('İlan silinemedi.',true)}}
-async function report(item){if(!user)return toast('Şikâyet göndermek için giriş yap.',true);const reason=prompt('Şikâyet nedenini kısaca yaz.');if(!reason?.trim())return;try{await api.addDoc(api.collection(api.db,'lostFoundReports'),{listingId:item.id,listingTitle:item.title,reporterUid:user.uid,reason:reason.trim().slice(0,500),createdAt:api.serverTimestamp()});toast('Şikâyetin inceleme için kaydedildi.')}catch{toast('Şikâyet gönderilemedi.',true)}}
+async function removeListing(item){if(!confirm('İlan kalıcı olarak silinsin mi?'))return;try{const privateRef=api.doc(api.db,'lostFoundPrivate',item.id),detail=await api.getDoc(privateRef),batch=api.writeBatch(api.db);batch.delete(api.doc(api.db,'lostFoundListings',item.id));if(detail.exists())batch.delete(privateRef);await batch.commit();if(item.photoPath)await api.deleteObject(api.ref(api.storage,item.photoPath)).catch(()=>{});toast('İlan silindi.')}catch{toast('İlan silinemedi.',true)}}
+async function saveReport(id,payload){
+  const reference=api.doc(api.db,'lostFoundReports',id);
+  try{await withTimeout(api.setDoc(reference,{...payload,status:'pending',createdAt:api.serverTimestamp()}),15000,'Şikâyetin gönderim sonucu henüz doğrulanamadı. Bağlantını kontrol et.');toast('Şikâyetin inceleme için kaydedildi.');return true}
+  catch(error){const previous=await withTimeout(api.getDoc(reference),5000,'').catch(()=>null);if(previous?.exists()){toast('Bu içerik için şikâyetin daha önce kaydedilmiş.');return true}toast(error.code==='permission-denied'?'Şikâyet gönderilemedi. İçerik kaldırılmış olabilir.':error.message||'Şikâyet gönderilemedi.',true);return false}
+}
+async function report(item){
+  if(!user||!api)return toast('Şikâyet göndermek için giriş yap.',true);
+  const reason=prompt('Şikâyet nedenini kısaca yaz.');if(!reason?.trim())return;
+  await saveReport(user.uid+'_listing_'+item.id,{kind:'listing',listingId:item.id,listingTitle:String(item.title||'').slice(0,80),reporterUid:user.uid,reportedUid:item.ownerUid,reason:reason.trim().slice(0,500)});
+}
+async function reportMessage(conversation,message){
+  if(!user||!api||message.senderUid===user.uid)return;
+  const accountUid=user.uid,evidence=await decryptMessage(conversation,message);
+  if(!evidence||evidence==='🔒 Bu mesaj bu cihazda çözülemedi.')return toast('Mesaj bu cihazda çözülemediği için gönderilemiyor. Kullanıcıyı engelleyebilirsin.',true);
+  if(!confirm('Yalnızca seçtiğin bu mesajın metni, kullanıcı kimlikleri ve şikâyet nedenin inceleme ekibine gönderilecek. Diğer özel mesajların paylaşılmaz. Devam edilsin mi?'))return;
+  const reason=prompt('Bu mesajı neden şikâyet ediyorsun?');if(!reason?.trim()||user?.uid!==accountUid)return;
+  const saved=await saveReport(accountUid+'_message_'+conversation.id+'_'+message.id,{kind:'message',listingId:conversation.listingId,listingTitle:String(conversation.listingTitle||'').slice(0,80),conversationId:conversation.id,messageId:message.id,evidence:evidence.slice(0,500),reporterUid:accountUid,reportedUid:message.senderUid,reason:reason.trim().slice(0,500)});
+  if(saved)blockUser(message.senderUid,conversation.ownerUid===accountUid?conversation.requesterName:'İlan sahibi');
+}
 
 function panelMarkup(){return '<div class="eg-lost-center"><section class="eg-lost-hero"><h1>Bul, bildir, kavuş.</h1><p>Kayıp ve bulunan eşyaları güvenli biçimde tek merkezde buluştur.</p><div class="eg-lost-hero-eye" aria-hidden="true"><svg viewBox="0 0 180 110"><defs><radialGradient id="egEyeWhite" cx="42%" cy="35%" r="75%"><stop offset="0" stop-color="#fff"/><stop offset=".72" stop-color="#e9eaed"/><stop offset="1" stop-color="#b9bbc1"/></radialGradient><radialGradient id="egEyeIris" cx="38%" cy="34%" r="70%"><stop offset="0" stop-color="#777b84"/><stop offset=".5" stop-color="#272a30"/><stop offset="1" stop-color="#08090b"/></radialGradient></defs><path d="M9 55C38 13 139 9 171 55c-32 46-133 42-162 0Z" fill="url(#egEyeWhite)"/><path d="M13 55C43 19 136 15 167 55" fill="none" stroke="#fff" stroke-opacity=".42" stroke-width="3" stroke-linecap="round"/><g class="eg-lost-eye-pupil"><circle cx="90" cy="55" r="29" fill="url(#egEyeIris)"/><circle cx="90" cy="55" r="13" fill="#020203"/><circle class="eg-lost-eye-glint" cx="80" cy="44" r="7" fill="#fff"/><circle cx="98" cy="65" r="3" fill="#fff" fill-opacity=".35"/></g></svg></div><div class="eg-lost-primary-actions"><button class="eg-lost-primary" data-new-kind="lost" type="button"><span>Eşyamı kaybettim</span><b>↗</b></button><button class="eg-lost-primary" data-new-kind="found" type="button"><span>Eşya buldum</span><b>↗</b></button></div></section><section class="eg-lost-dashboard" id="egLostDashboard"><div class="eg-lost-metric"><strong id="egLostMetricAll">0</strong><span>Aktif</span></div><div class="eg-lost-metric"><strong id="egLostMetricLost">0</strong><span>Kayıp</span></div><div class="eg-lost-metric"><strong id="egLostMetricFound">0</strong><span>Bulunan</span></div></section><section class="eg-lost-workspace"><nav class="eg-lost-nav" aria-label="İlan görünümü"><button class="active" data-mode="all" type="button">Tümü</button><button data-mode="lost" type="button">Kayıp</button><button data-mode="found" type="button">Bulunan</button><button data-mode="mine" type="button">İlanlarım</button><button data-mode="requests" type="button">Mesajlar</button></nav><div class="eg-lost-tools" id="egLostTools"><label class="eg-lost-search">'+icons.search+'<input id="egLostSearch" type="search" placeholder="Eşya veya konum ara"></label><select id="egLostCategoryFilter" class="eg-lost-filter"><option value="all">Tüm türler</option>'+categories.map(value=>'<option>'+value+'</option>').join('')+'</select></div><div class="eg-lost-feed-head"><h2 id="egLostFeedTitle">Son ilanlar</h2><span id="egLostVisibleCount">0 ilan</span></div><div id="egLostStatus" class="eg-lost-status">İlanlar hazırlanıyor…</div><div id="egLostResults" class="eg-lost-list" aria-live="polite"></div></section></div>'}
 function cityMarkup(){return '<section class="eg-lost-sheet eg-city-sheet"><header class="eg-lost-sheet-head"><h2>Şehir seç</h2><button id="egCityClose" class="eg-lost-close" type="button">×</button></header><p id="egCityFlowKind" class="eg-city-intro">İlanın bulunduğu şehri seç.</p><label class="eg-city-search">'+icons.search+'<input id="egCitySearch" type="search" autocomplete="off" placeholder="Şehir ara"></label><div class="eg-city-grid">'+cities.map(city=>'<button class="eg-city-option" type="button" data-city="'+city+'">'+city+'</button>').join('')+'</div><div id="egCityEmpty" class="eg-city-empty">Aramana uygun şehir bulunamadı.</div></section>'}
@@ -272,6 +453,10 @@ function mount(){
   const successLayer=document.createElement('div');successLayer.id='egLostSuccessLayer';successLayer.className='eg-lost-layer eg-success-layer';successLayer.innerHTML='<section class="eg-lost-sheet eg-success-card"><div class="eg-success-check">✓</div><h2>Eşya sahibine kavuştu.</h2><p>Güvenli teslim tamamlandı ve ilan çözüldü olarak işaretlendi.</p><button id="egLostSuccessClose" class="eg-lost-submit" type="button">Tamam</button></section>';
   const toastNode=document.createElement('div');toastNode.id='egLostToast';toastNode.className='eg-lost-toast';toastNode.setAttribute('role','status');
   const pharmacy=grid.querySelector('.eg-pharmacy-card');if(pharmacy)grid.insertBefore(card,pharmacy);else grid.prepend(card);widgets.insertBefore(panel,widgets.querySelector('.eg-panel[data-panel="account"]'));document.body.append(cityLayer,formLayer,detailLayer,chatLayer,dropLayer,successLayer,toastNode);
+  const safetyStyle=document.createElement('style');safetyStyle.textContent='.eg-chat-safety{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;background:#fff;border-bottom:1px solid #ececef}.eg-chat-safety small{font-size:10px;color:#686a70}.eg-chat-safety button,.eg-message-report{border:0;background:transparent;color:#973129;font-size:11px;font-weight:700;padding:6px}.eg-chat-message .eg-message-report{min-height:32px;min-width:0;flex:none;text-align:left;margin-top:3px;padding:5px 0;background:none;border:0;box-shadow:none}.eg-blocked-users{padding:12px 0}.eg-community-note{font-size:11px;line-height:1.5;color:#676970;padding:10px 0}';document.head.append(safetyStyle);
+  const safetyBar=document.createElement('div');safetyBar.className='eg-chat-safety';const safetyCopy=document.createElement('small');safetyCopy.textContent='Uygunsuz mesajı yanındaki düğmeyle bildir.';const blockButton=action('Kullanıcıyı engelle','danger',()=>{if(currentChat)blockUser(peerUid(currentChat),currentChat.ownerUid===user?.uid?currentChat.requesterName:'İlan sahibi')});safetyBar.append(safetyCopy,blockButton);chatLayer.querySelector('.eg-chat-head').after(safetyBar);
+  const blockedSection=document.createElement('section');blockedSection.className='eg-blocked-users';const blockedToggle=action('Engellenen kullanıcılar','',()=>{if(!user)return toast('Engellenen kullanıcıları görmek için giriş yap.',true);blockedList.hidden=!blockedList.hidden;blockedToggle.setAttribute('aria-expanded',String(!blockedList.hidden));renderBlockedUsers()});blockedToggle.setAttribute('aria-expanded','false');blockedToggle.setAttribute('aria-controls','egLostBlockedList');const blockedList=document.createElement('div');blockedList.id='egLostBlockedList';blockedList.hidden=true;blockedSection.append(blockedToggle,blockedList);panel.querySelector('.eg-lost-workspace').append(blockedSection);
+  const communityNote=document.createElement('p');communityNote.className='eg-community-note';communityNote.textContent='İlanlar yayımlanmadan önce incelenir. Hakaret, taciz, cinsel içerik ve kişisel bilgi paylaşımı yasaktır. Uygunsuz içeriği şikâyet edebilir, kullanıcıları engelleyebilirsin.';$('#egLostSubmit').before(communityNote);
   const openCenter=()=>{showPanel(panel);connectFirebase().catch(()=>setStatus('İlan sistemi başlatılamadı.',true))};card.onclick=openCenter;window.elmaOpenLostFound=openCenter;
   panel.querySelectorAll('[data-new-kind]').forEach(button=>button.onclick=()=>openForm(null,button.dataset.newKind));panel.querySelectorAll('.eg-lost-nav button').forEach(button=>button.onclick=()=>{mode=button.dataset.mode;panel.querySelectorAll('.eg-lost-nav button').forEach(item=>item.classList.toggle('active',item===button));render()});
   $('#egLostSearch').oninput=event=>{query=normalize(event.target.value.trim());render()};$('#egLostCategoryFilter').onchange=event=>{category=event.target.value;render()};
@@ -281,3 +466,4 @@ function mount(){
 }
 let attempts=0;const timer=setInterval(()=>{if(mount()||++attempts>120)clearInterval(timer)},100);mount();
 })();
+
