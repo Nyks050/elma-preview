@@ -355,7 +355,7 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
     nav.id='elmaMainNav';
     nav.className='elma-main-nav';
     nav.setAttribute('aria-label','Ana menü');
-    nav.innerHTML=`<button class="elma-main-tab active" data-elma-tab="transport" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg><span>Ulaşım</span></button><button class="elma-main-tab" data-elma-tab="services" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Şehir</span></button><button class="elma-main-tab elma-qr-tab" data-elma-tab="qr" type="button" aria-label="QR, yakında"><span class="elma-qr-icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 3h9v9H3zM20 3h9v9h-9zM3 20h9v9H3zM6 6h3v3H6zM23 6h3v3h-3zM6 23h3v3H6zM17 18h4v4h-4zM25 18h4v4h-4zM17 26h4v4h-4zM25 26h4v4h-4z"/></svg></span><span>QR</span></button><button class="elma-main-tab" data-elma-tab="lost" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="13" rx="2.5"/><path d="M8 7.5V5.8A2.8 2.8 0 0 1 10.8 3h2.4A2.8 2.8 0 0 1 16 5.8v1.7M8.5 14h7M12 10.5v7"/></svg><span>İlanlar</span></button><button class="elma-main-tab" data-elma-tab="account" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.2 20v-1.5a6.8 6.8 0 0 1 13.6 0V20z"/></svg><span>Hesap</span></button>`;
+    nav.innerHTML=`<button class="elma-main-tab active" data-elma-tab="transport" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg><span>Ulaşım</span></button><button class="elma-main-tab" data-elma-tab="services" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Şehir</span></button><button class="elma-main-tab elma-qr-tab" data-elma-tab="qr" type="button" aria-label="QR, yakında"><span class="elma-qr-icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 3h9v9H3zM20 3h9v9h-9zM3 20h9v9H3zM6 6h3v3H6zM23 6h3v3h-3zM6 23h3v3H6zM17 18h4v4h-4zM25 18h4v4h-4zM17 26h4v4h-4zM25 26h4v4h-4z"/></svg></span><span>QR</span></button><button class="elma-main-tab" data-elma-tab="lost" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="13" rx="2.5"/><path d="M8 7.5V5.8A2.8 2.8 0 0 1 10.8 3h2.4A2.8 2.8 0 0 1 16 5.8v1.7M8.5 14h7M12 10.5v7"/></svg><span>Etkinlik</span></button><button class="elma-main-tab" data-elma-tab="account" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.2 20v-1.5a6.8 6.8 0 0 1 13.6 0V20z"/></svg><span>Hesap</span></button>`;
     document.body.appendChild(nav);
     const tabCurtain=document.createElement('div');
     tabCurtain.className='elma-tab-curtain';
@@ -544,7 +544,7 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
       tabAnimationTimers.set(target,setTimeout(()=>target.classList.remove('elma-tab-enter'),560));
     }
     function showMainTab(name){
-      if(name==='lost'){showHome();animateMainTab(name);return}
+      if(name==='lost'){document.body.classList.remove('elma-white-flow');hideWhiteScreens();setNavActive('lost');wrapper.style.display='none';window.elmaOpenEvents?.();animateMainTab(name);return}
       document.body.classList.remove('elma-white-flow');
       hideWhiteScreens();
       setNavActive(name);
@@ -718,7 +718,7 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
   pharmacy.dataset.elmaPharmacyService='1';
   document.head.appendChild(pharmacy);
   const lostFound=document.createElement('script');
-  lostFound.src='lost-found-service.js?v=20261007-release-security1';
+  lostFound.src='lost-found-service.js?v=20261011-events1';
   lostFound.defer=true;
   lostFound.dataset.elmaLostFoundService='1';
   document.head.appendChild(lostFound);
