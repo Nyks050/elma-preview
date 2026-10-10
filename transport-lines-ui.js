@@ -3,12 +3,12 @@
   window.__elmaTransportLinesV3=true;
   const DATA_URL='assets/amasya-transit-data.json?v=20260925-line6-last2235';
   const FAVORITES_KEY='elma_favorite_lines_v3';
-  const state={data:null,extra:[],query:'',filter:'all',sort:'asc',open:null,day:todayKey(),favorites:new Set(readFavorites())};
+  const state={data:null,query:'',filter:'all',sort:'asc',open:null,day:todayKey(),favorites:new Set(readFavorites())};
   function todayKey(){const d=new Date().getDay();return d===6?'saturday':d===0?'sundayHoliday':'weekday'}
   function readFavorites(){try{return JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]')}catch{return[]}}
   function saveFavorites(){try{localStorage.setItem(FAVORITES_KEY,JSON.stringify([...state.favorites]))}catch{}}
   function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  function label(line){if(line.supplemental)return line.title;return line.id==='4-alt'?'4 Numaralı Hat · Alt':line.id==='4-ust'?'4 Numaralı Hat · Üst':line.number+' Numaralı Hat'}
+  function label(line){return line.id==='4-alt'?'4 Numaralı Hat · Alt':line.id==='4-ust'?'4 Numaralı Hat · Üst':line.number+' Numaralı Hat'}
   function badge(line){return line.id==='4-alt'?'4<small>ALT</small>':line.id==='4-ust'?'4<small>ÜST</small>':esc(line.number)}
   function minuteOf(time){const p=String(time).split(':').map(Number);return p[0]*60+p[1]}
   function live(line,day=todayKey()){
@@ -21,7 +21,7 @@
   function status(info){if(info.phase==='not-started')return info.first+'’da başlar';if(info.phase==='finished')return'Bugün tamamlandı';if(info.phase==='unknown')return'Tarife yok';if(info.phase==='scheduled')return'İlk sefer';return'Tarifede'}
   function visible(){
     const q=state.query.toLocaleLowerCase('tr-TR');
-    let lines=[...state.data.lines,...state.extra].filter(line=>!q||[label(line),line.from,line.to,...(line.stops||[]).map(s=>s.name)].join(' ').toLocaleLowerCase('tr-TR').includes(q));
+    let lines=state.data.lines.filter(line=>!q||[label(line),line.from,line.to,...line.stops.map(s=>s.name)].join(' ').toLocaleLowerCase('tr-TR').includes(q));
     if(state.filter==='active')lines=lines.filter(line=>live(line).phase==='active');
     if(state.filter==='favorites')lines=lines.filter(line=>state.favorites.has(line.id));
     if(state.sort==='desc')lines.reverse();
@@ -34,14 +34,7 @@
     const times=info.times.length?info.times.map(time=>{const passed=state.day===todayKey()&&minuteOf(time)<currentMinute,current=info.next===time&&info.phase==='active';return'<span class="'+(current?'next ':passed?'passed ':'')+'">'+esc(time)+(current?'<small>sonraki</small>':'')+'</span>'}).join(''):'<div class="el-schedule-empty">Bu gün için sefer saati paylaşılmadı.</div>';
     return'<section class="el-schedule"><div class="el-schedule-hero"><span>SONRAKİ KALKIŞ</span><strong>'+esc(headline)+'</strong><small>'+info.times.length+' tarifeli sefer</small></div><div class="el-day-tabs">'+dayButton('weekday','Hafta içi')+dayButton('saturday','Cumartesi')+dayButton('sundayHoliday','Pazar')+'</div><div class="el-times">'+times+'</div></section>';
   }
-  function supplementalRow(line) {
-    const open=state.open===line.id, favorite=state.favorites.has(line.id);
-    const notes=line.notes.map(note=>'<p>'+esc(note)+'</p>').join('');
-    const groups=line.groups.map(group=>'<section><h3>'+esc(group.label)+'</h3>'+group.departures.map(departure=>'<h4>'+esc(departure.origin)+'</h4><div class="el-times">'+departure.times.map(time=>'<span>'+esc(time)+'</span>').join('')+'</div>'+departure.notes.map(note=>'<p>'+esc(note)+'</p>').join('')).join('')+'</section>').join('');
-    return '<article class="el-extra-line"><div class="el-extra-head"><span class="el-extra-number">'+esc(line.number)+'</span><div><strong>'+esc(line.title)+'</strong><small>Kalkış tarifesi</small></div><button type="button" data-favorite="'+esc(line.id)+'" aria-label="'+(favorite?'Favorilerden çıkar':'Favorilere ekle')+'">'+(favorite?'★':'☆')+'</button></div><button type="button" class="el-extra-toggle" data-toggle-line="'+esc(line.id)+'" aria-expanded="'+open+'"><span>Saatleri ve tarife notlarını gör</span><span aria-hidden="true">'+(open?'⌃':'⌄')+'</span></button>'+(open?'<div class="el-extra-details">'+notes+groups+'<p>Paylaşılan fotoğraf tarifesi. Durak ve güzergâh verisi doğrulanmadığından rota hesabına dahil değildir.</p></div>':'')+'</article>';
-  }
   function row(line){
-    if(line.supplemental)return supplementalRow(line);
     const info=live(line),open=state.open===line.id,favorite=state.favorites.has(line.id);
     return'<article class="el-line-item '+(open?'open':'')+'"><div class="el-line-row"><button type="button" class="el-line-summary" data-toggle-line="'+esc(line.id)+'" aria-expanded="'+open+'"><span class="el-line-number">'+badge(line)+'</span><span class="el-line-route"><strong>'+esc(label(line))+'</strong><span class="el-line-track"><i></i><b></b><i></i></span><small><span>Gidiş</span><span>'+line.stops.length+' durak</span></small></span><span class="el-line-live"><b class="'+(info.phase!=='active'?'state':'')+'">'+esc(service(info))+'</b><small class="'+(info.phase==='active'?'active':'')+'"><i></i>'+esc(status(info))+'</small></span><span class="el-line-chevron">'+(open?'⌃':'›')+'</span></button><button type="button" class="el-line-favorite '+(favorite?'active':'')+'" data-favorite="'+esc(line.id)+'" aria-label="'+(favorite?'Favorilerden çıkar':'Favorilere ekle')+'"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg></button></div>'+(open?schedule(line):'')+'</article>';
   }
@@ -50,7 +43,7 @@
     const lines=visible();
     root.querySelector('.el-lines-list').innerHTML=lines.length?lines.map(row).join(''):'<div class="el-lines-empty"><b>Hat bulunamadı</b><span>Aramayı veya filtreyi değiştir.</span></div>';
     document.querySelectorAll('#elmaLinesDock [data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===state.filter));
-    const counts={all:state.data.lines.length+state.extra.length,active:state.data.lines.filter(line=>live(line).phase==='active').length,favorites:state.favorites.size};
+    const counts={all:state.data.lines.length,active:state.data.lines.filter(line=>live(line).phase==='active').length,favorites:state.favorites.size};
     document.querySelectorAll('#elmaLinesDock [data-filter-count]').forEach(item=>item.textContent=counts[item.dataset.filterCount]??0);
   }
   function bind(root){
@@ -77,7 +70,6 @@
 .el-dock-search{display:flex;height:51px;align-items:center;gap:10px;padding:5px 6px 5px 14px;border:1px solid #e2e3e6;border-radius:16px;background:#fff;color:#555960;box-shadow:0 4px 16px #1113180b}.el-dock-search svg{width:20px;height:20px;flex:none;stroke:currentColor}.el-dock-search input{height:100%;min-width:0;flex:1;padding:0;border:0;outline:0;background:transparent;color:#17181a;font-size:14px;font-weight:650}.el-dock-search input::placeholder{color:#92969d}.el-dock-search-action{height:39px;flex:none;padding:0 15px;border:0;border-radius:11px;background:#17181a;color:#fff;font-size:12px;font-weight:800}\
 .el-dock-row{display:flex;height:auto;align-items:center;gap:8px;margin-top:10px}.el-dock-tabs{display:grid;min-width:0;flex:1;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;padding:4px;border:1px solid #e8e8ea;border-radius:13px;background:#f4f4f5}.el-dock-filter{height:36px;min-width:0;gap:4px;padding:0 3px;border-radius:9px;background:transparent;color:#777b82;font-size:11px;font-weight:760}.el-dock-filter:after{display:none!important}.el-dock-filter small{min-width:0;color:#92969d;font-size:9px}.el-dock-filter.active{background:#17181a;color:#fff;box-shadow:0 2px 7px #11131820}.el-dock-filter.active small{color:#fff}.el-dock-sort{width:44px;height:44px;flex:none;margin:0;border:1px solid #e8e8ea;border-radius:12px;background:#fff;color:#454a52}.el-dock-sort svg{width:18px;height:18px}.el-lines-list{border-top:1px solid #e6e7ea}\
 @media(max-width:359px){.el-dock-top{margin-bottom:10px}.el-dock-tabs{gap:1px;padding:3px}.el-dock-filter{font-size:10px}.el-dock-search-action{padding:0 12px}}';
-    style.textContent+='.el-extra-line{border:1px solid #0001;border-radius:7px;background:white;overflow:hidden;margin-bottom:16px;color:#111}.el-extra-head{display:flex;align-items:center;gap:14px;padding:16px}.el-extra-number{display:grid;place-items:center;width:64px;height:64px;background:#111;color:white;font-size:28px;font-weight:900;flex:none}.el-extra-head>div{flex:1;min-width:0}.el-extra-head strong{font-size:16px;display:block}.el-extra-head small{display:block;font-size:12px;color:#777;margin-top:6px}.el-extra-head button{border:0;background:transparent;font-size:25px;width:44px;height:44px;color:#111}.el-extra-toggle{border:0;background:#e9e9e6;color:#111;width:100%;min-height:46px;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;font-size:12px}.el-extra-details{padding:16px;background:#f7f7f5}.el-extra-details p{font-size:12px;color:#666;line-height:1.6}.el-extra-details h3{font-size:15px}.el-extra-details h4{font-size:13px}.el-extra-details section{border-bottom:1px solid #ddd;padding-bottom:12px}';
     document.head.appendChild(style);
   }
   async function mount(){
@@ -89,8 +81,7 @@
     const dock=root.querySelector('#elmaLinesDock');
     bind(root);
     dock.querySelector('[data-lines-back]').onclick=()=>window.elmaSelectMainTab?.('transport');
-    try{state.data=await window.elmaGetTransitData();window.elmaTransitData=state.data;window.dispatchEvent(new CustomEvent('elma:transit-data',{detail:state.data}));render();setInterval(render,60000);
-      fetch('assets/amasya-extra-timetables.json?v=20261011-1',{signal:AbortSignal.timeout(10000)}).then(response=>{if(!response.ok)throw Error('extra timetables');return response.json()}).then(document=>{state.extra=document.lines.map(line=>({...line,supplemental:true,stops:[],schedule:{}}));render()}).catch(()=>{/* Existing route list stays usable if supplemental data is unavailable. */})}
+    try{state.data=await window.elmaGetTransitData();window.elmaTransitData=state.data;window.dispatchEvent(new CustomEvent('elma:transit-data',{detail:state.data}));render();setInterval(render,60000)}
     catch(error){root.querySelector('.el-lines-list').innerHTML='<div class="el-lines-empty"><b>Hatlar yüklenemedi</b><span>Bağlantını kontrol edip tekrar dene.</span></div>';console.error(error)}
     return true;
   }

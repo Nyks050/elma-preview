@@ -50,6 +50,14 @@ html body #elmaHomeWidgets:has(>.eg-panel[data-panel="transport-lines"].active){
 html body #kvkk{align-items:flex-start;padding:calc(8px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom))}
 html body #kvkk>.box{max-width:488px;margin:0 auto}
 html body #elmaHomeWidgets>.eg-panel.elma-has-back{padding-top:calc(8px + env(safe-area-inset-top))!important;padding-left:16px!important;padding-right:16px!important}
+/* QR and Events share exact header geometry, overriding legacy listing spacing. */
+html body #elmaHomeWidgets#elmaHomeWidgets>.eg-panel[data-panel="qr"],
+html body #elmaHomeWidgets#elmaHomeWidgets>.eg-panel[data-panel="lost-found"]{
+box-sizing:border-box!important;padding-top:calc(8px + env(safe-area-inset-top))!important;padding-left:16px!important;padding-right:16px!important;
+}
+html body #elmaHomeWidgets#elmaHomeWidgets>.eg-panel:is([data-panel="qr"],[data-panel="lost-found"]) .elma-back-header{
+box-sizing:border-box!important;height:60px!important;min-height:60px!important;max-height:60px!important;padding:0!important;margin:0 0 16px!important;border-bottom:1px solid #ededee!important;
+}
 html body #elmaHomeWidgets>.eg-panel[data-panel="transport-routes"],
 html body #elmaHomeWidgets>.eg-panel[data-panel="transport-trips"]{padding-top:0!important;padding-left:0!important;padding-right:0!important}
 html body .erm,html body .est{padding-top:calc(8px + env(safe-area-inset-top))!important;padding-left:16px!important;padding-right:16px!important}
