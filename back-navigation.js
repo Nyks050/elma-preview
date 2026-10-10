@@ -3,7 +3,8 @@
 'use strict';
 if(window.__elmaBackNavigation)return;
 window.__elmaBackNavigation=true;
-const markup='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg><span>Geri</span>';
+const arrowMarkup='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg>';
+const markup=arrowMarkup+'<span>Geri</span>';
 const selectors=[
 '.eg-service-back','.el-dock-back','.erm-back','.est-back',
 '.eg-card-page-head button','.eg-chat-back','.eg-announcement-head button','#kvkk .back button',
@@ -28,6 +29,7 @@ display:block!important;width:23px!important;height:23px!important;flex:0 0 23px
 margin:0!important;padding:0!important;fill:none!important;stroke:currentColor!important;
 stroke-width:2.2!important;stroke-linecap:round!important;stroke-linejoin:round!important;transform:none!important;
 }
+html body button.elma-back-control.elma-back-control[data-arrow-only]{width:44px!important;min-width:44px!important;justify-content:center!important}
 html body button.elma-back-control.elma-back-control span{font:inherit!important;color:inherit!important}
 html body button.elma-back-control.elma-back-control:before,
 html body button.elma-back-control.elma-back-control:after{content:none!important}
@@ -58,13 +60,14 @@ html body .eg-lost-sheet.eg-chat-sheet:has(>.elma-back-header){padding-left:0!im
 `;
 document.head.appendChild(style);
 function decorate(button){
+ const desired=button.hasAttribute('data-arrow-only')?arrowMarkup:markup;
  if(button.classList.contains('elma-back-control')){
-  if(!button.querySelector('svg'))button.innerHTML=markup;
+  if(!button.querySelector('svg') || (button.hasAttribute('data-arrow-only') && button.querySelector('span')))button.innerHTML=desired;
   return;
  }
  // The original button is retained so its own navigation and cleanup handlers survive.
  button.classList.add('elma-back-control');
- button.innerHTML=markup;
+ button.innerHTML=desired;
  button.setAttribute('aria-label','Geri');
  const parent=button.parentElement;
  if(button.closest('#kvkk')){

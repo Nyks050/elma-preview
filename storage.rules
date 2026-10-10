@@ -1,15 +1,35 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null
+        && !firestore.exists(/databases/(default)/documents/accountDeletionJobs/$(request.auth.uid));
+    }
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email_verified == true
+        && request.auth.token.email == 'admin@elmago.com.tr' && signedIn();
+    }
+    function approvedImage(userId) {
+      let listing = firestore.get(/databases/(default)/documents/lostFoundListings/$(resource.metadata.listingId)).data;
+      return listing.ownerUid == userId && listing.status == 'active'
+        && !firestore.exists(/databases/(default)/documents/accountDeletionJobs/$(userId));
+    }
     match /lost-found/{userId}/{fileName} {
-      allow get: if true;
+      // Pending/legacy uploads are private; only an approved listing's media is public.
+      // Existing token-based download URLs must separately be revoked when removing media.
+      allow get: if (request.auth != null && request.auth.uid == userId && signedIn()) || isAdmin() || approvedImage(userId);
       allow list: if false;
-      allow create, update: if request.auth != null
+      allow create: if signedIn()
         && request.auth.uid == userId
         && request.resource.size > 0
         && request.resource.size < 8 * 1024 * 1024
-        && request.resource.contentType.matches('image/(jpeg|png|webp)');
-      allow delete: if request.auth != null && request.auth.uid == userId;
+        && request.resource.contentType.matches('image/(jpeg|png|webp)')
+        && request.resource.metadata.listingId is string
+        && firestore.get(/databases/(default)/documents/lostFoundListings/$(request.resource.metadata.listingId)).data.ownerUid == userId
+        && firestore.get(/databases/(default)/documents/lostFoundListings/$(request.resource.metadata.listingId)).data.status == 'pending';
+      // An owner cannot replace already approved bytes without moderation.
+      allow update: if false;
+      allow delete: if (signedIn() && request.auth.uid == userId) || isAdmin();
     }
   }
 }

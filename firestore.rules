@@ -2,13 +2,23 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() {
-      return request.auth != null;
+      return request.auth != null
+        && !exists(/databases/$(database)/documents/accountDeletionJobs/$(request.auth.uid));
     }
 
     function isAdmin() {
       return signedIn()
         && request.auth.token.email_verified == true
         && request.auth.token.email == 'admin@elmago.com.tr';
+    }
+
+    // Server-owned tombstones block old tokens while cleanup is retried.
+    match /accountDeletionJobs/{userId} {
+      allow read, write: if false;
+    }
+
+    function deletionPending(uid) {
+      return exists(/databases/$(database)/documents/accountDeletionJobs/$(uid));
     }
 
     function isBlocked() {
@@ -100,6 +110,7 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.status == 'active'
         && request.resource.data.ownerUid == get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.ownerUid
         && request.resource.data.ownerUid != request.auth.uid
+        && !deletionPending(request.resource.data.ownerUid)
         && request.resource.data.keys().hasOnly([
           'listingId', 'listingTitle', 'ownerUid', 'requesterUid',
           'requesterName', 'status', 'typingUid', 'createdAt'
@@ -110,6 +121,7 @@ service cloud.firestore {
       allow update: if isAdmin() || (signedIn() && !isBlocked()
         && (resource.data.ownerUid == request.auth.uid
           || resource.data.requesterUid == request.auth.uid)
+        && !deletionPending(resource.data.ownerUid) && !deletionPending(resource.data.requesterUid)
         && ((request.resource.data.diff(resource.data).affectedKeys()
               .hasOnly(['typingUid', 'typingAt'])
             && (request.resource.data.typingUid == request.auth.uid
@@ -128,13 +140,14 @@ service cloud.firestore {
           return get(/databases/$(database)/documents/lostFoundContacts/$(requestId)).data;
         }
         function isParticipant() {
-          return request.auth != null
+          return signedIn()
             && (contact().ownerUid == request.auth.uid
               || contact().requesterUid == request.auth.uid);
         }
         allow read: if isParticipant();
         allow create: if !isBlocked() && isParticipant()
           && contact().status != 'rejected'
+          && !deletionPending(contact().ownerUid) && !deletionPending(contact().requesterUid)
           && request.resource.data.senderUid == request.auth.uid
           && request.resource.data.createdAt == request.time
           && request.resource.data.ciphertext is string
