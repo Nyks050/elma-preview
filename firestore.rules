@@ -21,6 +21,18 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/accountDeletionJobs/$(uid));
     }
 
+    function mutuallyBlocked(a, b) {
+      return exists(/databases/$(database)/documents/userBlocks/$(a)/blockedUsers/$(b))
+        || exists(/databases/$(database)/documents/userBlocks/$(b)/blockedUsers/$(a));
+    }
+
+    function validMedia(data, id) {
+      return !('mediaPaths' in data) || (data.mediaPaths is list && data.mediaPaths.size() <= 3
+        && (data.mediaPaths.size() < 1 || data.mediaPaths[0] == 'lost-found/' + request.auth.uid + '/' + id + '-0.jpg')
+        && (data.mediaPaths.size() < 2 || data.mediaPaths[1] == 'lost-found/' + request.auth.uid + '/' + id + '-1.jpg')
+        && (data.mediaPaths.size() < 3 || data.mediaPaths[2] == 'lost-found/' + request.auth.uid + '/' + id + '-2.jpg'));
+    }
+
     function isBlocked() {
       return signedIn()
         && exists(/databases/$(database)/documents/adminUserFlags/$(request.auth.uid))
@@ -28,11 +40,14 @@ service cloud.firestore {
     }
 
     match /lostFoundListings/{listingId} {
+      allow get: if signedIn() && resource == null;
       allow read: if isAdmin() || (signedIn() && resource.data.ownerUid == request.auth.uid)
         || resource.data.status == 'active';
       allow create: if signedIn() && !isBlocked()
         && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.status == 'pending'
+        && request.resource.data.status in ['pending', 'draft']
+        && request.resource.data.kind in ['lost', 'found']
+        && validMedia(request.resource.data, listingId)
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 80
@@ -40,25 +55,29 @@ service cloud.firestore {
         && request.resource.data.description.size() > 0
         && request.resource.data.description.size() <= 800
         && request.resource.data.city == 'Amasya'
+        && request.resource.data.get('address', '') == '' && request.resource.data.get('coords', null) == null
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time
         && request.resource.data.expiresAt is timestamp
         && request.resource.data.expiresAt >= request.time + duration.value(23, 'h')
         && request.resource.data.expiresAt <= request.time + duration.value(25, 'h')
         && getAfter(/databases/$(database)/documents/listingRateLimits/$(request.auth.uid)).data.lastCreatedAt == request.time
+        && getAfter(/databases/$(database)/documents/listingRateLimits/$(request.auth.uid)).data.listingId == listingId
         && request.resource.data.keys().hasOnly([
           'kind', 'title', 'category', 'line', 'city', 'district', 'address',
           'location', 'coords', 'happenedAt', 'description', 'urgent',
-          'ownerUid', 'ownerName', 'status', 'createdAt', 'updatedAt', 'expiresAt'
+          'ownerUid', 'ownerName', 'status', 'createdAt', 'updatedAt', 'expiresAt', 'mediaPaths'
         ]);
       allow update: if isAdmin() || (signedIn() && !isBlocked()
         && resource.data.ownerUid == request.auth.uid
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.city == 'Amasya'
+        && request.resource.data.kind in ['lost', 'found']
+        && request.resource.data.get('address', '') == '' && request.resource.data.get('coords', null) == null
         && request.resource.data.updatedAt == request.time
         && ((request.resource.data.status == 'pending'
-            && resource.data.status in ['pending', 'active', 'solved'])
-          || (resource.data.status == 'active'
+            && resource.data.status in ['draft', 'pending', 'active', 'solved'])
+          || (resource.data.status in ['active', 'pending', 'draft']
             && request.resource.data.status == 'solved'
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])))
         && request.resource.data.title is string
@@ -83,10 +102,10 @@ service cloud.firestore {
     match /listingRateLimits/{userId} {
       allow read: if signedIn() && userId == request.auth.uid;
       allow create: if signedIn() && userId == request.auth.uid
-        && request.resource.data.keys().hasOnly(['lastCreatedAt'])
+        && request.resource.data.keys().hasOnly(['lastCreatedAt', 'listingId']) && request.resource.data.listingId is string
         && request.resource.data.lastCreatedAt == request.time;
       allow update: if signedIn() && userId == request.auth.uid
-        && request.resource.data.keys().hasOnly(['lastCreatedAt'])
+        && request.resource.data.keys().hasOnly(['lastCreatedAt', 'listingId']) && request.resource.data.listingId is string
         && request.resource.data.lastCreatedAt == request.time
         && resource.data.lastCreatedAt <= request.time - duration.value(24, 'h');
       // Kullanıcı bu kaydı silerek 24 saatlik ilan sınırını aşamamalı.
@@ -94,6 +113,7 @@ service cloud.firestore {
     }
 
     match /lostFoundContacts/{requestId} {
+      allow get: if signedIn() && resource == null;
       allow create: if signedIn() && !isBlocked()
         && request.resource.data.requesterUid == request.auth.uid
         && request.resource.data.status == 'chat'
@@ -111,6 +131,8 @@ service cloud.firestore {
         && request.resource.data.ownerUid == get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.ownerUid
         && request.resource.data.ownerUid != request.auth.uid
         && !deletionPending(request.resource.data.ownerUid)
+        && !mutuallyBlocked(request.auth.uid, request.resource.data.ownerUid)
+        && get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.expiresAt > request.time
         && request.resource.data.keys().hasOnly([
           'listingId', 'listingTitle', 'ownerUid', 'requesterUid',
           'requesterName', 'status', 'typingUid', 'createdAt'
@@ -130,7 +152,17 @@ service cloud.firestore {
           || (resource.data.ownerUid == request.auth.uid
             && request.resource.data.status == 'rejected'
             && request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['status', 'typingUid', 'typingAt', 'rejectedAt']))));
+              .hasOnly(['status', 'typingUid', 'typingAt', 'rejectedAt']))
+          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessageAt', 'lastMessageId', 'lastSenderUid'])
+            && !mutuallyBlocked(resource.data.ownerUid, resource.data.requesterUid)
+            && request.resource.data.lastMessageAt == request.time && request.resource.data.lastSenderUid == request.auth.uid
+            && request.resource.data.lastMessageId is string
+            && getAfter(/databases/$(database)/documents/lostFoundContacts/$(requestId)/messages/$(request.resource.data.lastMessageId)).data.senderUid == request.auth.uid
+            && getAfter(/databases/$(database)/documents/lostFoundContacts/$(requestId)/messages/$(request.resource.data.lastMessageId)).data.createdAt == request.time)
+          || (resource.data.ownerUid == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ownerReadAt']) && request.resource.data.ownerReadAt == request.time)
+          || (resource.data.requesterUid == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['requesterReadAt']) && request.resource.data.requesterReadAt == request.time)));
       allow delete: if isAdmin() || (signedIn()
         && (resource.data.ownerUid == request.auth.uid
           || resource.data.requesterUid == request.auth.uid));
@@ -148,6 +180,10 @@ service cloud.firestore {
         allow create: if !isBlocked() && isParticipant()
           && contact().status != 'rejected'
           && !deletionPending(contact().ownerUid) && !deletionPending(contact().requesterUid)
+          && !mutuallyBlocked(contact().ownerUid, contact().requesterUid)
+          && getAfter(/databases/$(database)/documents/messageRateLimits/$(request.auth.uid)).data.lastSentAt == request.time
+          && getAfter(/databases/$(database)/documents/messageRateLimits/$(request.auth.uid)).data.messageId == messageId
+          && getAfter(/databases/$(database)/documents/messageRateLimits/$(request.auth.uid)).data.conversationId == requestId
           && request.resource.data.senderUid == request.auth.uid
           && request.resource.data.createdAt == request.time
           && request.resource.data.ciphertext is string
@@ -170,6 +206,8 @@ service cloud.firestore {
     }
 
     match /lostFoundReports/{reportId} {
+      function conversation() { return get(/databases/$(database)/documents/lostFoundContacts/$(request.resource.data.conversationId)).data; }
+      allow get: if signedIn() && resource == null;
       allow create: if signedIn() && !isBlocked()
         && request.resource.data.reporterUid == request.auth.uid
         && request.resource.data.createdAt == request.time
@@ -177,8 +215,19 @@ service cloud.firestore {
         && request.resource.data.reason is string
         && request.resource.data.reason.size() > 0
         && request.resource.data.reason.size() <= 500
+        && (!('conversationId' in request.resource.data)
+          || (request.resource.data.conversationId is string
+            && request.resource.data.listingId == conversation().listingId
+            && request.resource.data.reportedUid != request.auth.uid
+            && request.resource.data.reportedUid in [conversation().ownerUid, conversation().requesterUid]
+            && request.auth.uid in [conversation().ownerUid, conversation().requesterUid]))
+        && (!('messageId' in request.resource.data) || (request.resource.data.messageId is string
+          && get(/databases/$(database)/documents/lostFoundContacts/$(request.resource.data.conversationId)/messages/$(request.resource.data.messageId)).data.senderUid == request.resource.data.reportedUid))
+        && (!('messageText' in request.resource.data) || 'messageId' in request.resource.data)
+        && (!('messageText' in request.resource.data) || (request.resource.data.messageText is string && request.resource.data.messageText.size() <= 2000))
         && request.resource.data.keys().hasOnly([
-          'listingId', 'listingTitle', 'reporterUid', 'reason', 'createdAt'
+          'listingId', 'listingTitle', 'reporterUid', 'reason', 'createdAt',
+          'kind', 'conversationId', 'reportedUid', 'messageId', 'messageText'
         ]);
       allow read, delete: if isAdmin() || (signedIn()
         && resource.data.reporterUid == request.auth.uid);
@@ -224,6 +273,28 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, delete: if signedIn() && userId == request.auth.uid;
       allow create, update: if false;
+    }
+
+    match /userBlocks/{userId}/blockedUsers/{targetUid} {
+      allow read: if signedIn() && (request.auth.uid == userId || request.auth.uid == targetUid);
+      allow create, update: if signedIn() && request.auth.uid == userId && userId != targetUid
+        && request.resource.data.keys().hasOnly(['targetUid', 'createdAt'])
+        && request.resource.data.targetUid == targetUid && request.resource.data.createdAt == request.time;
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /messageRateLimits/{userId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+      allow create: if signedIn() && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['lastSentAt', 'messageId', 'conversationId'])
+        && request.resource.data.messageId is string && request.resource.data.conversationId is string
+        && request.resource.data.lastSentAt == request.time;
+      allow update: if signedIn() && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['lastSentAt', 'messageId', 'conversationId'])
+        && request.resource.data.messageId is string && request.resource.data.conversationId is string
+        && request.resource.data.lastSentAt == request.time
+        && resource.data.get('lastSentAt', resource.data.get('lastMessageAt', request.time)) <= request.time - duration.value(1, 's');
+      allow delete: if false;
     }
 
     match /e2eeKeys/{userId} {

@@ -6,11 +6,13 @@ const LOCATION = 'eu';
 function fingerprint(listing) {
   return crypto.createHash('sha256').update(JSON.stringify([
     listing.kind, listing.title, listing.description, listing.category,
-    listing.city, listing.district, listing.ownerUid, listing.updatedAt?.seconds
+    listing.city, listing.district, listing.ownerUid, listing.updatedAt?.seconds, listing.mediaPaths || []
   ])).digest('hex');
 }
 
 function decide(result, listing) {
+  // This model checks text only. Photo listings require a human review.
+  if (Array.isArray(listing.mediaPaths) && listing.mediaPaths.length) return 'review';
   if (!result || !['approve', 'reject', 'review'].includes(result.decision)) return 'review';
   const confidence = Number(result.confidence);
   if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) return 'review';

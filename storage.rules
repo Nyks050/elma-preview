@@ -26,7 +26,7 @@ service firebase.storage {
         && request.resource.contentType.matches('image/(jpeg|png|webp)')
         && request.resource.metadata.listingId is string
         && firestore.get(/databases/(default)/documents/lostFoundListings/$(request.resource.metadata.listingId)).data.ownerUid == userId
-        && firestore.get(/databases/(default)/documents/lostFoundListings/$(request.resource.metadata.listingId)).data.status == 'pending';
+        && firestore.get(/databases/(default)/documents/lostFoundListings/$(request.resource.metadata.listingId)).data.status in ['draft', 'pending'];
       // An owner cannot replace already approved bytes without moderation.
       allow update: if false;
       allow delete: if (signedIn() && request.auth.uid == userId) || isAdmin();

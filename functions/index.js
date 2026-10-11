@@ -136,7 +136,9 @@ exports.moderateAmasyaListing = onDocumentWritten({
 
   let result;
   try {
-    result = await reviewListing(after, { projectId: process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT });
+    result = after.mediaPaths?.length
+      ? {decision:'review',confidence:0,reason:'Photo review requires a moderator'}
+      : await reviewListing(after, { projectId: process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT });
   } catch (error) {
     console.error('Listing moderation unavailable', { listingId: event.params.listingId, error: String(error) });
     result = { decision: 'review', confidence: 0, reason: 'AI unavailable; manual review required' };
@@ -159,6 +161,31 @@ exports.moderateAmasyaListing = onDocumentWritten({
       }
     });
   });
+});
+
+// Owner-scoped removal includes the associated conversations and media.
+// Retain the owner document until cleanup completes so a retry is authorized.
+exports.removeLostListing = onCall({region:'europe-west1',timeoutSeconds:120,maxInstances:3}, async request => {
+  const uid=request.auth?.uid, id=request.data?.id;
+  if(!uid)throw new HttpsError('unauthenticated','Giriş yapmalısın.');
+  if(typeof id!=='string'||!/^[A-Za-z0-9_-]{1,180}$/.test(id))throw new HttpsError('invalid-argument','Geçersiz ilan.');
+  const db=admin.firestore();
+  try {
+    const bearer=request.rawRequest?.headers?.authorization?.match(/^Bearer (.+)$/i)?.[1];
+    if(!bearer || (await admin.auth().verifyIdToken(bearer,true)).uid!==uid)throw Error('Invalid session');
+  } catch { throw new HttpsError('unauthenticated','Oturum sona erdi.'); }
+  if((await db.collection('accountDeletionJobs').doc(uid).get()).exists)throw new HttpsError('permission-denied','Hesap siliniyor.');
+  const ref=db.collection('lostFoundListings').doc(id),snap=await ref.get();
+  if(!snap.exists)return {deleted:true};
+  if(snap.data().ownerUid!==uid)throw new HttpsError('permission-denied','Bu ilan sana ait değil.');
+  await ref.update({status:'solved',updatedAt:admin.firestore.FieldValue.serverTimestamp()});
+  // Keep submitted abuse evidence available to moderators; listing removal must
+  // not erase somebody else's report. Account deletion follows its own policy.
+  await deleteQueryRecursively(db,db.collection('lostFoundContacts').where('listingId','==',id));
+  for(const path of snap.data().mediaPaths||[]) {
+    if(typeof path==='string'&&path.startsWith(`lost-found/${uid}/${id}-`))await admin.storage().bucket().file(path).delete({ignoreNotFound:true});
+  }
+  await ref.delete();return {deleted:true};
 });
 
 exports.notifyAmasyaLostListing = onDocumentWritten({
