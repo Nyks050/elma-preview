@@ -149,11 +149,15 @@ exports.moderateAmasyaListing = onDocumentWritten({
     const current = await transaction.get(ref);
     const listing = current.data();
     if (!listing || listing.status !== 'pending' || fingerprint(listing) !== hash) return;
+    // AI confidence never overrides a human suspension or pending deletion.
+    const flag = await transaction.get(admin.firestore().collection('adminUserFlags').doc(listing.ownerUid));
+    const deletion = await transaction.get(admin.firestore().collection('accountDeletionJobs').doc(listing.ownerUid));
+    const canPublish = nextStatus === 'active' && flag.data()?.blocked !== true && !deletion.exists;
     transaction.update(ref, {
-      ...(nextStatus === 'active' ? { status: 'active', approvedAt: admin.firestore.FieldValue.serverTimestamp(), approvedBy: 'ai-moderation' } : {}),
+      ...(canPublish ? { status: 'active', approvedAt: admin.firestore.FieldValue.serverTimestamp(), approvedBy: 'ai-moderation' } : {}),
       moderation: {
         fingerprint: hash,
-        decision: nextStatus === 'active' ? 'approved' : 'manual-review',
+        decision: canPublish ? 'approved' : 'manual-review',
         confidence: Number(result.confidence) || 0,
         reason: String(result.reason || '').slice(0, 240),
         model: 'gemini-3.5-flash-lite',

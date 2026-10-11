@@ -33,11 +33,11 @@ service cloud.firestore {
         && (data.mediaPaths.size() < 3 || data.mediaPaths[2] == 'lost-found/' + request.auth.uid + '/' + id + '-2.jpg'));
     }
 
-    function isBlocked() {
-      return signedIn()
-        && exists(/databases/$(database)/documents/adminUserFlags/$(request.auth.uid))
-        && get(/databases/$(database)/documents/adminUserFlags/$(request.auth.uid)).data.blocked == true;
+    function suspended(uid) {
+      return exists(/databases/$(database)/documents/adminUserFlags/$(uid))
+        && get(/databases/$(database)/documents/adminUserFlags/$(uid)).data.blocked == true;
     }
+    function isBlocked() { return signedIn() && suspended(request.auth.uid); }
 
     match /lostFoundListings/{listingId} {
       allow get: if signedIn() && resource == null;
@@ -131,6 +131,7 @@ service cloud.firestore {
         && request.resource.data.ownerUid == get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.ownerUid
         && request.resource.data.ownerUid != request.auth.uid
         && !deletionPending(request.resource.data.ownerUid)
+        && !suspended(request.resource.data.ownerUid)
         && !mutuallyBlocked(request.auth.uid, request.resource.data.ownerUid)
         && get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.expiresAt > request.time
         && request.resource.data.keys().hasOnly([
@@ -146,6 +147,8 @@ service cloud.firestore {
         && !deletionPending(resource.data.ownerUid) && !deletionPending(resource.data.requesterUid)
         && ((request.resource.data.diff(resource.data).affectedKeys()
               .hasOnly(['typingUid', 'typingAt'])
+            && !mutuallyBlocked(resource.data.ownerUid, resource.data.requesterUid)
+            && resource.data.status != 'rejected'
             && (request.resource.data.typingUid == request.auth.uid
               || request.resource.data.typingUid == null)
             && request.resource.data.typingAt is timestamp)
@@ -180,6 +183,7 @@ service cloud.firestore {
         allow create: if !isBlocked() && isParticipant()
           && contact().status != 'rejected'
           && !deletionPending(contact().ownerUid) && !deletionPending(contact().requesterUid)
+          && !suspended(contact().ownerUid) && !suspended(contact().requesterUid)
           && !mutuallyBlocked(contact().ownerUid, contact().requesterUid)
           && getAfter(/databases/$(database)/documents/messageRateLimits/$(request.auth.uid)).data.lastSentAt == request.time
           && getAfter(/databases/$(database)/documents/messageRateLimits/$(request.auth.uid)).data.messageId == messageId
@@ -212,6 +216,15 @@ service cloud.firestore {
         && request.resource.data.reporterUid == request.auth.uid
         && request.resource.data.createdAt == request.time
         && request.resource.data.listingId is string
+        && request.resource.data.listingId.size() > 0 && request.resource.data.listingId.size() <= 180
+        && request.resource.data.listingTitle is string && request.resource.data.listingTitle.size() <= 80
+        && (!('kind' in request.resource.data) || request.resource.data.kind in ['listing', 'message'])
+        && ('conversationId' in request.resource.data
+          || (exists(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId))
+            && get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.status == 'active'
+            && get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.ownerUid != request.auth.uid
+            && (!('reportedUid' in request.resource.data)
+              || request.resource.data.reportedUid == get(/databases/$(database)/documents/lostFoundListings/$(request.resource.data.listingId)).data.ownerUid)))
         && request.resource.data.reason is string
         && request.resource.data.reason.size() > 0
         && request.resource.data.reason.size() <= 500
