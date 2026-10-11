@@ -1,5 +1,5 @@
 const test=require('node:test'), assert=require('node:assert/strict'), vm=require('node:vm'), fs=require('node:fs');
-async function review({blocked=false,deleting=false}={}) {
+async function review({blocked=false,deleting=false,rejected=false}={}) {
   let update;
   const listing={ownerUid:'owner',status:'pending',title:'Cüzdan',mediaPaths:[]};
   const firestore=()=>({collection:name=>({doc:id=>({path:name+'/'+id})}),runTransaction:async action=>action({
@@ -13,7 +13,7 @@ async function review({blocked=false,deleting=false}={}) {
     'firebase-functions/v2/https':{onCall:register,HttpsError:Error},
     'firebase-functions/params':{defineSecret:()=>({value:()=>''}),defineString:()=>({value:()=>''})},
     'firebase-functions/v1':functionsV1,'firebase-admin':{initializeApp(){},firestore},'@parse/node-apn':{},
-    './listing-moderation':{fingerprint:()=> 'same',decide:()=> 'active',reviewListing:async()=>({decision:'approve',confidence:1})},
+    './listing-moderation':{fingerprint:()=> 'same',decide:()=> rejected ? 'rejected' : 'active',reviewListing:async()=>({decision:rejected ? 'reject' : 'approve',confidence:1})},
     './report-email':{deliverReportEmail:async()=>{}},
   };
   const exports={};vm.runInNewContext(fs.readFileSync(__dirname+'/index.js','utf8'),{exports,require:id=>{assert.ok(id in dependencies);return dependencies[id];},process:{env:{}},console});
@@ -23,3 +23,4 @@ async function review({blocked=false,deleting=false}={}) {
 test('safe listing can publish when account is eligible',async()=>{assert.equal((await review()).status,'active');});
 test('AI cannot override a human account block',async()=>{const r=await review({blocked:true});assert.equal(r.status,undefined);assert.equal(r.moderation.decision,'manual-review');});
 test('AI cannot publish during account deletion',async()=>{const r=await review({deleting:true});assert.equal(r.status,undefined);assert.equal(r.moderation.decision,'manual-review');});
+test('rejection persists a private rejected state, not manual-review or active',async()=>{const r=await review({rejected:true});assert.equal(r.status,'rejected');assert.equal(r.moderation.decision,'rejected');assert.equal(r.approvedAt,undefined);});

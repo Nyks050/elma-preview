@@ -7,9 +7,25 @@ const listing = { kind: 'lost', title: 'Anahtar kayıp', description: 'Anahtarı
 test('only high-confidence safe listings are auto-published', () => {
   assert.equal(decide({ decision: 'approve', confidence: 0.95 }, listing), 'active');
   assert.equal(decide({ decision: 'approve', confidence: 0.89 }, listing), 'review');
-  assert.equal(decide({ decision: 'reject', confidence: 1 }, listing), 'review');
+  assert.equal(decide({ decision: 'reject', confidence: 1 }, listing), 'rejected');
   assert.equal(decide({ decision: 'approve', confidence: 1 }, { ...listing, city: 'İstanbul' }), 'review');
   assert.equal(decide({ decision: 'approve', confidence: 1 }, { ...listing, description: 'Beni 0555 123 45 67 numarasından arayın' }), 'review');
+});
+
+test('weapon notices are rejected even if AI approves, in both lost and found', async () => {
+  for (const title of ['Silah buldum', 'TABANCA KAYIP', 'Tüfeğimi kaybettim', 'Mermi bulundu', 'SİLAHIMI BULDUM']) {
+    for (const kind of ['lost','found']) {
+      const item={...listing,title,kind};
+      assert.equal(decide({decision:'approve',confidence:1},item),'rejected',title);
+      const result=await reviewListing(item,{fetchImpl:async()=>{throw Error('Must not call AI for prohibited item');}});
+      assert.equal(result.decision,'reject');
+    }
+  }
+});
+test('description limits fail closed, uncertain rejection stays in review',()=>{
+  for(const n of [0,14,151,800])assert.equal(decide({decision:'approve',confidence:1},{...listing,description:'a'.repeat(n)}),'review');
+  for(const n of [15,150])assert.equal(decide({decision:'approve',confidence:1},{...listing,description:'a'.repeat(n)}),'active');
+  assert.equal(decide({decision:'reject',confidence:0.4},listing),'review');
 });
 
 test('moderation metadata does not change content fingerprint', () => {

@@ -155,9 +155,10 @@ exports.moderateAmasyaListing = onDocumentWritten({
     const canPublish = nextStatus === 'active' && flag.data()?.blocked !== true && !deletion.exists;
     transaction.update(ref, {
       ...(canPublish ? { status: 'active', approvedAt: admin.firestore.FieldValue.serverTimestamp(), approvedBy: 'ai-moderation' } : {}),
+      ...(nextStatus === 'rejected' ? {status:'rejected'} : {}),
       moderation: {
         fingerprint: hash,
-        decision: canPublish ? 'approved' : 'manual-review',
+        decision: nextStatus === 'rejected' ? 'rejected' : canPublish ? 'approved' : 'manual-review',
         confidence: Number(result.confidence) || 0,
         reason: String(result.reason || '').slice(0, 240),
         model: 'gemini-3.5-flash-lite',

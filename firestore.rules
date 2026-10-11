@@ -52,8 +52,8 @@ service cloud.firestore {
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 80
         && request.resource.data.description is string
-        && request.resource.data.description.size() > 0
-        && request.resource.data.description.size() <= 800
+        && request.resource.data.description.size() >= 15
+        && request.resource.data.description.size() <= 150
         && request.resource.data.city == 'Amasya'
         && request.resource.data.get('address', '') == '' && request.resource.data.get('coords', null) == null
         && request.resource.data.createdAt == request.time
@@ -76,7 +76,7 @@ service cloud.firestore {
         && request.resource.data.get('address', '') == '' && request.resource.data.get('coords', null) == null
         && request.resource.data.updatedAt == request.time
         && ((request.resource.data.status == 'pending'
-            && resource.data.status in ['draft', 'pending', 'active', 'solved'])
+            && resource.data.status in ['draft', 'pending', 'active', 'solved', 'rejected'])
           || (resource.data.status in ['active', 'pending', 'draft']
             && request.resource.data.status == 'solved'
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])))
@@ -84,8 +84,8 @@ service cloud.firestore {
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 80
         && request.resource.data.description is string
-        && request.resource.data.description.size() > 0
-        && request.resource.data.description.size() <= 800
+        && request.resource.data.description.size() >= 15
+        && request.resource.data.description.size() <= 150
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['expiresAt'])
           || (request.resource.data.expiresAt is timestamp
             && request.resource.data.expiresAt >= request.time + duration.value(23, 'h')
