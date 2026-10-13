@@ -526,6 +526,10 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
         else tab.removeAttribute('aria-current');
       });
     }
+    const tabMotionStyle=document.createElement('style');
+    tabMotionStyle.id='elmaSoftTabMotion';
+    tabMotionStyle.textContent="/* Short, non-blocking tab fade; respect the system's reduced-motion preference. */\n@keyframes elmaSoftTabReveal{from{opacity:.25;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}\n.eg-panel.elma-tab-enter{animation:elmaSoftTabReveal 210ms ease-out both}\n@media(prefers-reduced-motion:reduce){.eg-panel.elma-tab-enter{animation:none!important}}\nhtml[data-reduce-motion=\"true\"] .eg-panel.elma-tab-enter{animation:none!important}\n";
+    document.head.appendChild(tabMotionStyle);
     const tabAnimationTimers=new WeakMap();
     function mainTabSurface(name){
       return name==='lost'?document.querySelector('.eg-panel[data-panel="lost-found"]'):document.querySelector(`.eg-panel[data-panel="${name}"]`);
@@ -538,7 +542,7 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
       target.classList.remove('elma-tab-enter');
       void target.offsetWidth;
       target.classList.add('elma-tab-enter');
-      tabAnimationTimers.set(target,setTimeout(()=>target.classList.remove('elma-tab-enter'),560));
+      tabAnimationTimers.set(target,setTimeout(()=>target.classList.remove('elma-tab-enter'),240));
     }
     function showMainTab(name){
       if(name==='lost'){document.body.classList.remove('elma-white-flow');hideWhiteScreens();setNavActive('lost');wrapper.style.display='none';window.elmaOpenEvents?.();animateMainTab(name);return}
