@@ -7,7 +7,7 @@ style.textContent = `.email-auth-actions{display:flex;align-items:center;justify
 document.head.appendChild(style);
 
 function setMessage(id,text,success=false){const e=document.getElementById(id);if(!e)return;e.textContent=text||'';e.style.color=success?'#39845c':'';}
-function messageFor(error,context='login'){const c=error?.code||'';if(c==='auth/invalid-email')return'Geçerli bir e-posta adresi gir.';if(c==='auth/weak-password')return'Daha güçlü bir şifre seç.';if(c==='auth/email-already-in-use')return'Bu e-posta zaten kullanılıyor.';if(c==='auth/too-many-requests')return'Çok fazla deneme yapıldı. Bir süre sonra tekrar dene.';if(c==='auth/network-request-failed')return'İnternet bağlantını kontrol edip tekrar dene.';return context==='login'?'E-posta veya şifre hatalı.':'Hesap oluşturulamadı. Lütfen tekrar dene.';}
+function messageFor(error,context='login'){const c=error?.code||'';if(c==='auth/email-not-verified')return'Önce e-postana gönderilen doğrulama bağlantısını onayla.';if(c==='auth/operation-in-progress')return'Önceki işlemin tamamlanmasını bekle.';if(c==='auth/invalid-email')return'Geçerli bir e-posta adresi gir.';if(c==='auth/weak-password')return'Daha güçlü bir şifre seç.';if(c==='auth/email-already-in-use')return'Bu e-posta zaten kullanılıyor.';if(c==='auth/too-many-requests')return'Çok fazla deneme yapıldı. Bir süre sonra tekrar dene.';if(c==='auth/network-request-failed')return'İnternet bağlantını kontrol edip tekrar dene.';return context==='login'?'E-posta veya şifre hatalı.':'Hesap oluşturulamadı. Lütfen tekrar dene.';}
 async function api(path,data){const r=await fetch(`${AUTH_API}${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||'İşlem tamamlanamadı.');return j;}
 function field(placeholder,id,type='text',autocomplete='off'){const w=document.createElement('div');w.className='field';const i=document.createElement('input');i.id=id;i.type=type;i.placeholder=placeholder;i.autocomplete=autocomplete;w.appendChild(i);return w;}
 
@@ -34,6 +34,13 @@ function configureRegister(auth){
   button.textContent='Hesap oluşturuluyor…';
   let credential=null;
   try{
+    if(typeof window.elmaNativeAuthRequest==='function'){
+      await window.elmaNativeAuthRequest('register',{email:mail,password:pass,name:fullName,consent:privacy.checked});
+      password.value='';document.getElementById('registerPasswordAgain').value='';
+      register.classList.remove('show');document.getElementById('login')?.classList.remove('hide');
+      alert('Hesabın oluşturuldu. E-postandaki doğrulama bağlantısını onayladıktan sonra giriş yapabilirsin.');
+      return;
+    }
     credential=await createUserWithEmailAndPassword(auth,mail,pass);
     await updateProfile(credential.user,{displayName:fullName});
     try{
@@ -92,6 +99,10 @@ function createEmailLogin(auth){
   if(!email||!password)return setMessage('emailLoginMsg','E-posta adresini ve şifreni gir.');
   submit.disabled=true;submit.textContent='Giriş yapılıyor…';
   try{
+   if(typeof window.elmaNativeAuthRequest==='function'){
+    await window.elmaNativeAuthRequest('signIn',{email,password});
+    document.getElementById('emailLoginPassword').value='';login.classList.add('hide');return;
+   }
    const credential=await signInWithEmailAndPassword(auth,email,password);
    await credential.user.reload();
    if(!credential.user.emailVerified){await signOut(auth);setMessage('emailLoginMsg','Önce e-postana gönderilen doğrulama bağlantısını onayla.');return;}
@@ -104,9 +115,10 @@ function createEmailLogin(auth){
  reset.onclick=async()=>{
   const email=document.getElementById('emailLoginAddress').value.trim();
   if(!email)return setMessage('emailLoginMsg','Önce e-posta adresini gir.');
-  try{await sendPasswordResetEmail(auth,email);setMessage('emailLoginMsg','Kayıtlıysa şifre yenileme bağlantısı gönderildi.',true);}
+  try{if(typeof window.elmaNativeAuthRequest==='function')await window.elmaNativeAuthRequest('reset',{email});else await sendPasswordResetEmail(auth,email);setMessage('emailLoginMsg','Kayıtlıysa şifre yenileme bağlantısı gönderildi.',true);}
   catch{setMessage('emailLoginMsg','Şifre yenileme isteği tamamlanamadı.');}
  };
  const ab=login.querySelector('.authbtn.apple');if(ab){ab.disabled=false;ab.title='Apple ile giriş';ab.onclick=null;}
 }
 async function start(){if(!getApps().length)return setTimeout(start,50);const auth=getAuth(getApp());window.elmaHandleAppleSignIn=async result=>{const button=document.querySelector('#login .authbtn.apple');if(button)button.disabled=true;try{if(!result?.identityToken||!result?.rawNonce)throw new Error('Apple kimlik bilgisi alınamadı.');const provider=new OAuthProvider('apple.com');const credential=provider.credential({idToken:result.identityToken,rawNonce:result.rawNonce});const signedIn=await signInWithCredential(auth,credential);const fullName=result.fullName?.trim();if(fullName&&!signedIn.user.displayName)await updateProfile(signedIn.user,{displayName:fullName});document.getElementById('login')?.classList.add('hide');window.dispatchEvent(new CustomEvent('elma-user-profile-updated',{detail:signedIn.user}));}catch{alert('Apple ile giriş tamamlanamadı. Lütfen tekrar dene.');}finally{if(button)button.disabled=false;}};if(auth.currentUser&&!auth.currentUser.emailVerified&&auth.currentUser.providerData.every(item=>item.providerId==='password')){await signOut(auth);document.getElementById('login')?.classList.remove('hide');}configureRegister(auth);createEmailLogin(auth);}start();
+

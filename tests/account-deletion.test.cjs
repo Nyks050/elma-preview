@@ -26,8 +26,8 @@ function clientHarness({ provider = 'google.com', stale = false, native, callabl
     getApp: () => auth.app, getApps: () => [auth.app], getAuth: () => auth,
     getFunctions: (_app, region) => { assert.equal(region, 'europe-west1'); return {}; },
     httpsCallable: (_functions, name, options) => {
-      assert.equal(name, 'deleteMyAccount'); assert.equal(options.timeout, 20000);
-      return data => { calls.push(['delete', data]); return callable ? callable(data) : Promise.resolve({ data: { deleted: true, cleanupPending: true } }); };
+      assert.equal(name, 'deleteMyAccount'); assert.equal(options.timeout, 150000);
+      return data => { calls.push(['delete', data]); return callable ? callable(data) : Promise.resolve({ data: { deleted: true, cleanupPending: false } }); };
     },
     signOut: async () => { calls.push(['sign-out']); auth.currentUser = null; },
     fetch: async (url, options) => { calls.push(['revoke', url, JSON.parse(options.body)]); return fetchStub ? fetchStub(url, options) : { ok: true }; },
@@ -44,9 +44,9 @@ function clientHarness({ provider = 'google.com', stale = false, native, callabl
 test('recent Google account goes directly to server; no client data purge precedes confirmation', async () => {
   const h = clientHarness();
   const result = await h.run();
-  assert.equal(result.ok, true); assert.equal(result.cleanupPending, true);
+  assert.equal(result.ok, true); assert.equal(result.cleanupPending, false);
   assert.equal(h.calls[0][0], 'delete'); assert.equal(h.calls[1][0], 'sign-out');
-  assert.ok(h.status.textContent.includes('sunucuda temizleniyor'));
+  assert.ok(h.status.textContent.includes('ilişkili verilerin silindi'));
   assert.doesNotMatch(clientSource, /deleteUser\(|deleteDoc\(|deleteObject\(/);
 });
 
@@ -117,7 +117,7 @@ test('duplicate taps share one deletion request', async () => {
   const first = h.run(); const second = h.run();
   assert.equal(first, second);
   while (!resolve) await new Promise(done => setImmediate(done));
-  resolve({ data: { deleted: true, cleanupPending: true } });
+  resolve({ data: { deleted: true, cleanupPending: false } });
   await first;
   assert.equal(h.calls.filter(call => call[0] === 'delete').length, 1);
 });
@@ -129,7 +129,13 @@ test('timeout or unsuccessful server response is not presented as success', asyn
   assert.ok(h.status.textContent.includes('başlamış olabilir'));
 });
 
-function serverHarness({ tokenAge = 0, verifiedUID = 'test-user', revoked = false, deleteFailure = false } = {}) {
+test('server response with pending cleanup is not shown as deleted', async () => {
+  const h = clientHarness({ callable: async () => ({ data: { deleted: true, cleanupPending: true } }) });
+  assert.equal((await h.run()).ok, false);
+  assert.equal(h.calls.some(call => call[0] === 'sign-out'), false);
+});
+
+function serverHarness({ tokenAge = 0, verifiedUID = 'test-user', revoked = false, deleteFailure = false, provider = 'password' } = {}) {
   const records = new Map(); const calls = []; const configs = {};
   const makeRef = refPath => ({ path: refPath,
     create: async data => { if (records.has(refPath)) throw { code: 6 }; records.set(refPath, data); calls.push(['job-create', refPath]); },
@@ -139,7 +145,8 @@ function serverHarness({ tokenAge = 0, verifiedUID = 'test-user', revoked = fals
   const makeQuery = queryPath => ({ where: () => makeQuery(queryPath), limit: count => ({ get: async () => { assert.equal(count, 100); calls.push(['query', queryPath]); return { empty: true, docs: [] }; } }), doc: id => makeRef(queryPath + '/' + id) });
   const db = { collection: makeQuery, collectionGroup: makeQuery, recursiveDelete: async ref => calls.push(['data-delete', ref.path]) };
   const auth = {
-    verifyIdToken: async (_token, checkRevoked) => { calls.push(['verify', checkRevoked]); if (revoked) throw new Error('revoked'); return { uid: verifiedUID, auth_time: Math.floor((Date.now() - tokenAge) / 1000) }; },
+    verifyIdToken: async (_token, checkRevoked) => { calls.push(['verify', checkRevoked]); if (revoked) throw new Error('revoked'); return { uid: verifiedUID, auth_time: Math.floor((Date.now() - tokenAge) / 1000), firebase: { sign_in_provider: provider } }; },
+    createCustomToken: async uid => { calls.push(['custom-token',uid]); return 'test-custom-token'; },
     deleteUser: async uid => { calls.push(['auth-delete', uid]); if (deleteFailure) throw new Error('temporary Auth outage'); }
   };
   const firestore = () => db; firestore.FieldValue = { serverTimestamp: () => 'SERVER_TIMESTAMP' };
@@ -161,10 +168,12 @@ function serverHarness({ tokenAge = 0, verifiedUID = 'test-user', revoked = fals
     request: { auth: { uid: 'test-user' }, data: { confirmation: 'DELETE', expectedUid: 'test-user' }, rawRequest: { headers: { authorization: 'Bearer test-token' } } } };
 }
 
-test('server authorizes a durable job before Auth deletion, with no inline data cleanup', async () => {
+test('server confirms data cleanup before Auth deletion and success', async () => {
   const h = serverHarness(); const result = await h.handlers.deleteMyAccount(h.request);
-  assert.equal(result.deleted, true); assert.equal(result.cleanupPending, true);
-  assert.deepEqual(h.calls.map(call => call[0]), ['verify', 'job-create', 'auth-delete']);
+  assert.equal(result.deleted, true); assert.equal(result.cleanupPending, false);
+  assert.equal(h.calls[0][0], 'verify'); assert.equal(h.calls[1][0], 'job-create');
+  assert.ok(h.calls.findIndex(call => call[0] === 'data-delete') < h.calls.findIndex(call => call[0] === 'auth-delete'));
+  assert.equal(h.calls.at(-1)[0], 'job-update');
 });
 
 test('cleanup paginates more than 100 records with bounded parallelism and dependent cleanup first', async () => {
@@ -186,11 +195,25 @@ test('cleanup paginates more than 100 records with bounded parallelism and depen
 });
 
 test('stale/revoked/mismatched/no-consent sessions never authorize destructive work', async () => {
-  for (const options of [{ tokenAge: 600000 }, { revoked: true }, { verifiedUID: 'other' }, { noConsent: true }, { changedAccount: true }]) {
+  for (const options of [{ tokenAge: 600000 }, { revoked: true }, { verifiedUID: 'other' }, { noConsent: true }, { changedAccount: true }, { provider: 'custom' }]) {
     const h = serverHarness(options); if (options.noConsent) h.request.data.confirmation = 'NO';
     if (options.changedAccount) h.request.data.expectedUid = 'previous-user';
     await assert.rejects(h.handlers.deleteMyAccount(h.request));
     assert.equal(h.calls.some(call => /delete|create/.test(call[0])), false);
+  }
+});
+
+test('native handoff token can only represent the verified account and never a deleting account', async () => {
+  const h=serverHarness();
+  h.request.data={uid:'attacker-chosen-uid'};
+  assert.equal((await h.handlers.nativeSessionToken(h.request)).uid,'test-user');
+  assert.deepEqual(h.calls.at(-1),['custom-token','test-user']);
+  h.records.set('accountDeletionJobs/test-user',{status:'requested'});
+  await assert.rejects(h.handlers.nativeSessionToken(h.request));
+  for(const options of [{revoked:true},{verifiedUID:'other'}]){
+    const bad=serverHarness(options);
+    await assert.rejects(bad.handlers.nativeSessionToken(bad.request));
+    assert.equal(bad.calls.some(call=>call[0]==='custom-token'),false);
   }
 });
 
@@ -215,3 +238,4 @@ test('console deletion creates same durable cleanup job without resetting comple
   await h.handlers.cleanupDeletedUser({ uid: 'test-user' });
   assert.equal(h.records.get('accountDeletionJobs/test-user').status, 'completed');
 });
+

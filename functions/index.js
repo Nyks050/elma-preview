@@ -7,6 +7,22 @@ const apn = require('@parse/node-apn');
 const { fingerprint, decide, reviewListing } = require('./listing-moderation');
 
 admin.initializeApp();
+
+// Bridges the authenticated native session to the existing first-party web data
+// adapter. Never accepts a UID or provider credential supplied by the page.
+exports.nativeSessionToken = onCall({ region: 'europe-west1', timeoutSeconds: 30, maxInstances: 5, invoker: 'public' }, async request => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Oturum gerekli.');
+  const bearer = String(request.rawRequest.headers.authorization || '').match(/^Bearer (\S+)$/i)?.[1];
+  if (!bearer) throw new HttpsError('unauthenticated', 'Oturum gerekli.');
+  let verified;
+  try { verified = await admin.auth().verifyIdToken(bearer, true); }
+  catch { throw new HttpsError('unauthenticated', 'Oturum geçersiz.'); }
+  if (verified.uid !== request.auth.uid) throw new HttpsError('permission-denied', 'Hesap eşleşmedi.');
+  const job = await admin.firestore().collection('accountDeletionJobs').doc(verified.uid).get();
+  if (job.exists) throw new HttpsError('permission-denied', 'Hesap silme işlemi sürüyor.');
+  const customToken = await admin.auth().createCustomToken(verified.uid);
+  return { uid: verified.uid, customToken };
+});
 const APNS_KEY_ID = defineSecret('APNS_KEY_ID');
 const APNS_TEAM_ID = defineSecret('APNS_TEAM_ID');
 const APNS_PRIVATE_KEY = defineSecret('APNS_PRIVATE_KEY');
@@ -71,7 +87,7 @@ async function ensureDeletionJob(uid) {
   return ref;
 }
 
-exports.deleteMyAccount = onCall({ region: 'europe-west1', timeoutSeconds: 30 }, async request => {
+exports.deleteMyAccount = onCall({ region: 'europe-west1', timeoutSeconds: 540 }, async request => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Oturum gerekli.');
   if (request.data?.confirmation !== 'DELETE') {
     throw new HttpsError('invalid-argument', 'Silme onayı eksik.');
@@ -86,6 +102,8 @@ exports.deleteMyAccount = onCall({ region: 'europe-west1', timeoutSeconds: 30 },
   const uid = request.auth.uid;
   if (request.data?.expectedUid !== uid) throw new HttpsError('permission-denied', 'Hesap değişti; silme işlemini yeniden onayla.');
   if (verified.uid !== uid) throw new HttpsError('permission-denied', 'Hesap eşleşmedi.');
+  // A custom-token handoff must not manufacture a recent provider login.
+  if (verified.firebase?.sign_in_provider === 'custom') throw new HttpsError('failed-precondition', 'RECENT_LOGIN_REQUIRED');
   const authTime = Number(verified.auth_time || 0) * 1000;
   if (!authTime || authTime > Date.now() + 30000 || Date.now() - authTime > 5 * 60 * 1000) {
     throw new HttpsError('failed-precondition', 'RECENT_LOGIN_REQUIRED');
@@ -93,14 +111,18 @@ exports.deleteMyAccount = onCall({ region: 'europe-west1', timeoutSeconds: 30 },
   // A durable job is written before deleting Auth. Rules deny further access for
   // this UID immediately, including still-unexpired ID tokens on other devices.
   // The trigger can finish even if this process or the client's connection dies.
-  await ensureDeletionJob(uid);
-  try { await deleteAuthUserIfPresent(uid); }
-  catch {
-    // The durable job still owns the request; do not imply the account was kept
-    // or cancel the job merely because the synchronous response could not finish.
-    throw new HttpsError('unavailable', 'Silme isteği alındı; tamamlanma durumu henüz doğrulanamadı.');
+  const job = await ensureDeletionJob(uid);
+  try {
+    // Do not report success until both user data and Auth are gone. The
+    // onCreate trigger is an idempotent retry if this request is interrupted.
+    await cleanupUserData(uid);
+    await deleteAuthUserIfPresent(uid);
+    await job.update({ status: 'completed', completedAt: admin.firestore.FieldValue.serverTimestamp() });
   }
-  return { deleted: true, cleanupPending: true };
+  catch {
+    throw new HttpsError('unavailable', 'Silme isteği alındı; veri temizliği ve hesap durumunun tamamlandığı henüz doğrulanamadı.');
+  }
+  return { deleted: true, cleanupPending: false };
 });
 
 exports.processAccountDeletion = onDocumentCreated({
@@ -111,8 +133,8 @@ exports.processAccountDeletion = onDocumentCreated({
   const job = event.data.ref;
   const current = await job.get();
   if (current.data()?.status === 'completed') return;
-  await deleteAuthUserIfPresent(uid);
   await cleanupUserData(uid);
+  await deleteAuthUserIfPresent(uid);
   // No credentials or personal content are retained in this administrative
   // tombstone. Keep it while old tokens could otherwise recreate data.
   await job.update({ status: 'completed', completedAt: admin.firestore.FieldValue.serverTimestamp() });
@@ -232,3 +254,4 @@ exports.notifyAmasyaLostListing = onDocumentWritten({
     }
   } finally { provider.shutdown(); }
 });
+
