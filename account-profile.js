@@ -215,17 +215,16 @@ async function removeCurrentAccount(auth, button, status, confirmed = false) {
     status.textContent = 'Kimliğin güvenli şekilde doğrulanıyor…';
     await verifyAccountForDeletion(auth, user);
     status.textContent = 'Hesap silme isteği gönderiliyor…';
-    const remove = httpsCallable(getFunctions(getApp(), 'europe-west1'), 'deleteMyAccount', { timeout: 20000 });
+    const remove = httpsCallable(getFunctions(getApp(), 'europe-west1'), 'deleteMyAccount', { timeout: 150000 });
     const response = await remove({ confirmation: 'DELETE', expectedUid: uid });
-    if (response.data?.deleted !== true) throw accountError('functions/invalid-response');
-    // Only the server-confirmed deletion signs out. Cleanup remains a durable,
-    // retried server job; neither network timeout nor local sign-out means success.
+    if (response.data?.deleted !== true || response.data?.cleanupPending !== false) throw accountError('functions/invalid-response');
+    // A server-confirmed response now includes verified related-data cleanup.
     await bounded(signOut(auth), 5000).catch(() => {});
     try {
       ['elma_ios_push_device_v1', 'elma_e2ee_private_' + uid, 'elmaChatSeen_' + uid, 'elmaBlockedOwners', 'elmaLastListingAt'].forEach(key => localStorage.removeItem(key));
       ['elmaLastMessageText', 'elmaLastMessageAt'].forEach(key => sessionStorage.removeItem(key));
     } catch {}
-    status.textContent = 'Hesabın silindi. İlişkili veriler sunucuda temizleniyor.';
+    status.textContent = 'Hesabın ve ilişkili verilerin silindi.';
     if (!window.webkit?.messageHandlers?.elmaRoutePlanner) {
       alert(status.textContent);
       setTimeout(() => location.replace('/'), 0);
@@ -293,4 +292,5 @@ function start() {
 
 window.addEventListener('elma-auth-session-ready', start);
 start();
+
 
