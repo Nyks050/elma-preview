@@ -7,7 +7,7 @@ ELMA is a working iOS prototype designed to help students and residents navigate
 ## Project at a glance
 
 - **Platform:** iPhone (iOS 17+ prototype)
-- **iOS technologies:** Swift, SwiftUI, MapKit
+- **iOS technologies:** Swift, SwiftUI, Google Maps
 - **Core experience:** Map-based navigation, origin/destination search, suggested routes, transit lines and upcoming vehicles, announcements, lost-and-found flows
 - **Development approach:** Independently built with AI-assisted coding tools
 - **Status:** Working prototype; not yet published on the App Store
