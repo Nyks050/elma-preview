@@ -15,12 +15,21 @@
     } catch { return ''; }
   }
   async function verifiedAmasyaPosition() {
-    return new Promise((resolve) => navigator.geolocation?.getCurrentPosition(async ({ coords }) => {
-      if (!inAmasya(coords)) return resolve(null);
-      const place = await reverseCity(coords.latitude, coords.longitude);
-      if (place && !/amasya/i.test(place)) return resolve(null);
-      resolve({ latitude: coords.latitude, longitude: coords.longitude });
-    }, () => resolve(null), { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }));
+    // Optional chaining here used to leave the promise pending forever when
+    // geolocation was unavailable (for example, in restricted webviews).
+    if (!navigator.geolocation?.getCurrentPosition) return null;
+    return new Promise((resolve) => {
+      try {
+        navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+          if (!inAmasya(coords)) return resolve(null);
+          const place = await reverseCity(coords.latitude, coords.longitude);
+          if (place && !/amasya/i.test(place)) return resolve(null);
+          resolve({ latitude: coords.latitude, longitude: coords.longitude });
+        }, () => resolve(null), { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
+      } catch {
+        resolve(null);
+      }
+    });
   }
   async function saveDevice(event) {
     const token = event.detail?.token;
