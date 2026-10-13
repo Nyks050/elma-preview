@@ -1,24 +1,52 @@
-# ELMA — Smart City Mobility App
+# ELMA Go — iOS City & Transportation App
 
-**An AI-assisted mobile app project for urban transportation in Amasya, Türkiye.**
+**A working iPhone app prototype for local transportation and city services in Amasya, Türkiye.**
 
-ELMA is a working iOS prototype designed to help students and residents navigate local transportation. It explores a simpler way to find routes, discover transit lines, check upcoming vehicles, read announcements, and report lost or found items.
+Independently created using AI-assisted development tools, ELMA Go explores how transportation, practical city information and community services can come together in a single mobile experience.
 
-## Project at a glance
+## App screenshots
 
-- **Platform:** iPhone (iOS 17+ prototype)
-- **iOS technologies:** Swift, SwiftUI, Google Maps
-- **Core experience:** Map-based navigation, origin/destination search, suggested routes, transit lines and upcoming vehicles, announcements, lost-and-found flows
-- **Development approach:** Independently built with AI-assisted coding tools
-- **Status:** Working prototype; not yet published on the App Store
+Real screenshots from the running iOS prototype:
 
-**Important:** Transit lines and arrival times currently use prototype data; real-time transport feeds are not yet integrated. This repository is a public project preview; the iOS source repository is private. The iOS screenshots show Google Maps.
+<div align="center">
 
-## For potential clients
+<img src="screenshots/IMG_3032.png" alt="ELMA Go iOS application screenshot 1" width="235" />
+<img src="screenshots/IMG_3033.png" alt="ELMA Go iOS application screenshot 2" width="235" />
+<img src="screenshots/IMG_3034.png" alt="ELMA Go iOS application screenshot 3" width="235" />
+<img src="screenshots/IMG_3035.png" alt="ELMA Go iOS application screenshot 4" width="235" />
+<img src="screenshots/IMG_3036.png" alt="ELMA Go iOS application screenshot 5" width="235" />
+<img src="screenshots/IMG_3038.png" alt="ELMA Go iOS application screenshot 6" width="235" />
+<img src="screenshots/IMG_3039.png" alt="ELMA Go iOS application screenshot 7" width="235" />
 
-I create functional mobile app prototypes and MVPs with AI-assisted development workflows, focusing on turning an idea into a testable product. ELMA is an example of my hands-on product-building work. For a project inquiry, please reach out via my GitHub profile.
+</div>
 
-## Screenshots and demo
+## What ELMA Go demonstrates
 
-A product walkthrough and screenshots can be shared upon request. They will be added here when ready.
+| Area | Screens and capabilities |
+| --- | --- |
+| Welcome and sign-in | Email/password entry, Google and Apple sign-in options, and guest entry UI |
+| Transportation | Route search, origin/destination selection, Google Maps display, bus line discovery |
+| Bus schedules | Route information, departure timetable UI and filters |
+| City services | Announcements, on-duty pharmacy, weather and lost-and-found entry points |
+| Lost and found | Listing discovery, lost/found categories, search and create-listing UI |
+| Account | Profile, settings, help, security and preference controls |
 
+*Screenshots demonstrate the app's interface. They do not by themselves verify that every external service or backend workflow is production-ready.*
+
+## Project details
+
+- **Platform:** iOS / iPhone
+- **Technologies:** Swift, SwiftUI, Google Maps
+- **Development:** Independently built with AI-assisted coding tools
+- **Status:** Working prototype; **not yet published on the App Store**
+- **Data note:** Transit schedules and arrivals use prototype data; real-time feeds are not integrated.
+
+## Freelance projects
+
+I build early-stage mobile app concepts, functional prototypes and MVPs with AI-assisted workflows. My focus is turning an idea into a usable interface and a testable app. ELMA Go is a practical example of this work.
+
+For a project inquiry or a walkthrough, please contact me through my [GitHub profile](https://github.com/Nyks050).
+
+## Source code
+
+The complete iOS application source is in a **private repository**. This public repository is a portfolio showcase.
