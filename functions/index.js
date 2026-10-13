@@ -10,7 +10,7 @@ admin.initializeApp();
 
 // Bridges the authenticated native session to the existing first-party web data
 // adapter. Never accepts a UID or provider credential supplied by the page.
-exports.nativeSessionToken = onCall({ region: 'europe-west1', timeoutSeconds: 30, maxInstances: 5 }, async request => {
+exports.nativeSessionToken = onCall({ region: 'europe-west1', timeoutSeconds: 30, maxInstances: 5, invoker: 'public' }, async request => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Oturum gerekli.');
   const bearer = String(request.rawRequest.headers.authorization || '').match(/^Bearer (\S+)$/i)?.[1];
   if (!bearer) throw new HttpsError('unauthenticated', 'Oturum gerekli.');

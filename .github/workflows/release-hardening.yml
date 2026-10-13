@@ -17,4 +17,5 @@ jobs:
           node --check functions/listing-moderation.js
           node --check email-auth.js
           node --test tests/account-deletion.test.cjs
+          node --test functions/listing-moderation.test.js functions/moderation-guard.test.js functions/report-email.test.js
 
