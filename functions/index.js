@@ -8,6 +8,10 @@ const { fingerprint, decide, reviewListing } = require('./listing-moderation');
 
 admin.initializeApp();
 
+const emailCodes = require('./email-codes');
+exports.requestEmailCode = emailCodes.requestEmailCode;
+exports.completeEmailCode = emailCodes.completeEmailCode;
+
 // Bridges the authenticated native session to the existing first-party web data
 // adapter. Never accepts a UID or provider credential supplied by the page.
 exports.nativeSessionToken = onCall({ region: 'europe-west1', timeoutSeconds: 30, maxInstances: 5, invoker: 'public' }, async request => {
