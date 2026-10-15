@@ -48,7 +48,7 @@ export function installEmailCodeFlow(auth) {
   const verify = document.createElement('section'); verify.id = 'emailCodeVerify'; verify.className = 'register';
   verify.innerHTML = `<div class="box"><div class="brand wordmark email-code-logo" role="img" aria-label="Elma Go"><span class="elma">elma</span><span class="go">go</span></div>
     <h1 id="emailCodeTitle">E-postanı doğrula</h1><p class="desc" id="emailCodeDesc"></p>
-    <div class="field"><input id="emailCodeInput" class="email-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-label="6 haneli doğrulama kodu" placeholder="000000"></div>
+    <div class="field"><input id="emailCodeInput" class="email-code" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-label="6 haneli doğrulama kodu" placeholder="••••••"></div>
     <div id="emailCodePasswords" hidden><div class="field"><input id="emailCodeNewPassword" type="password" autocomplete="new-password" maxlength="128" placeholder="Yeni şifre (en az 8 karakter)" aria-label="Yeni şifre"></div>
     <div class="field"><input id="emailCodeNewPasswordAgain" type="password" autocomplete="new-password" maxlength="128" placeholder="Yeni şifreyi tekrar gir" aria-label="Yeni şifreyi tekrar gir"></div></div>
     <button id="emailCodeSubmit" class="primary" type="button">Kodu doğrula</button>

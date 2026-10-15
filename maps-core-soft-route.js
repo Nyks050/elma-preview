@@ -739,7 +739,7 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
   accountProfile.dataset.elmaAccountProfile='1';
   document.head.appendChild(accountProfile);
   const emailAuth=document.createElement('script');
-  emailAuth.src='email-auth.js?v=20261016-otp1';
+  emailAuth.src='email-auth.js?v=20261016-otp2';
   emailAuth.type='module';
   emailAuth.dataset.elmaEmailAuth='1';
   document.head.appendChild(emailAuth);

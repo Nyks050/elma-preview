@@ -1,5 +1,5 @@
 import { getApp, getApps } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
-import {installEmailCodeFlow} from './email-code-flow.js?v=20261016-otp1';
+import {installEmailCodeFlow} from './email-code-flow.js?v=20261016-otp2';
 import { getAuth, OAuthProvider, signInWithCredential, signInWithEmailAndPassword, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
 
 const style = document.createElement('style');
