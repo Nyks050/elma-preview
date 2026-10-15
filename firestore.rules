@@ -7,9 +7,8 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return signedIn()
-        && request.auth.token.email_verified == true
-        && request.auth.token.email == 'admin@elmago.com.tr';
+      // Legacy email-based browser admin retired.
+      return false;
     }
 
     // Server-owned tombstones block old tokens while cleanup is retried.

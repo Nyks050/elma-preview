@@ -6,8 +6,8 @@ service firebase.storage {
         && !firestore.exists(/databases/(default)/documents/accountDeletionJobs/$(request.auth.uid));
     }
     function isAdmin() {
-      return request.auth != null && request.auth.token.email_verified == true
-        && request.auth.token.email == 'admin@elmago.com.tr' && signedIn();
+      // Legacy email-based browser admin retired.
+      return false;
     }
     function approvedImage(userId) {
       let listing = firestore.get(/databases/(default)/documents/lostFoundListings/$(resource.metadata.listingId)).data;
