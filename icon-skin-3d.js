@@ -108,7 +108,48 @@ body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
 @media(max-width:359px){#elmaHomeWidgets :is([data-panel="services"],[data-panel="transport"]) .eg-services-grid{gap:8px}#elmaHomeWidgets :is([data-panel="services"],[data-panel="transport"]) .eg-service-card{min-height:138px!important;padding:12px!important}#elmaHomeWidgets :is([data-panel="services"],[data-panel="transport"]) .eg-service-name{font-size:12px}#elmaHomeWidgets :is([data-panel="services"],[data-panel="transport"]) .eg-service-description{font-size:10px}}
 @media(prefers-reduced-motion:reduce){#elmaHomeWidgets :is([data-panel="services"],[data-panel="transport"]) .eg-service-card{transition:none}}
 `;
-style.textContent+='\n#elmaHomeWidgets [data-panel="transport"] .eg-services-grid{margin:20px 0 0}';
+// Both home tabs share geometry. Select the active panel directly: the body
+// theme class is updated by an observer and used to shift the layout a frame late.
+style.textContent+=`
+#elmaHomeWidgets{
+  --eg-home-gutter:6%;
+  --eg-home-hero-height:clamp(190px,46vw,240px);
+  --eg-home-grid-offset:clamp(18px,5vw,30px);
+  --eg-home-card-height:160px;
+  --eg-home-title-height:35px;
+}
+body #elmaHomeWidgets:has(> .eg-panel.active:is([data-panel="transport"],[data-panel="services"])){
+  width:100%;max-width:520px;margin:0 auto;
+  padding:env(safe-area-inset-top) 0 calc(110px + env(safe-area-inset-bottom));
+  background:#fff;
+}
+#elmaHomeWidgets > .eg-panel:is([data-panel="transport"],[data-panel="services"]){margin:0;padding:0 0 20px}
+/* Match the transport hero to the existing, unchanged city artwork frame. */
+#elmaHomeWidgets [data-panel="transport"] .eg-transit-hero{
+  width:auto;height:var(--eg-home-hero-height);min-height:190px;
+  margin:0 var(--eg-home-gutter);border:0;border-radius:clamp(15px,4.2vw,22px);
+}
+#elmaHomeWidgets :is([data-panel="services"],[data-panel="transport"]) .eg-services-grid{
+  margin:var(--eg-home-grid-offset) var(--eg-home-gutter) 0;
+  gap:clamp(8px,2.7vw,12px);
+}
+#elmaHomeWidgets :is([data-panel="services"],[data-panel="transport"]) .eg-service-card{
+  height:var(--eg-home-card-height);min-height:var(--eg-home-card-height)!important;
+  grid-template-rows:46px minmax(0,1fr);
+}
+#elmaHomeWidgets :is([data-panel="services"],[data-panel="transport"]) .eg-service-copy{
+  display:grid!important;grid-template-rows:var(--eg-home-title-height) minmax(0,1fr);
+  gap:5px!important;align-self:stretch;align-items:start!important;width:100%;
+}
+#elmaHomeWidgets :is([data-panel="services"],[data-panel="transport"]) .eg-service-name{
+  margin:0;line-height:1.25;align-self:start;
+}
+#elmaHomeWidgets :is([data-panel="services"],[data-panel="transport"]) .eg-service-description{
+  margin:0!important;line-height:1.35;align-self:start;
+}
+@media(max-width:359px){#elmaHomeWidgets{--eg-home-card-height:156px;--eg-home-title-height:30px}}
+html[data-large-text="true"] #elmaHomeWidgets{--eg-home-card-height:200px;--eg-home-title-height:37.5px}
+`;
 document.head.appendChild(style);
 let notice,grid,root,observer,timer;
 function message(text){notice.textContent=text;notice.hidden=false;notice.scrollIntoView({block:'nearest',behavior:'smooth'})}
@@ -158,6 +199,10 @@ const defs=[
 [root.querySelector('[data-service-target="weather"]'),'weather','Hava Durumu','Güncel hava durumu bilgileri.']];
 const ordered=[];
 defs.forEach(([b,key,title,desc])=>{if(!b)return;ordered.push(b);if(b.dataset.referenceStyled)return;b.dataset.referenceStyled='1';b.innerHTML='<span class="eg-service-icon" aria-hidden="true">'+icons[key]+'</span><span class="eg-service-copy"><span class="eg-service-name">'+title+'</span><span class="eg-service-description">'+desc+'</span></span>';});
+// The iOS bridge owns this card and its native click listener. Removing it here
+// made the bridge recreate it on every mutation, causing a continuous DOM loop.
+const nativeLostCard=grid.querySelector('[data-elma-city-lost]');
+if(nativeLostCard)ordered.push(nativeLostCard);
 Array.from(grid.children).forEach(card=>{if(!ordered.includes(card))card.remove()});
 ordered.forEach((b,i)=>{if(grid.children[i]!==b)grid.insertBefore(b,grid.children[i]||null)});
 document.body.classList.toggle('eg-reference-services',root.classList.contains('active'));
