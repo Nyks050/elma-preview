@@ -43,7 +43,7 @@ export function installEmailCodeFlow(auth) {
     registerMessage.className = 'msg'; register.querySelector('.back')?.before(registerMessage);
   }
   const logoStyle = document.createElement('style');
-  logoStyle.textContent = '#emailCodeVerify .email-code-logo{width:220px!important;max-width:65vw!important;height:78px!important;margin:0 auto 24px!important}';
+  logoStyle.textContent = '#emailCodeVerify .email-code-logo{width:220px!important;max-width:65vw!important;height:78px!important;margin:0 auto 24px!important}#emailCodeVerify{z-index:910;transition:none!important}body.elma-email-code-pending #elmaMainNav,body.elma-email-code-pending .eg-bottom{visibility:hidden!important;pointer-events:none!important}';
   document.head.append(logoStyle);
   const verify = document.createElement('section'); verify.id = 'emailCodeVerify'; verify.className = 'register';
   verify.innerHTML = `<div class="box"><div class="brand wordmark email-code-logo" role="img" aria-label="Elma Go"><span class="elma">elma</span><span class="go">go</span></div>
@@ -82,7 +82,10 @@ export function installEmailCodeFlow(auth) {
       : `${address} adresi kayıt için uygunsa kod gönderildi. Gelen 6 haneli kodu gir.`;
     get('emailCodePasswords').hidden = !reset;
     get('emailCodeSubmit').textContent = reset ? 'Şifremi yenile' : 'Kodu doğrula';
-    message(''); login.classList.add('hide'); register.classList.remove('show'); verify.classList.add('show');
+    // Keep the opaque login layer beneath the code screen. Hiding both legacy
+    // auth screens previously exposed the app/nav while their opacity changed.
+    message(''); document.body.classList.add('elma-email-code-pending');
+    login.classList.remove('hide'); verify.classList.add('show'); register.classList.remove('show');
     get('emailCodeInput').focus(); countdown(response.resendAfter || 60);
   }
   async function requestRegistration() {
@@ -122,8 +125,10 @@ export function installEmailCodeFlow(auth) {
   get('emailCodeBack').onclick = () => {
     if (busy) return;
     const wasRegister = pending?.purpose === 'register'; ++generation; pending = null;
-    clearInterval(resendTimer); clearSecrets(); verify.classList.remove('show');
-    if (wasRegister) register.classList.add('show'); else login.classList.remove('hide');
+    clearInterval(resendTimer); clearSecrets();
+    login.classList.remove('hide');
+    if (wasRegister) register.classList.add('show');
+    verify.classList.remove('show'); document.body.classList.remove('elma-email-code-pending');
   };
   get('emailCodeResend').onclick = async () => {
     if (!pending || busy) return;
@@ -158,14 +163,16 @@ export function installEmailCodeFlow(auth) {
           window.dispatchEvent(new CustomEvent('elma-user-profile-updated', {detail: result.user}));
         }
       }
-      clearSecrets(); pending = null; clearInterval(resendTimer); verify.classList.remove('show');
+      clearSecrets(); pending = null; clearInterval(resendTimer);
       if (reset) {
         login.classList.remove('hide'); get('emailLoginPassword').value = '';
         get('emailLoginMsg').textContent = 'Şifren yenilendi. Yeni şifrenle giriş yapabilirsin.';
       } else login.classList.add('hide');
+      verify.classList.remove('show'); document.body.classList.remove('elma-email-code-pending');
     } catch (error) {
       if (completed) {
-        clearSecrets(); pending = null; clearInterval(resendTimer); verify.classList.remove('show'); login.classList.remove('hide');
+        clearSecrets(); pending = null; clearInterval(resendTimer); login.classList.remove('hide');
+        verify.classList.remove('show'); document.body.classList.remove('elma-email-code-pending');
         get('emailLoginMsg').textContent = reset ? 'Şifren yenilendi. Yeni şifrenle giriş yap.' : 'Hesabın doğrulandı. E-posta ve şifrenle giriş yap.';
       } else message(error.message);
     } finally { busy = false; button.disabled = false; }
