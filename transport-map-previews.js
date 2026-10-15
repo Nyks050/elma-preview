@@ -7,7 +7,22 @@
     if(window.elmaTransitData)return Promise.resolve(window.elmaTransitData);
     if(!window.elmaTransitDataPromise)window.elmaTransitDataPromise=fetch(dataURL)
       .then(response=>{if(!response.ok)throw Error('Hat verisi yüklenemedi');return response.json()})
-      .then(data=>{data.lines=(data.lines||[]).filter(line=>line.id!=='11');return(window.elmaTransitData=data)})
+      .then(async data=>{
+        data.lines=(data.lines||[]).filter(line=>line.id!=='11');
+        try {
+          const response=await fetch('https://europe-west1-elma-bd38c.cloudfunctions.net/panelPublicContent',{signal:AbortSignal.timeout(5000),credentials:'omit'});
+          if(response.ok){const feed=await response.json();if(feed.schemaVersion===1&&Array.isArray(feed.timetables)&&feed.timetables.length<=100){
+            for(const entry of feed.timetables){
+              const line=data.lines.find(line=>line.id===entry.line),day=entry.day==='sunday'?'sundayHoliday':entry.day;
+              if(!line||!['weekday','saturday','sundayHoliday'].includes(day)||!['outbound','inbound'].includes(entry.direction)||!Array.isArray(entry.departures)||entry.departures.length>200||!entry.departures.every(t=>/^([01]\d|2[0-3]):[0-5]\d$/.test(t)))continue;
+              const schedules=entry.direction==='inbound'?(line.inboundSchedule||={}):(line.schedule||={});
+              schedules[day]=[...new Set(entry.departures)].sort();
+            }
+            data.panelRevision=feed.revision;
+          }}
+        }catch{/* Bounded timeout; bundled timetable remains usable offline. */}
+        return(window.elmaTransitData=data);
+      })
       .catch(error=>{window.elmaTransitDataPromise=null;throw error});
     return window.elmaTransitDataPromise;
   };
