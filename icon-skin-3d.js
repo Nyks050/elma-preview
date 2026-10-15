@@ -87,8 +87,8 @@ body.eg-reference-services #elmaHomeWidgets{background:#fff!important}
 .eg-reference-heading h2{max-width:430px;font-size:clamp(32px,8.7vw,46px);font-weight:800;letter-spacing:-.065em;line-height:1.06}
 .eg-reference-heading p{margin-top:9px;font-size:14px;color:#73767c;font-weight:500}
 .eg-lost-banner{width:auto;height:clamp(190px,46vw,240px);min-height:190px;margin:0 6%;border-radius:clamp(15px,4.2vw,22px);background:#fff;box-shadow:none}
-.eg-lost-scene{position:relative;width:100%;height:100%;overflow:hidden;background:radial-gradient(circle at 50% 58%,#303238 0,#15161a 33%,#090a0d 72%);-webkit-mask-image:radial-gradient(ellipse 90% 94% at center,#000 72%,rgba(0,0,0,.92) 84%,transparent 100%);mask-image:radial-gradient(ellipse 90% 94% at center,#000 72%,rgba(0,0,0,.92) 84%,transparent 100%)}
-.eg-lost-dog-art{display:block;width:100%;height:100%;object-fit:cover}
+.eg-lost-scene{position:relative;width:100%;height:100%;overflow:hidden;border-radius:inherit;background:#090a0d;-webkit-mask-image:none;mask-image:none}
+.eg-lost-dog-art{display:block;position:absolute;width:104.047%;height:115.345%;max-width:none;left:-2.111%;top:-7.152%;object-fit:cover;object-position:80% center}
 .eg-reference-story{max-width:100%;margin-left:0;padding:25px 22px 24px;color:#fff;min-height:190px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .eg-reference-story .eg-feature-kicker{margin-bottom:15px;color:#bec1c7;font-size:10px;font-weight:800;letter-spacing:.14em}
 .eg-reference-story h3{max-width:235px;margin:0 0 12px;font-size:clamp(24px,6vw,31px);font-weight:800;line-height:1.08;letter-spacing:-.055em}
@@ -142,8 +142,11 @@ function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageTheme();
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<div class="eg-lost-banner"><div class="eg-lost-scene"><img class="eg-lost-dog-art" src="assets/lost-dog-digging.svg?v=20260919-dig-forever1" alt="Toprağı kazmaya devam eden köpek animasyonu" width="800" height="400" decoding="async"></div></div>';
+hero.innerHTML='<div class="eg-lost-banner"><div class="eg-lost-scene"><img class="eg-lost-dog-art" src="assets/amasya-dog-key-approved.png" alt="Amasya manzarasında kayıp bir anahtarı bulan köpek" width="1774" height="887" decoding="async"></div></div>';
 root.prepend(hero);
+const scene=hero.querySelector('.eg-lost-scene');
+if(window.elmaMountCityScene)window.elmaMountCityScene(scene);
+else{const animation=document.createElement('script');animation.src='city-dog-scene.js?v=20261015-approved1';animation.onload=()=>window.elmaMountCityScene?.(scene);document.head.appendChild(animation);}
 notice=document.createElement('div');notice.className='eg-reference-notice';notice.hidden=true;notice.setAttribute('role','status');root.appendChild(notice);
 const news=make('news','Duyurular','Güncel duyuruları ve haberleri takip edin.',()=>window.elmaOpenAnnouncements?.());
 grid.append(news);
