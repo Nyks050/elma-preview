@@ -1,4 +1,5 @@
 (async()=>{
+const panelContentScript=document.createElement('script');panelContentScript.src='panel-public-content.js?v=20261016-public1';document.head.appendChild(panelContentScript);
 const CONFIG={apiKey:'AIzaSyBWic36WVTPG5oWUtSCJ-6MWrKWbO_w9aQ',authDomain:'elma-bd38c.firebaseapp.com',projectId:'elma-bd38c',storageBucket:'elma-bd38c.firebasestorage.app',messagingSenderId:'675060354080',appId:'1:675060354080:web:cef2e0c3145440e2d40045'};
 const [{initializeApp,getApps},{getFirestore,collection,doc,onSnapshot,query,where,limit}]=await Promise.all([import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js')]);
 const app=getApps()[0]||initializeApp(CONFIG),db=getFirestore(app);let announcements=[];
