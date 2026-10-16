@@ -183,7 +183,7 @@ function mount(){
 root=document.querySelector('#elmaHomeWidgets [data-panel="services"]');if(!root){setTimeout(mount,100);return}
 grid=root.querySelector('.eg-services-grid');if(!grid)return;loadServicePageTheme();
 const hero=document.createElement('div');hero.className='eg-reference-hero';
-hero.innerHTML='<div class="eg-lost-banner"><div class="eg-lost-scene"><img class="eg-lost-dog-art" src="assets/amasya-dog-trees-green-20261016.png" alt="Yeşil ağaçlı Amasya manzarasında kayıp bir anahtarı bulan köpek" width="1774" height="887" decoding="async"></div></div>';
+hero.innerHTML='<div class="eg-lost-banner"><div class="eg-lost-scene"><img class="eg-lost-dog-art" src="assets/amasya-dog-grass-green-20261016.png" alt="Yeşil ağaçlı Amasya manzarasında kayıp bir anahtarı bulan köpek" width="1774" height="887" decoding="async"></div></div>';
 root.prepend(hero);
 const scene=hero.querySelector('.eg-lost-scene');
 if(window.elmaMountCityScene)window.elmaMountCityScene(scene);

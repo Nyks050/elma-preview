@@ -133,7 +133,7 @@
       if (hero && 'IntersectionObserver' in window) new IntersectionObserver(entries => { visible = entries[0]?.isIntersecting === true; sync(); }).observe(hero);
       sync();
     };
-    replacement.src = new URL('assets/eco-bus-ivy-complete-20261016.png', document.baseURI).href;
+    replacement.src = new URL('assets/eco-bus-all-green-20261016.png', document.baseURI).href;
   }
 
   mount();

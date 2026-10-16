@@ -4,7 +4,7 @@
   guard.textContent='.mapwrap #map{display:none!important}.hero,.top{display:none!important}';
   document.head.appendChild(guard);
   const icons=document.createElement('script');
-  icons.src='icon-skin-3d.js?v=20261016-trees-green1';
+  icons.src='icon-skin-3d.js?v=20261016-grass-green1';
   icons.defer=true;
   document.head.appendChild(icons);
   const core=document.createElement('script');
