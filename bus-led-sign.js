@@ -60,7 +60,7 @@
     style.textContent = `
       .eg-transit-hero .eg-transit-stage.eg-eco-stage{inset:0;left:0;top:0;width:100%;height:100%;transform:none}
       .eg-eco-stage:before,.eg-eco-stage:after{display:none!important}
-      .eg-transit-hero .eg-eco-stage .eg-reference-frame{inset:0;width:100%;height:100%;object-fit:cover;object-position:center;filter:none}
+      .eg-transit-hero .eg-eco-stage .eg-reference-frame{inset:0;width:100%;height:100%;object-fit:cover;object-position:center;filter:grayscale(1)}
       .eg-bus-led-overlay{position:absolute;inset:0;z-index:2;width:100%;height:100%;pointer-events:none;overflow:hidden}
       .eg-bus-led-track{animation:egBusLEDScroll ${period / 40}s linear infinite;animation-play-state:paused}
       .eg-panel.active .eg-bus-led-track{animation-play-state:running}
