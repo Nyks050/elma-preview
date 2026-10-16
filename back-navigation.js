@@ -62,7 +62,8 @@ html body #elmaHomeWidgets>.eg-panel[data-panel="transport-routes"],
 html body #elmaHomeWidgets>.eg-panel[data-panel="transport-trips"]{padding-top:0!important;padding-left:0!important;padding-right:0!important}
 html body .erm,html body .est{padding-top:calc(8px + env(safe-area-inset-top))!important;padding-left:16px!important;padding-right:16px!important}
 html body #elmaHomeWidgets>.eg-panel[data-panel="transport-lines"]{padding-top:calc(8px + env(safe-area-inset-top))!important;padding-left:16px!important;padding-right:16px!important}
-html body .eg-announcement-sheet:has(>.elma-back-header),
+/* This bottom sheet does not touch the top safe area. */
+html body .eg-announcement-sheet:has(>.elma-back-header){padding-top:8px!important;padding-left:16px!important;padding-right:16px!important}
 html body .eg-lost-sheet:has(>.elma-back-header){padding-top:calc(8px + env(safe-area-inset-top))!important;padding-left:16px!important;padding-right:16px!important}
 html body .eg-lost-sheet.eg-chat-sheet:has(>.elma-back-header){padding-left:0!important;padding-right:0!important}
 `;
