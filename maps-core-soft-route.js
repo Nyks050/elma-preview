@@ -526,9 +526,10 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
         else tab.removeAttribute('aria-current');
       });
     }
-    let tabTransitionLocked=false;
-    let pendingTabTimer;
-    let tabUnlockTimer;
+    const tabMotionStyle=document.createElement('style');
+    tabMotionStyle.id='elmaSoftTabMotion';
+    tabMotionStyle.textContent="/* Short, non-blocking tab fade; respect the system's reduced-motion preference. */\n@keyframes elmaSoftTabReveal{from{opacity:.25;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}\n.eg-panel.elma-tab-enter{animation:elmaSoftTabReveal 210ms ease-out both}\n@media(prefers-reduced-motion:reduce){.eg-panel.elma-tab-enter{animation:none!important}}\nhtml[data-reduce-motion=\"true\"] .eg-panel.elma-tab-enter{animation:none!important}\n";
+    document.head.appendChild(tabMotionStyle);
     const tabAnimationTimers=new WeakMap();
     function mainTabSurface(name){
       return name==='lost'?document.querySelector('.eg-panel[data-panel="lost-found"]'):document.querySelector(`.eg-panel[data-panel="${name}"]`);
@@ -541,7 +542,7 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
       target.classList.remove('elma-tab-enter');
       void target.offsetWidth;
       target.classList.add('elma-tab-enter');
-      tabAnimationTimers.set(target,setTimeout(()=>target.classList.remove('elma-tab-enter'),560));
+      tabAnimationTimers.set(target,setTimeout(()=>target.classList.remove('elma-tab-enter'),240));
     }
     function showMainTab(name){
       if(name==='lost'){document.body.classList.remove('elma-white-flow');hideWhiteScreens();setNavActive('lost');wrapper.style.display='none';window.elmaOpenEvents?.();animateMainTab(name);return}
@@ -555,25 +556,12 @@ body.elma-white-flow #elmaMainNav .elma-main-tab svg,body.elma-white-flow #elmaM
     function activateMainTab(button){
       const name=button.dataset.elmaTab;
       const current=nav.querySelector('.elma-main-tab.active')?.dataset.elmaTab;
-      if(current===name||tabTransitionLocked)return;
-      const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.reduceMotion==='true';
-      if(reduced){showMainTab(name);return}
-      tabTransitionLocked=true;
-      setNavActive(name);
-      tabCurtain.classList.add('show');
-      clearTimeout(pendingTabTimer);
-      clearTimeout(tabUnlockTimer);
-      pendingTabTimer=setTimeout(()=>{
-        showMainTab(name);
-        requestAnimationFrame(()=>requestAnimationFrame(()=>tabCurtain.classList.remove('show')));
-        tabUnlockTimer=setTimeout(()=>{tabTransitionLocked=false},760);
-      },480);
+      if(current===name)return;
+      // Switch immediately; the existing enter animation provides continuity
+      // without delaying navigation or blocking subsequent taps.
+      showMainTab(name);
     }
     nav.querySelectorAll('.elma-main-tab').forEach(button=>{
-      button.addEventListener('pointerdown',event=>{
-        if(event.pointerType==='mouse')return;
-        activateMainTab(button);
-      });
       button.addEventListener('click',event=>{
         event.preventDefault();
         activateMainTab(button);
