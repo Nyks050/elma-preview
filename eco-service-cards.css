@@ -1,47 +1,48 @@
 /* Appearance only: retain the original buttons, handlers, size and grid layout. */
 #elmaHomeWidgets#elmaHomeWidgets [data-panel="transport"] .eg-service-card {
-  background-image:url("assets/eco-service-cards-20261016.png")!important;
+  background-image:url("assets/night-service-cards-20261016.png")!important;
   background-size:200% 100%!important;
   background-repeat:no-repeat!important;
   background-position:right center!important;
-  background-color:#effbf0!important;
-  border-color:#d7ead8!important;
-  color:#05381a!important;
-  box-shadow:inset 0 1px 0 #ffffffb3,0 5px 15px #173e1710!important;
+  background-color:#dce5ef!important;
+  border-color:#bdc9d6!important;
+  color:#0b1c30!important;
+  box-shadow:inset 0 1px 0 #ffffffb3,0 5px 15px #0b1c3010!important;
   overflow:hidden;
 }
 #elmaHomeWidgets#elmaHomeWidgets [data-panel="transport"] .eg-service-card:nth-child(odd) {
   background-position:left center!important;
-  background-color:#003b20!important;
-  border-color:#1c6439!important;
+  background-color:#0b1c30!important;
+  border-color:#344958!important;
   color:#fff!important;
 }
 #elmaHomeWidgets#elmaHomeWidgets [data-panel="transport"] .eg-service-card .eg-service-name {
-  color:#05381a!important;text-shadow:0 1px 6px #ffffffb3;
+  color:#0b1c30!important;text-shadow:0 1px 6px #ffffffb3;
 }
 #elmaHomeWidgets#elmaHomeWidgets [data-panel="transport"] .eg-service-card .eg-service-description {
-  color:#616b60!important;text-shadow:0 1px 6px #fff;
+  color:#354555!important;text-shadow:0 1px 6px #ffffffa3;
 }
 #elmaHomeWidgets#elmaHomeWidgets [data-panel="transport"] .eg-service-card:nth-child(odd) .eg-service-name {
-  color:#fff!important;text-shadow:0 1px 6px #002c1b;
+  color:#fff!important;text-shadow:0 1px 6px #07131f;
 }
 #elmaHomeWidgets#elmaHomeWidgets [data-panel="transport"] .eg-service-card:nth-child(odd) .eg-service-description {
-  color:#e1f0e2!important;text-shadow:0 1px 6px #002c1b;
+  color:#d6dde8!important;text-shadow:0 1px 6px #07131f;
 }
 #elmaHomeWidgets#elmaHomeWidgets [data-panel="transport"] .eg-service-card .eg-service-icon {
-  background:#ffffffdb!important;color:#063c20!important;
-  box-shadow:inset 0 1px 0 #fff,0 4px 15px #17491b08!important;
+  background:#f5f7fcdb!important;color:#0b1c30!important;
+  box-shadow:inset 0 1px 0 #fff,0 4px 15px #0b1c3008!important;
   border-radius:25%!important;
 }
 #elmaHomeWidgets#elmaHomeWidgets [data-panel="transport"] .eg-service-card:nth-child(odd) .eg-service-icon {
   background:#ffffff24!important;color:#fff!important;box-shadow:inset 0 1px 0 #ffffff26!important;
 }
 #elmaHomeWidgets#elmaHomeWidgets [data-panel="transport"] .eg-service-card:after {
-  background:#d7e8cba8!important;color:#073c1b!important;box-shadow:inset 0 1px 0 #ffffff40!important;
+  background:#e4eaf2c2!important;color:#0b1c30!important;box-shadow:inset 0 1px 0 #ffffff40!important;
 }
 #elmaHomeWidgets#elmaHomeWidgets [data-panel="transport"] .eg-service-card:nth-child(odd):after {
   background:#ffffff29!important;color:#fff!important;
 }
 #elmaHomeWidgets#elmaHomeWidgets [data-panel="transport"] .eg-service-card:focus-visible {
-  outline:3px solid #398b3c!important;outline-offset:3px!important;
+  outline:3px solid #597da3!important;outline-offset:3px!important;
 }
+
