@@ -81,6 +81,8 @@
     svg.setAttribute('focusable', 'false');
     svg.innerHTML = `
       <defs>
+        <clipPath id="eg-eco-ivy-mask"><path clip-rule="evenodd" d="M1235 282L1489 218L1694 252L1718 748L1550 746L1538 635L1518 620L1512 576L1278 576L1278 712L1244 710L1238 449L1229 447Z"/></clipPath>
+        <filter id="eg-eco-ivy-green" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".86 0 0 0 0  0 1.12 0 0 .01  0 0 .78 0 0  0 0 0 1 0"/></filter>
         <linearGradient id="eg-led-glass" x1="0" y1="0" x2="0.2" y2="1">
           <stop stop-color="#9ba5ad" stop-opacity=".23"/>
           <stop offset=".46" stop-color="#1c2226" stop-opacity=".04"/>
@@ -106,14 +108,14 @@
           <rect width="268" height="59" fill="url(#eg-led-panel)"/>
           <rect width="268" height="59" fill="url(#eg-led-grid)"/>
           <g class="eg-bus-led-track">
-            <g color="#ffa915" opacity=".28" filter="url(#eg-led-bloom)">
+            <g color="#ffe000" opacity=".7" filter="url(#eg-led-bloom)">
               <path fill="currentColor" d="${path}"/><path fill="currentColor" d="${path}" transform="translate(${period} 0)"/>
             </g>
             <g>
-              <path fill="url(#eg-led-diode)" d="${path}"/><path fill="url(#eg-led-diode)" d="${path}" transform="translate(${period} 0)"/>
+              <path fill="#ffe33b" stroke="#fff4a0" stroke-width=".25" d="${path}"/><path fill="#ffe33b" stroke="#fff4a0" stroke-width=".25" d="${path}" transform="translate(${period} 0)"/>
             </g>
           </g>
-          <g class="eg-bus-led-static" fill="#ffc34f" font-family="monospace" font-weight="700" font-size="17" text-anchor="middle">
+          <g class="eg-bus-led-static" fill="#ffe33b" font-family="monospace" font-weight="700" font-size="17" text-anchor="middle">
             <text x="134" y="35" textLength="249" lengthAdjust="spacingAndGlyphs">${MESSAGE}</text>
           </g>
         </svg>
@@ -124,6 +126,14 @@
       artwork.src = replacement.src;
       artwork.alt = 'Yeşil durakta bekleyen beyaz şehir otobüsü';
       stage.classList.add('eg-eco-stage');
+      const ivy = document.createElementNS(NS, 'image');
+      ivy.setAttribute('href', replacement.src);
+      ivy.setAttribute('width', '1721');
+      ivy.setAttribute('height', '914');
+      ivy.setAttribute('clip-path', 'url(#eg-eco-ivy-mask)');
+      ivy.setAttribute('filter', 'url(#eg-eco-ivy-green)');
+      // Restore color only on the shelter ivy, behind the independent LED layer.
+      svg.insertBefore(ivy, svg.querySelector('g'));
       stage.appendChild(svg);
       const hero = stage.closest('.eg-transit-hero');
       hero?.setAttribute('aria-label', `Otobüs, kayan tabela: ${MESSAGE}`);
@@ -140,3 +150,5 @@
   document.addEventListener('DOMContentLoaded', mount, { once: true });
   window.addEventListener('elma-home-widgets-ready', mount, { once: true });
 })();
+
+
