@@ -1,0 +1,17 @@
+/* Small botanical accents only; no layout, text, or click changes. */
+#elmaHomeWidgets [data-panel="transport"] .eg-service-card:is([data-service-target="transport-routes"],[data-service-target="transport-lines"])::before{
+  content:"";position:absolute;display:block;right:9px;bottom:8px;
+  width:40px;height:37px;background:transparent none center/contain no-repeat;
+  border:0;border-radius:0;box-shadow:none;opacity:.94;pointer-events:none;
+}
+#elmaHomeWidgets [data-panel="transport"] .eg-service-card[data-service-target="transport-routes"]::before{
+  background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2048%2044%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22l%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23a0c840%22%2F%3E%3Cstop%20offset%3D%22.48%22%20stop-color%3D%22%236fa42f%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%232c5c1d%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M42%2042C32%2031%2025%2021%2015%2013%22%20fill%3D%22none%22%20stroke%3D%22%23577e29%22%20stroke-width%3D%221.1%22%2F%3E%3Cpath%20d%3D%22M31%2031C13%2033%208%2023%206%2011C22%2012%2032%2018%2031%2031Z%22%20fill%3D%22url(%23l)%22%2F%3E%3Cpath%20d%3D%22M34%2034C30%2017%2037%2010%2045%206C48%2020%2043%2029%2034%2034Z%22%20fill%3D%22url(%23l)%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23c5de7b%22%20stroke-width%3D%22.65%22%20opacity%3D%22.7%22%3E%3Cpath%20d%3D%22M29%2029L9%2014M21%2023L20%2017M21%2023L15%2023M35%2031L43%2010M38%2023L43%2019%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+}
+#elmaHomeWidgets [data-panel="transport"] .eg-service-card[data-service-target="transport-lines"]::before{
+  width:32px;height:48px;right:8px;bottom:6px;
+  background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2058%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22i%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23a0c840%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%236fa42f%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%232c5c1d%22%2F%3E%3C%2FlinearGradient%3E%3Cpath%20id%3D%22a%22%20d%3D%22M0%200C-6-2-8-7-7-12L-2-10L1-16L5-10L10-11C10-5%207-1%200%200Z%22%2F%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M34%2057C17%2047%2032%2040%2023%2029S13%2011%2026%201%22%20fill%3D%22none%22%20stroke%3D%22%23608d30%22%20stroke-width%3D%221.1%22%2F%3E%3Cpath%20d%3D%22M24%2032L14%2027M24%2044L32%2038M19%2019L10%2014%22%20stroke%3D%22%23608d30%22%20stroke-width%3D%22.8%22%2F%3E%3Cg%20fill%3D%22url(%23i)%22%3E%3Cuse%20href%3D%22%23a%22%20transform%3D%22translate(15%2028)%20rotate(-35)%20scale(.72)%22%2F%3E%3Cuse%20href%3D%22%23a%22%20transform%3D%22translate(31%2041)%20rotate(40)%20scale(.68)%22%2F%3E%3Cuse%20href%3D%22%23a%22%20transform%3D%22translate(12%2016)%20rotate(-35)%20scale(.55)%22%2F%3E%3Cuse%20href%3D%22%23a%22%20transform%3D%22translate(26%2010)%20rotate(35)%20scale(.48)%22%2F%3E%3C%2Fg%3E%3Cg%20stroke%3D%22%23b4d467%22%20stroke-width%3D%22.55%22%20fill%3D%22none%22%20opacity%3D%22.75%22%3E%3Cpath%20d%3D%22M15%2027L18%2019M31%2040L27%2032M12%2015L14%209%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+}
+@media(max-width:359px){
+  #elmaHomeWidgets [data-panel="transport"] .eg-service-card[data-service-target="transport-routes"]::before{width:33px;height:30px;right:7px;bottom:5px}
+  #elmaHomeWidgets [data-panel="transport"] .eg-service-card[data-service-target="transport-lines"]::before{width:27px;height:40px;right:6px;bottom:4px}
+}
